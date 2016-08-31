@@ -41,21 +41,26 @@
 
   <ul class="menu-root">
     <li class="active"><a data-default="true" href="/">Home</a>
-    </li><li class=""><a href="#manual.html" class="">Manuals</a>
     </li>
 </ul>
-  <ul class="menu-root">
-    <li class=""><a href="#features" class="">Features</a>
-        
-    </li><li class=""><a href="http://codemirror.net/#browsersupport" class="">Browser support</a>
-  </li></ul>
+  <ul class = "menu-root">
+        <li class=""><a href="/index.html#features" class="">Features</a>  
+        </li>
+      
+        <li class=""><a href="/index.html#browsersupport" class="">Browser support</a>
+        </li>    
+    </ul>
+    
+        <ul class = "menu-root">
+        <li><a class="" href="/playground.html">Playground</a>
+        </li>
+     </ul>
     
     <ul class="menu-root">
         <li><a href="/examples" class="active">Examples</a>
         </li>
             <ul class="menu-sub">
-                <li><a href="../simpleDraw">Simple Draw</a>
-                    </li>
+
                 <li><a href="../boolean">Boolean Process</a>
                     </li>
                 
@@ -64,12 +69,15 @@
                 
                 <li><a class="active" href=".">Duality</a></li>
 
-                   <ul class="menu-subsub">
-                        <li><a class="active" href="dualLine.html">Dual Line</a>
-                        </li>
-                        <li><a href="checkStabber.html">Check Stabber</a>
-                        </li>
-                    </ul>
+                <ul class="menu-subsub">
+                    <li><a class="active" href="dualLine.html">Dual Line</a>
+                    </li>
+                    <li><a href="checkStabber.html">Check Stabber</a>
+                    </li>
+                </ul>
+                
+               <li><a href="../smallestEnclosureDisk/">Smallest Enclosure Disk</a>
+
             </ul>
     </ul>
     
@@ -280,7 +288,7 @@ function drawDualLines(){
     var canvas_2 = document.getElementById('canvas-2');
     scope.setup(canvas_2)
     canvas_2.width = 420;
-    canvas_2.height = 400;
+    canvas_2.height = 480;
     
     drawCoordinateSystem();
     
@@ -303,12 +311,12 @@ drawDualLines();
     <div class="palette">
         <h2>Points on the coordinate system</h2>
         <div class="canvas">
-            <canvas width="420px" height="400px" id="canvas-1"></canvas>
+            <canvas width="420px" height="480px" id="canvas-1"></canvas>
         </div>
 
         <h2>Corresponding dual line</h2>
         <div class="canvas">
-            <canvas width="420px" height="400px" id="canvas-2"></canvas>
+            <canvas width="420px" height="480px" id="canvas-2"></canvas>
         </div>
     </div>
 </div>

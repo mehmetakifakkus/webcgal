@@ -3,7 +3,8 @@
 <head>
 
 <link rel="stylesheet" type="text/css" href="../assets/stylesheet1.css">
-
+<link rel="stylesheet" href="../assets/imagehover.min.css">
+<link rel="stylesheet" href="../assets/grids-min.css">
     
 </head>
 <body>
@@ -16,7 +17,6 @@
 
   <ul class="menu-root">
     <li class="active"><a data-default="true" href="/">Home</a>
-    </li><li class=""><a href="#manual.html" class="">Manuals</a>
     </li>
 </ul>
   <ul class = "menu-root">
@@ -24,14 +24,18 @@
         
     </li><li class=""><a href="http://codemirror.net/#browsersupport" class="">Browser support</a>
   </li></ul>
+    
+        <ul class = "menu-root">
+        <li><a class="" href="/playground.html">Playground</a>
+        </li>
+     </ul>
       
         <ul class="menu-root">
         <li><a href="/examples" class="active">Examples</a>
         </li>
             
             <ul class="menu-sub">
-                <li><a href="simpleDraw">Simple Draw</a>
-                    </li>
+
                 <li><a href="boolean">Boolean Process</a>
                     </li>                
                 <li><a href="L-monoton">L-monoton Polygon</a>
@@ -44,10 +48,85 @@
 </ul>
 </div>
     
-    <article>
-
+    <style>
         
-    </article>    
+        html, body, button, input, select, textarea, .pure-g, .pure-g [class*="pure-u"] {
+    font-family: "proxima-nova", "Helvetica", "Tahoma", "Geneva", "Arial", sans-serif;
+    font-weight: 400;
+}
+        
+    .demo {
+            padding: 10px;
+        }
+        
+        	textarea {
+		-webkit-box-sizing: padding-box;
+		box-sizing: padding-box;
+		// font-family: "Roboto";
+		font-size: 0.9em;
+		height: 38px;
+		overflow: hidden;
+		padding: 6px 0px;
+		resize: none;
+		text-align: center;
+		width: 100%;
+		border: 1px solid rgba(0, 0, 0, 0.2);
+	}
+        
+    </style>
+    
+<article>
+    
+    <div class="effects pure-g">
+        <div class = "demo pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
+            <figure class="imghvr-fade" style="background-color:#D14233;">
+                <img src="images/lmonoton_icon.png" width="300px">
+                <figcaption>
+                    What is being monotone for a polygon?
+                </figcaption>
+                <a href="/examples/L-monoton/index.html"></a>
+            </figure>
+            <textarea readonly="readonly">  What is being monotone for a polygon?</textarea>
+        </div>
+        
+        <div class = "demo pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
+            <figure class="imghvr-fade" style="background-color:#D14233;">
+                <img src="images/dualLine.png" width="300px">
+                <figcaption>
+                   What is duality for 2D?
+                </figcaption>
+                <a href="/examples/duality/dualLine.html"></a>
+            </figure>
+            <textarea readonly="readonly">  What is duality for 2D?</textarea>
+        </div> 
+        
+        <div class = "demo pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
+            <figure class="imghvr-fade" style="background-color:#D14233;">
+                <img src="images/stabber.png" width="300px">
+                <figcaption>
+                   What is duality for 2D?
+                </figcaption>
+                <a href="/examples/duality/checkStabber.html"></a>
+            </figure>
+            <textarea readonly="readonly">Checking line for stabbery?</textarea>
+        </div> 
+        
+        <div class = "demo pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
+            <figure class="imghvr-fade" style="background-color:#D14233;">
+                <img src="images/smallestDisk.png" height="240px">
+                <figcaption>
+                   Smallest Enclosing Disk
+                </figcaption>
+                <a href="/examples/smallestEnclosureDisk/index.html"></a>
+            </figure>
+            <textarea readonly="readonly">Smallest Enclosing Disk</textarea>
+        </div>         
+        
+    </div>       
+    
+</article>    
+
+    
 <script>
 
 </script>

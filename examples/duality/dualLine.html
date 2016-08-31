@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet" type="text/css" href="../../assets/stylesheet1.css">
+<link rel="icon" href="../../assets/favicon.ico" type="image/x-icon"/>
+<link rel="stylesheet" href="../../assets/codeEdit.css"/>
+<link rel="shortcut icon" href="favicon.ico"/>
+<script src="../../assets/jquery.js"></script>
+<script src="../../assets/paper.js"></script>
+<script src="../../assets/codemirror.js"></script>
+<script src="../../assets/scripts.js"></script>
+    
+    <style>
+    
+.palette {
+    -webkit-column-count: 2; /* Chrome, Safari, Opera */
+    -moz-column-count: 2; /* Firefox */
+    column-count: 2;
+    -webkit-column-gap: 10px; /* Chrome, Safari, Opera */
+    -moz-column-gap: 10px; /* Firefox */
+    column-gap: 10px;
+   // -webkit-column-rule-style: solid; /* Chrome, Safari, Opera */
+   // -moz-column-rule-style: solid; /* Firefox */
+  //  column-rule-style: solid;
+}    
+    
+        canvas { border: 2px solid black; }
+    
+    </style>
+    
+    
+</head>
+<body>
+
+<div id="nav">
+    <a href="/">
+        <!--          <h1>web-cgal</h1>-->
+            <img id="logo" width ="100px" height ="100px" src="../../logo.svg"/>
+    </a>
+
+  <ul class="menu-root">
+    <li class="active"><a data-default="true" href="/">Home</a>
+    </li><li class=""><a href="#manual.html" class="">Manuals</a>
+    </li>
+</ul>
+  <ul class="menu-root">
+    <li class=""><a href="#features" class="">Features</a>
+        
+    </li><li class=""><a href="http://codemirror.net/#browsersupport" class="">Browser support</a>
+  </li></ul>
+    
+    <ul class="menu-root">
+        <li><a href="/examples" class="active">Examples</a>
+        </li>
+            <ul class="menu-sub">
+                <li><a href="../simpleDraw">Simple Draw</a>
+                    </li>
+                <li><a href="../boolean">Boolean Process</a>
+                    </li>
+                
+                <li><a href="../L-monoton">L-monoton Polygon</a>
+                    </li>
+                
+                <li><a class="active" href=".">Duality</a></li>
+
+                   <ul class="menu-subsub">
+                        <li><a class="active" href="dualLine.html">Dual Line</a>
+                        </li>
+                        <li><a href="checkStabber.html">Check Stabber</a>
+                        </li>
+                    </ul>
+            </ul>
+    </ul>
+    
+</div>
+    
+<article>
+
+<div class="paperscript">
+<div class="buttons">
+<div class="button run">Source</div>
+</div>
+<script type="text/paperscript" canvas="canvas-1">
+//end-script///////////////////////////////////////////////////////////////////////////////////////
+
+
+points = [];
+var origin = new Point(240, 240);
+
+var counter = -1;
+var definedPoints = [[360, 180],[300, 120],[180, 120]];
+
+colors = ['red', 'blue', 'green', 'yellow', 'magenta', 'black', 'grey'];
+
+var booleanStyle = {
+    strokeColor: new Color(0, 0, 0),
+    strokeWidth: 1.5
+};
+
+var drawables = [];
+
+var segment, path;
+//var hitOptions = {segments: true, fill: true, stroke:true, tolerance: 15};
+var hitOptions = {fill: true, tolerance: 15};
+
+function onMouseMove(event) { 
+	project.activeLayer.selected = false;
+    if (event.item)
+    {   
+        if(event.item.name == 'point')
+        {
+            event.item.bringToFront()
+            event.item.selected = true;
+        }
+    }
+}
+
+function onMouseDown(event) { 
+
+    segment = path = null;
+    
+	var hitResult = project.hitTest(event.point, hitOptions);
+    if (hitResult){
+		path = hitResult.item;
+        if (hitResult.type == 'segment')
+           segment = hitResult.segment
+    }
+    
+     if (event.modifiers.shift) { // if control is pressed add new point
+        points.push(new Path.Circle({ name: 'point', center: event.point, radius: 7, fillColor: colors[counter++%6]}));
+        drawDualLines();
+    }
+}
+
+function onMouseDrag(event) {     
+    if (segment)
+		segment.point += event.delta;
+	else if (path) 
+		path.position += event.delta;
+    
+    drawDualLines();
+ }
+
+///////////////////////////////   vector processes   //////////////////////////////////
+
+function dotProduct(v1, v2){
+    return v1.x * v2.x + v1.y * v2.y;
+}
+
+function crossProduct(v1, v2){
+    return v1.x * v2.y - v2.x * v1.y;
+}
+
+//////////////////////////////////////  Classes  //////////////////////////////////////
+
+function PolygonPoint(p){
+
+    this.point = p;
+    this.type = ''; // convex, concave
+    
+    this.v1; //incident vector1;
+    this.v2; //incident vector2;
+    
+    drawables.push(new PointText({ point: p  +[5, -5], fontSize: '16px', fillColor: 'black', content: ' '+ k}));     
+};
+
+function Pie(origin, from, through, to){
+
+    if (typeof Pie.counter == 'undefined')
+        Pie.counter = -1;
+    
+    this.id = Pie.counter++; // newly created vertex will have different id
+    this.through = through;
+    
+    var arc = drawArc(origin, from, through, to);
+    var pol = drawLines(origin, from, to);
+    
+    var un = arc.unite(pol); // they must be "closed path" for any boolean operation
+    
+    un.style = booleanStyle
+    un.fillColor = colors[Pie.counter];
+    un.fillColor.alpha = 0.4;
+    
+    this.path = un;
+};
+
+///////////////////////////////////////////     Visual Part      ////////////////////////////////////////////////
+
+function clear()
+{
+    for(i=0; i<drawables.length; i++) // it is for lines, circles, texts etc.
+        drawables[i].remove();
+
+    Pie.counter = -1;
+}
+
+function drawArc(origin, from, through, to){
+    var curve = new Path.Arc({from: origin + from, through: origin + through, to: origin + to, dashArray: [1,2] });
+    curve.closed = true;
+    return curve;
+}
+
+function drawLines(origin, v1, v2){
+    var innerPart = new Path({dashArray: [1,2]});    
+    innerPart.add(origin);
+    innerPart.add(origin + v1);
+    innerPart.add(origin + v2);
+    innerPart.closed = true;
+    
+    return innerPart;
+}
+
+function convertToDualCoord(p){
+    var temp = p.clone();
+    temp.y = 480 - temp.y;
+    temp  -= new Point(240, 240);
+    temp /= 60;
+    
+    //console.log(temp);
+    return temp;
+}
+
+function convertToRealCoord(p){
+    var temp = p.clone();
+    temp *= 60;
+    temp += new Point(240, 240);
+    temp.y = 480 - temp.y;
+    
+    //console.log(temp);
+    return temp;
+}
+
+function drawCoordinateSystem(){
+    
+    new Path.Line({from: [origin.x, 0], to:[origin.x, 490], strokeColor:'black', strokeWidth: 2})
+    new Path.Line({from: [0, origin.y], to:[490, origin.y], strokeColor:'black', strokeWidth: 2})
+    
+    for(i = -4; i <= 4; i++)
+       new Path.Line({from: convertToRealCoord(new Point(-4, i)), to: convertToRealCoord(new Point(4, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
+ 
+    for(i = -4; i <= 4; i++)
+       new Path.Line({from: convertToRealCoord(new Point(i, -4)), to: convertToRealCoord(new Point(i, 4)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})  
+}
+drawCoordinateSystem();
+
+function enlargeLineEndings(p1, p2, coeff){
+    return p1 * coeff  + p2 * (1 - coeff);     
+}
+
+function drawDualLine(p, color){
+
+    console.info(convertToDualCoord(p));
+    
+    var yCoorInter = -p.y;
+    var xCoorInter = p.y/p.x;
+    
+    var p1 = new Point(0, yCoorInter);
+    var p2 = new Point(xCoorInter, 0);
+    drawables.push(new Path.Line({from: convertToRealCoord(enlargeLineEndings(p1, p2, -999)), to: convertToRealCoord(enlargeLineEndings(p1, p2, 999)), strokeColor: color, strokeWidth: 2}));
+}
+
+function drawPoints(){
+    for(i=0; i<definedPoints.length; i++)
+        points.push(new Path.Circle({ name: 'point', center: definedPoints[i], radius: 7, fillColor: colors[counter++%6]}));       
+}
+
+
+///////////////////////////////////////////////    Main   /////////////////////////////////////////////////
+
+var canvas = document.getElementById('myCanvas');
+drawPoints();
+
+function onFrame(event){}
+
+// it is on another scope
+function drawDualLines(){
+    
+    var scope = new paper.PaperScope();
+    var canvas_2 = document.getElementById('canvas-2');
+    scope.setup(canvas_2)
+    canvas_2.width = 420;
+    canvas_2.height = 400;
+    
+    drawCoordinateSystem();
+    
+    
+    var pies = []; // stores each pie
+
+    var origin = new Point(160, 120);  
+    
+    for(i=0; i<points.length; i++)
+    {
+        drawDualLine(convertToDualCoord(points[i].position), points[i].fillColor);
+    }
+    
+    scope.view.draw();
+}
+
+drawDualLines();
+</script>
+    
+    <div class="palette">
+        <h2>Points on the coordinate system</h2>
+        <div class="canvas">
+            <canvas width="420px" height="400px" id="canvas-1"></canvas>
+        </div>
+
+        <h2>Corresponding dual line</h2>
+        <div class="canvas">
+            <canvas width="420px" height="400px" id="canvas-2"></canvas>
+        </div>
+    </div>
+</div>
+    
+    <style>
+    i{
+        font-size: 1.1em;  
+        color:brown;
+        //font-weight: bold;
+     }
+    </style>
+
+    <section id="features">
+    <h2>What is duality for a point?</h2>
+    <p>A point in the plane has two parameters: its x-coordinate and its y-coordinate.
+A (non-vertical) line in the plane also has two parameters: its slope and its
+intersection with the y-axis. Therefore we can map a set of points to a set of
+lines, and vice versa, in a one-to-one manner.</p>
+
+    <p>        
+   This application shows dual of a point as a line in xy-coordinate system.
+
+    You will immediately see resulting line at the right pane. At the right pane, figure shows corresponding line
+</p>
+
+    <p>
+You will immediately see resulting line orientation at the right pane. At the right pane, above figure shows inner angle of concave points and below is their intersection.
+    </p>
+    </section>
+</article>    
+
+</body>
+</html>
+

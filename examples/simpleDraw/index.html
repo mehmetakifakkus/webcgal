@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<link rel="stylesheet" type="text/css" href="../../assets/stylesheet1.css">
+<link rel="stylesheet" href="../../assets/codeEdit.css"/>
+
+<script src="../../assets/jquery.js"></script>
+<script src="../../assets/paper.js"></script>
+<script src="../../assets/codemirror.js"></script>
+<script src="../../assets/scripts.js"></script>    
+    
+</head>
+<body>
+
+<div id="nav">
+    <a href="/">
+        <!--          <h1>web-cgal</h1>-->
+            <img id="logo" width ="100px" height ="100px" src="../../logo.svg"/>
+    </a>
+
+  <ul class="menu-root">
+    <li class="active"><a data-default="true" href="/">Home</a>
+    </li><li class=""><a href="#manual.html" class="">Manuals</a>
+    </li>
+</ul>
+  <ul class = "menu-root">
+    <li class=""><a href="#features" class="">Features</a>
+        
+    </li><li class=""><a href="http://codemirror.net/#browsersupport" class="">Browser support</a>
+  </li></ul>
+      
+    
+    
+        <ul class="menu-root">
+        <li><a href="/examples" class="active">Examples</a>
+        </li>
+            
+            <ul class="menu-sub">
+                <li><a class="active" href=".">Simple Draw</a>
+                    </li>
+                <li><a href="../boolean">Boolean Process</a>
+                    </li>                
+                <li><a href="../L-monoton/">L-monoton Polygon</a>
+                    </li>                
+                <li><a href="../duality/">Duality</a>
+                    </li>
+            </ul>
+</ul>
+</div>
+    
+    <article>
+        
+<!--        <div class="paperscript">-->
+<div class="paperscript split">  
+<div class="buttons">
+<div class="button run">Source</div>
+</div>
+<script type="text/paperscript" canvas="canvas-1">
+var colors = ['red', 'blue', 'yellow', 'magenta', 'green'];
+var drawables = [], segment = null, path = null, polPoint = null, polygon = null;
+var hitOptions = {segments: true, fill: true, stroke: true, tolerance: 10};
+
+function onMouseMove(event) { 
+	project.activeLayer.selected = false;
+    //if (event.item)
+      //  event.item.bringToFront();
+}
+
+function onMouseDown(event) { 
+
+    segment = path = polPoint =  null;
+    
+	var hitResult = project.hitTest(event.point, hitOptions);
+    if (hitResult){                                               //console.log(event.item.name)
+        if(event.item.name == 'polygon')
+            path = hitResult.item;
+        else if (event.item.name.startsWith('polygonPoint'))
+        {
+            res = event.item.name.split('-')
+            polPoint = event.item;
+        }
+        else if (hitResult.type == 'segment')
+            segment = hitResult.segment;
+    }
+}
+
+function onMouseDrag(event) {     
+    if (segment)
+		segment.point += event.delta;
+	else if (path)
+        polygon.changePosition(event.delta);
+    if (polPoint)
+        polygon.changePosition2(polPoint, event.delta);
+ }
+
+////////////////////////////////////     Visual Part      ///////////////////////////////
+
+function clear(){
+    for(i=0; i<drawables.length; i++) // it is for lines, circles, texts etc.
+        drawables[i].remove();
+    PolygonPoint.counter = 0;
+}
+
+Array.prototype.clear = function() {
+  while (this.length) 
+    this.pop();
+};
+
+//////////////////////////////////////  Classes  ////////////////////////////////////////
+
+function Polygon(){
+
+    this.points = [];
+    this.path = null;
+    
+    this.addPoint = function(p){
+        this.points.push(new PolygonPoint(p));  
+    }
+        
+    this.getPoint = function(name){
+        for(var i=0; i<this.points.length; i++)
+            if(this.points[i].path.name == name)
+                return this.points[i];
+    }
+    
+    this.changePosition = function(delta){
+        for(var i=0; i < this.points.length; i++)
+            this.points[i].point += delta;
+            
+        this.draw();
+    }
+    
+    this.changePosition2 = function(polPoint, delta){
+    
+        var res = polygon.getPoint(polPoint.name);
+        res.point += delta;        
+    
+        this.draw();
+    }
+    
+    this.draw = function(){ // silip tekrar cizdirir
+        clear();
+        for(var i=0; i<this.points.length; i++)
+            this.points[i].draw(i);  
+            
+        this.path = new Path({name: 'polygon', fillColor: 'white', strokeColor: 'black', strokeWidth: 2});
+        this.path.sendToBack();
+        this.path.closed = true;
+        
+        for(var i=0; i < this.points.length; i++)
+            this.path.add(this.points[i].point);
+        
+        drawables.push(this.path);
+    };
+    
+    this.sort = function(){
+    
+        this.points.sort(function(a, b) {return a.point.x - b.point.x;});
+    
+    }
+};
+
+
+function PolygonPoint(p){
+
+    this.point = p;
+    this.path = null;
+    
+    var tempObj = this;
+    
+    this.draw = function(id){
+        drawables.push(new PointText({ point: this.point + [5, -5], fontSize: '16px', fillColor: 'black', content: ' '+ id}));
+        
+        tempObj.path = new Path.Circle({ name: 'polygonPoint-'+id, center: this.point, radius: 5, fillColor: 'black'});
+        drawables.push(tempObj.path);
+    };
+};
+
+
+function createRandomPolygon(){ 
+
+    var sel = Math.floor(Math.random() * 3)
+    var polygons = [
+                    [[350.5,104],[300.5,231],[326.5,359],[236.5,335],[37.5,194],[181.5,161],[257.5,57]],
+                    [[401.5,104],[450.5,246],[386.5,379],[236.5,335],[97.5,194],[287.5,222],[257.5,57]],
+                    [[432.5,100],[481.5,242],[417.5,375],[267.5,331],[128.5,190],[200.5,90],[288.5,53]]
+                   ];
+                              
+    var pols = polygons[sel];                
+    var polygon = new Polygon();
+    
+    for(var k=0; k < pols.length; k++)
+        polygon.addPoint(new Point(pols[k]));
+    
+    return polygon;
+}
+
+//end-script
+var polygon = createRandomPolygon(); // first create a random polygon, then modify by dragging
+//polygon.draw();
+//polygon.sort();
+polygon.draw();
+
+</script>
+            
+    <div class="canvas">
+        <canvas width="950px" height="800px" id="canvas-1"></canvas>
+    </div>
+    
+</div>
+        
+
+        
+        
+    </article>    
+<script>
+
+</script>
+</body>
+</html>
+

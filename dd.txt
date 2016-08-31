@@ -1,0 +1,21 @@
+var text = new PointText(new Point(200, 150));
+text.fontFamily = 'verdana'
+text.justification = 'center';
+text.strokeColor = 'black';
+text.fillColor = 'white';
+text.fillColor.alpha = 0;
+text.content = 'web';
+text.fontSize = 90
+
+
+var text2 = new PointText(new Point(200, 180));
+text2.fontFamily = 'verdana'
+text2.justification = 'center';
+text2.strokeColor = '#166ac6';
+text2.fillColor = 'white';
+text2.fillColor.alpha = 0
+text2.content = 'cgal';
+text2.fontSize = 120
+
+var ints = text.intersect(text2);
+ints.selected = true

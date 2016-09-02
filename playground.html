@@ -62,10 +62,9 @@
     
 <div class="canvas up">
     <div class="left-div">
-        <canvas width="600px" height="420px" id="canvas-1"></canvas>
+        <canvas width="892px" height="420px" id="canvas-1"></canvas>
     </div>
     <div class = "right-div" id="console">
-        &nbsp;
     </div>
 </div>
     
@@ -232,7 +231,9 @@ function print(str){
     logStr = logStr.concat(str+'\n');
 
     var place = document.getElementById("console");
-    $(place.childNodes[1]).remove()
+    place.style = "visibility:visible"
+
+    $(place.childNodes[0]).remove()
     editor = createCodeMirror2(place, {}, logStr);   
 }
 
@@ -241,7 +242,9 @@ function clear(){
     logStr = '';
 
     var place = document.getElementById("console");
-    $(place.childNodes[1]).remove()
+    place.style = "visibility:hidden"
+
+    $(place.childNodes[0]).remove()
     editor = createCodeMirror2(place, {}, logStr);   
 }
 
@@ -253,20 +256,26 @@ function convertToRealCoord(p){
     temp += new Point(300, 210);
     temp.y = 600 - temp.y;
     
-    //console.log(temp);
     return temp;
 }
 
 function drawCoordinateSystem(){ 
-    new Path.Line({name: 'x-coord', from: [0, origin.y], to:[600, origin.y], strokeColor:'black', strokeWidth: 2})
+    new Path.Line({name: 'x-coord', from: [0, origin.y], to:[892, origin.y], strokeColor:'black', strokeWidth: 2})
     new Path.Line({name: 'y-coord', from: [origin.x, 0], to:[origin.x, 420], strokeColor:'black', strokeWidth: 2})
     
     for(i = -7; i <= 10; i++)
-       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(-7, i)), to: convertToRealCoord(new Point(7, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
+       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(-7, i)), to: convertToRealCoord(new Point(10, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
  
-    for(i = -7; i <= 7; i++)
+    for(i = -7; i <= 10; i++)
        new Path.Line({name: 'coord', from: convertToRealCoord(new Point(i, -7)), to: convertToRealCoord(new Point(i, 7)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})  
 }
+
+if(logStr.length == 0)
+    clear();
+
+
+
+
 
 //end-script
 drawCoordinateSystem();

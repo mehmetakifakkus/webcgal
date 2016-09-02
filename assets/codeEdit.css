@@ -158,7 +158,10 @@ span.cm-attribute {
     margin-left: 600px;
     width: 294px;
     height: 420px;
-    border-left: 1px solid #999;
+    //border-left: 1px solid #999;
+    display: block;
+    visibility: hidden;
+
     
 }
 

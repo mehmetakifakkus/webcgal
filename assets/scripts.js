@@ -243,6 +243,8 @@ behaviors.paperscript = function() {
 };
 
 function createCodeMirror(place, options, source) {
+    var dd = typeof source.text == 'function' ? source.text() : source;
+    
 	return new CodeMirror(place, $.extend({}, {
 		mode: 'javascript',
 		lineNumbers: true,
@@ -251,7 +253,7 @@ function createCodeMirror(place, options, source) {
 		indentUnit: 4,
 		indentWithTabs: true,
 		tabMode: 'shift',
-		value: source.match(
+		value: dd.match(
 			// Remove first & last empty line
 			/^\s*?[\n\r]?([\u0000-\uffff]*?)[\n\r]?\s*?$/)[1]
 	}, options));
@@ -270,6 +272,7 @@ function createCode(element) {
 		mode: element.attr('mode') || 'javascript',
 		readOnly: true
 	}, element);
+
 	if (highlight) {
 		var highlights = highlight.split(',');
 		for (var i = 0, l = highlights.length; i < l; i++) {
@@ -318,7 +321,8 @@ function createPaperScript(element) {
 		animateExplain,
 		explain = $('.explain', element).orNull(),
 		source = $('<div class="source hidden"/>').insertBefore(script);
-
+//debugger
+    
 	if (explain) {
 		explain.addClass('hidden');
 		var text = explain.html().replace(/http:\/\/([\w.]+)/g, function(url, domain) {
@@ -403,6 +407,7 @@ function createPaperScript(element) {
 					edited = true;
 				}
 			}, result[1]);
+            
 		}
 	}
 

@@ -46,8 +46,30 @@
     
     <article>
         
-<!--        <div class="paperscript">-->
+
+    
+
+        
+<!--
+<pre class="code" start="3">
+    var myPath = new Path();
+    myPath.add(myPoint);
+</pre>
+-->
+
+<!--        <div class="paperscript">-->        
 <div class="paperscript split">  
+    
+<div class="canvas up">
+    <div class="left-div">
+        <canvas width="600px" height="420px" id="canvas-1"></canvas>
+    </div>
+    <div class = "right-div" id="console">
+        &nbsp;
+    </div>
+</div>
+    
+    
 <div class="buttons">
 <div class="button run">Source</div>
 </div>
@@ -91,7 +113,7 @@ function onMouseDrag(event) {
 
 ////////////////////////////////////     Visual Part      ///////////////////////////////
 
-function clear(){
+function clearDrawables(){
     for(i=0; i<drawables.length; i++) // it is for lines, circles, texts etc.
         drawables[i].remove();
     PolygonPoint.counter = 0;
@@ -121,7 +143,7 @@ function Polygon(){
     
     this.changePosition = function(delta){
         for(var i=0; i < this.points.length; i++)
-            this.points[i].point += delta;
+            this.points[i].pos += delta;
             
         this.draw();
     }
@@ -129,13 +151,13 @@ function Polygon(){
     this.changePosition2 = function(polPoint, delta){
     
         var res = polygon.getPoint(polPoint.name);
-        res.point += delta;        
+        res.pos += delta;        
     
         this.draw();
     }
     
     this.draw = function(){ // silip tekrar cizdirir
-        clear();
+        clearDrawables();
         for(var i=0; i<this.points.length; i++)
             this.points[i].draw(i);  
             
@@ -144,7 +166,7 @@ function Polygon(){
         this.path.closed = true;
         
         for(var i=0; i < this.points.length; i++)
-            this.path.add(this.points[i].point);
+            this.path.add(this.points[i].pos);
         
         drawables.push(this.path);
     };
@@ -156,22 +178,24 @@ function Polygon(){
     }
 };
 
-
 function PolygonPoint(p){
 
-    this.point = p;
+    this.pos = p;
     this.path = null;
     
     var tempObj = this;
     
     this.draw = function(id){
-        drawables.push(new PointText({ point: this.point + [5, -5], fontSize: '16px', fillColor: 'black', content: ' '+ id}));
+        drawables.push(new PointText({ point: this.pos + [5, -5], fontSize: '16px', fillColor: 'black', content: ' '+ id}));
         
-        tempObj.path = new Path.Circle({ name: 'polygonPoint-'+id, center: this.point, radius: 5, fillColor: 'black'});
+        tempObj.path = new Path.Circle({ name: 'polygonPoint-'+id, center: this.pos, radius: 5, fillColor: 'black'});
         drawables.push(tempObj.path);
     };
+    
+    this.toString = function dogToString() {
+        return ''+this.pos;  
+    };
 };
-
 
 function createRandomPolygon(){ 
 
@@ -191,27 +215,113 @@ function createRandomPolygon(){
     return polygon;
 }
 
+function createCodeMirror2(place, options, source) {
+
+	return new CodeMirror(place, $.extend({}, {
+		mode: 'javascript',
+		tabSize: 4, indentUnit: 2, readOnly: true,
+		value: source.match(
+			// Remove first & last empty line
+			/^\s*?[\n\r]?([\u0000-\uffff]*?)[\n\r]?\s*?$/)[1]
+	}, options));
+}
+
+logStr = '';
+function print(str){
+
+    logStr = logStr.concat(str+'\n');
+
+    var place = document.getElementById("console");
+    $(place.childNodes[1]).remove()
+    editor = createCodeMirror2(place, {}, logStr);   
+}
+
+function clear(){
+
+    logStr = '';
+
+    var place = document.getElementById("console");
+    $(place.childNodes[1]).remove()
+    editor = createCodeMirror2(place, {}, logStr);   
+}
+
+var origin = new Point(300, 210);
+
+function convertToRealCoord(p){
+    var temp = p.clone();
+    temp *= 60;
+    temp += new Point(300, 210);
+    temp.y = 600 - temp.y;
+    
+    //console.log(temp);
+    return temp;
+}
+
+function drawCoordinateSystem(){ 
+    new Path.Line({name: 'x-coord', from: [0, origin.y], to:[600, origin.y], strokeColor:'black', strokeWidth: 2})
+    new Path.Line({name: 'y-coord', from: [origin.x, 0], to:[origin.x, 420], strokeColor:'black', strokeWidth: 2})
+    
+    for(i = -7; i <= 10; i++)
+       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(-7, i)), to: convertToRealCoord(new Point(7, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
+ 
+    for(i = -7; i <= 7; i++)
+       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(i, -7)), to: convertToRealCoord(new Point(i, 7)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})  
+}
+
 //end-script
+drawCoordinateSystem();
+
 var polygon = createRandomPolygon(); // first create a random polygon, then modify by dragging
-//polygon.draw();
 //polygon.sort();
 polygon.draw();
 
+function onMouseMove(){
+	clear();
+	for(var i=0; i<polygon.points.length; i++)
+    	print("Point-"+i+": " + polygon.points[i])
+}
+
+
+
+
+
+// end of script
+
 </script>
-            
-    <div class="canvas">
-        <canvas width="950px" height="480px" id="canvas-1"></canvas>
-    </div>
-    
+
+   
 </div>
         
+</article>    
 
-        
-        
-    </article>    
+
+    
+</body>
+
 <script>
 
+//function createCodeMirror2(place, options, source) {
+//	return new CodeMirror(place, $.extend({}, {
+//		mode: 'javascript',
+//		tabSize: 4, indentUnit: 4, readOnly: true,
+//		value: source.match(
+//			// Remove first & last empty line
+//			/^\s*?[\n\r]?([\u0000-\uffff]*?)[\n\r]?\s*?$/)[1]
+//	}, options));
+//}
+//
+//var deneme = `var pols = polygons[sel];                
+//var polygon = new Polygon();
+//`;    
+//    
+//var place = document.getElementById("console");
+//editor = createCodeMirror2(place, {}, deneme);   
+//    
+//    
+   
+    
 </script>
-</body>
+
+
 </html>
 

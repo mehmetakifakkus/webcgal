@@ -137,9 +137,32 @@ span.cm-attribute {
     line-height: 0; }
   .paperscript .canvas.border canvas {
     border: 1px solid #999; }
-  .paperscript.split .canvas {
+
+  .paperscript.split .canvas.bottom {
     border: 1px solid #999;
     border-top: 0; }
+  .paperscript.split .canvas.up {
+    border: 1px solid #999;
+    border-bottom: 0; }
+
+
+
+
+  .paperscript.split .canvas.up .left-div{
+    float: left;
+    width: 510px;
+    height: 420px;
+    margin-right: 2px;
+}
+  .paperscript.split .canvas.up .right-div{
+    margin-left: 600px;
+    width: 294px;
+    height: 420px;
+    border-left: 1px solid #999;
+    
+}
+
+
 
     
         /* Helpers */

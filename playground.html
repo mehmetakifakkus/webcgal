@@ -84,14 +84,12 @@ function onMouseDown(event) {
     segment = path = polPoint =  null;
     
 	var hitResult = project.hitTest(event.point, hitOptions);
-    if (hitResult){                                               //console.log(event.item.name)
-        if(event.item.name == 'polygon')
-            path = hitResult.item;
-        else if (event.item.name.startsWith('polygonPoint'))
-        {
-            res = event.item.name.split('-')
+    if (hitResult){                       //console.log(event.item.name)
+            
+        if (event.item.name.startsWith('polygonPoint'))
             polPoint = event.item;
-        }
+        else if(event.item.name.startsWith('polygon'))
+            path = hitResult.item;
         else if (hitResult.type == 'segment')
             segment = hitResult.segment;
     }
@@ -101,7 +99,9 @@ function onMouseDrag(event) {
     if (segment)
 		segment.point += event.delta;
 	else if (path)
-        polygon.changePosition(event.delta);
+        {
+            polygon.changePosition(event.delta);
+        }
     if (polPoint)
         polygon.changePosition2(polPoint, event.delta);
  }
@@ -122,55 +122,51 @@ Array.prototype.clear = function() {
 
 //////////////////////////////////////  Classes  ////////////////////////////////////////
 
-function Polygon(){
+function Polygon(name){
 
-    this.points = [];
+    //if ((typeof Polygon.id == 'undefined'))
+      //  Polygon.id = 0;
+    
+    this.name = name;
+    this.points = new Object();
     this.path = null;
+    var tempObj = this;
     
     this.addPoint = function(p){
-        this.points.push(new PolygonPoint(p));  
-    }
-        
-    this.getPoint = function(name){
-        for(var i=0; i<this.points.length; i++)
-            if(this.points[i].path.name == name)
-                return this.points[i];
+        var polPoint = new PolygonPoint(p);
+        tempObj.points['polygonPoint_' + Object.keys(tempObj.points).length] = polPoint;
     }
     
     this.changePosition = function(delta){
-        for(var i=0; i < this.points.length; i++)
-            this.points[i].pos += delta;
-            
-        this.draw();
+        for (var i in tempObj.points) 
+            tempObj.points[i].pos += delta;     
+        tempObj.draw();
     }
     
     this.changePosition2 = function(polPoint, delta){
-    
-        var res = polygon.getPoint(polPoint.name);
-        res.pos += delta;        
-    
-        this.draw();
+        tempObj.points[polPoint.name].pos += delta;    
+        tempObj.draw();
     }
     
     this.draw = function(){ // silip tekrar cizdirir
+    
         clearDrawables();
-        for(var i=0; i<this.points.length; i++)
-            this.points[i].draw(i);  
+        
+        for (var i in tempObj.points)           //for(var i=0; i<tempObj.points.length; i++) // this is array version
+            tempObj.points[i].draw(i);
             
-        this.path = new Path({name: 'polygon', fillColor: 'white', strokeColor: 'black', strokeWidth: 2});
-        this.path.sendToBack();
-        this.path.closed = true;
+        tempObj.path = new Path({name: 'polygon_'+this.name, fillColor: 'white', strokeColor: 'black', strokeWidth: 2});
+        tempObj.path.sendToBack();
+        tempObj.path.closed = true;
         
-        for(var i=0; i < this.points.length; i++)
-            this.path.add(this.points[i].pos);
+        for (var i in tempObj.points) 
+            tempObj.path.add(tempObj.points[i].pos);
         
-        drawables.push(this.path);
+        drawables.push(tempObj.path);
     };
     
     this.sort = function(){
-    
-        this.points.sort(function(a, b) {return a.point.x - b.point.x;});
-    
+        tempObj.points.sort(function(a, b) {return a.point.x - b.point.x;});
     }
 };
 
@@ -182,15 +178,17 @@ function PolygonPoint(p){
     var tempObj = this;
     
     this.draw = function(id){
-        drawables.push(new PointText({ point: this.pos + [5, -5], fontSize: '16px', fillColor: 'black', content: ' '+ id}));
+        drawables.push(new PointText({ point: tempObj.pos + [5, -5], fontSize: '16px', fillColor: 'black', content: ' '+ parseInt(id.split('_')[1])}));
         
-        tempObj.path = new Path.Circle({ name: 'polygonPoint-'+id, center: this.pos, radius: 5, fillColor: 'black'});
+        tempObj.path = new Path.Circle({ name: id, center: tempObj.pos, radius: 5, fillColor: 'black'});
         drawables.push(tempObj.path);
     };
     
-    this.toString = function dogToString() {
-        return ''+this.pos;  
+    this.toString = function ToString() {
+        return ''+tempObj.pos;  
     };
+    
+    return this;
 };
 
 function createRandomPolygon(){ 
@@ -203,7 +201,7 @@ function createRandomPolygon(){
                    ];
                               
     var pols = polygons[sel];                
-    var polygon = new Polygon();
+    var polygon = new Polygon('random');
     
     for(var k=0; k < pols.length; k++)
         polygon.addPoint(new Point(pols[k]));
@@ -215,51 +213,53 @@ polys = project.importSVG(document.getElementById("polygons"));
 for(var t=0; t<polys.children.length; t++)
     polys.children[t].visible = false;
 
-function createPolygon(str){ 
+function createPolygon(str, position, scaleFactor ){ 
     
-    web = polys.children[str];
-    web.visible = true;
+    var web = polys.children[str];
+    if(typeof web == 'undefined')
+    {
+        alert('not defined polygon')
+        return;
+    }
+    
+    web.visible = false;
     web.style = {fillColor: 'white', strokeColor: 'black', strokeWidth: 2}
 
-    web.position = [250, 210]
-    //web.scale(1)
+    web.position = position || [250, 210];
+    web.scale(scaleFactor || 1);
 
-    return web;
+    var polygon = new Polygon(str);
+
+    for(var k=0; k < web.children[0].segments.length; k++)
+    {
+        var p = new Point(web.children[0].segments[k].point);
+        polygon.addPoint(p);
+    }
+    
+    return polygon;
 }
 
 
 function createCodeMirror2(place, options, source) {
-
 	return new CodeMirror(place, $.extend({}, {
 		mode: 'javascript',
 		tabSize: 4, indentUnit: 2, readOnly: true,
-		value: source.match(
-			// Remove first & last empty line
-			/^\s*?[\n\r]?([\u0000-\uffff]*?)[\n\r]?\s*?$/)[1]
+		value: source,
 	}, options));
 }
 
 logStr = '';
 function print(str){
-
     logStr = logStr.concat(str+'\n');
-
+    
     var place = document.getElementById("console");
-    place.style = "visibility:visible"
-
     $(place.childNodes[0]).remove()
     editor = createCodeMirror2(place, {}, logStr);   
 }
 
 function clear(){
-
     logStr = '';
-
-    var place = document.getElementById("console");
-    place.style = "visibility:hidden"
-
-    $(place.childNodes[0]).remove()
-    editor = createCodeMirror2(place, {}, logStr);   
+    $(document.getElementById("console").childNodes[0]).remove()
 }
 
 var origin = new Point(300, 210);
@@ -294,18 +294,21 @@ if(logStr.length == 0)
 //end-script
 drawCoordinateSystem();
 
-var polygon = createRandomPolygon(); // first create a random polygon, then modify by dragging
+polygon = createRandomPolygon(); // first create a random polygon, then modify by dragging
+polygon = createPolygon('square'); // first create a random polygon, then modify by dragging
+
 //polygon.sort();
 polygon.draw();
 
 function onMouseMove(){
 	clear();
-	for(var i=0; i<polygon.points.length; i++)
-    	print("Point-"+i+": " + polygon.points[i])
+	for (var i in polygon.points)
+		print(i+": " + polygon.points[i])
 }
 
-dd = createPolygon('triangle_set')
-dd.translate([150,0])
+//dd = createPolygon('square')
+//dd.draw()
+//dd.translate([150,0])
 
 
 
@@ -318,7 +321,7 @@ dd.translate([150,0])
         
 </article>    
 
-<svg id = "polygons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="250" visibility="hidden">
+<svg id = "polygons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="5" visibility="hidden">
 
     <g id="star">    
         <path d="M 333.547 110.616 L 376.019 223.374 L 505.349 225.806 L 402.268 297.927 L 439.726 412.188 L 333.547 344.003 L 227.368 412.188 L 264.826 297.927 L 161.745 225.806 L 291.075 223.374 Z" data-bx-shape="star 333.547 277.321 180.643 166.705 0.4 5 1@f58dba71" style="fill: none; stroke: rgb(0, 0, 0); stroke-width: 2;"></path>

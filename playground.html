@@ -69,6 +69,11 @@
 <div class="button run">Source</div>
 </div>
 <script type="text/paperscript" canvas="canvas-1">
+    
+paper.settings.applyMatrix = false; 
+project.activeLayer.transform( new Matrix(1,0,0,-1,view.center.x, view.center.y) );
+
+
 var colors = ['red', 'blue', 'yellow', 'magenta', 'green'];
 var drawables = [], segment = null, path = null, polPoint = null, polygon = null;
 var hitOptions = {segments: true, fill: true, stroke: true, tolerance: 10};
@@ -100,10 +105,10 @@ function onMouseDrag(event) {
 		segment.point += event.delta;
 	else if (path)
         {
-            polygon.changePosition(event.delta);
+            polygon.changePosition(event.delta * [1, -1]);
         }
     if (polPoint)
-        polygon.changePosition2(polPoint, event.delta);
+        polygon.changePosition2(polPoint, event.delta * [1, -1]);
  }
 
 ////////////////////////////////////     Visual Part      ///////////////////////////////
@@ -262,20 +267,20 @@ function clear(){
     $(document.getElementById("console").childNodes[0]).remove()
 }
 
-var origin = new Point(300, 210);
+var origin = new Point(0, 0);
 
 function convertToRealCoord(p){
     var temp = p.clone();
     temp *= 60;
-    temp += new Point(300, 210);
-    temp.y = 600 - temp.y;
+    temp += new Point(0, 0);
+    //temp.y = 600 - temp.y;
     
     return temp;
 }
 
 function drawCoordinateSystem(){ 
-    new Path.Line({name: 'x-coord', from: [0, origin.y], to:[892, origin.y], strokeColor:'black', strokeWidth: 2})
-    new Path.Line({name: 'y-coord', from: [origin.x, 0], to:[origin.x, 420], strokeColor:'black', strokeWidth: 2})
+    new Path.Line({name: 'x-coord', from: [-400, origin.y], to:[892, origin.y], strokeColor:'black', strokeWidth: 2})
+    new Path.Line({name: 'y-coord', from: [origin.x, -400], to:[origin.x, 420], strokeColor:'black', strokeWidth: 2})
     
     for(i = -7; i <= 10; i++)
        new Path.Line({name: 'coord', from: convertToRealCoord(new Point(-7, i)), to: convertToRealCoord(new Point(10, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
@@ -310,6 +315,7 @@ function onMouseMove(){
 //dd.draw()
 //dd.translate([150,0])
 
+print(project.activeLayer.matrix);
 
 
 // end of script

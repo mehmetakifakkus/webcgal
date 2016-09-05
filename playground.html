@@ -71,11 +71,11 @@
 <script type="text/paperscript" canvas="canvas-1">
     
 paper.settings.applyMatrix = false; 
-project.activeLayer.transform( new Matrix(1,0,0,-1,view.center.x, view.center.y) );
-
+project.activeLayer.transform( new Matrix(1,0,0,-1, 0, view.size.height) );
 
 var colors = ['red', 'blue', 'yellow', 'magenta', 'green'];
-var drawables = [], segment = null, path = null, polPoint = null, polygon = null;
+var drawables = [], path = null, polPoint = null 
+polygon = null;
 var hitOptions = {segments: true, fill: true, stroke: true, tolerance: 10};
 
 function onMouseMove(event) { 
@@ -86,28 +86,22 @@ function onMouseMove(event) {
 
 function onMouseDown(event) { 
 
-    segment = path = polPoint =  null;
+    path = polPoint =  null;
     
 	var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult){                       //console.log(event.item.name)
             
-        if (event.item.name.startsWith('polygonPoint'))
-            polPoint = event.item;
-        else if(event.item.name.startsWith('polygon'))
+        if(event.item.name.startsWith('path_polygon'))
             path = hitResult.item;
-        else if (hitResult.type == 'segment')
-            segment = hitResult.segment;
+        else if (event.item.name.startsWith('p'))
+            polPoint = event.item;
     }
 }
 
 function onMouseDrag(event) {     
-    if (segment)
-		segment.point += event.delta;
-	else if (path)
-        {
-            polygon.changePosition(event.delta * [1, -1]);
-        }
-    if (polPoint)
+	if (path)
+        polygon.changePosition(event.delta * [1, -1]); // mirroring on y-axis, since it is changed on active layer
+    else if (polPoint)
         polygon.changePosition2(polPoint, event.delta * [1, -1]);
  }
 
@@ -139,7 +133,7 @@ function Polygon(name){
     
     this.addPoint = function(p){
         var polPoint = new PolygonPoint(p);
-        tempObj.points['polygonPoint_' + Object.keys(tempObj.points).length] = polPoint;
+        tempObj.points['p' + Object.keys(tempObj.points).length] = polPoint;
     }
     
     this.changePosition = function(delta){
@@ -160,7 +154,7 @@ function Polygon(name){
         for (var i in tempObj.points)           //for(var i=0; i<tempObj.points.length; i++) // this is array version
             tempObj.points[i].draw(i);
             
-        tempObj.path = new Path({name: 'polygon_'+this.name, fillColor: 'white', strokeColor: 'black', strokeWidth: 2});
+        tempObj.path = new Path({name: 'path_polygon_'+this.name, fillColor: 'white', strokeColor: 'black', strokeWidth: 2});
         tempObj.path.sendToBack();
         tempObj.path.closed = true;
         
@@ -168,6 +162,10 @@ function Polygon(name){
             tempObj.path.add(tempObj.points[i].pos);
         
         drawables.push(tempObj.path);
+        
+        tempObj.path.onMouseDrag = function(event){
+            tempObj.mouseDragEvent(event);
+        }
     };
     
     this.sort = function(){
@@ -183,14 +181,22 @@ function PolygonPoint(p){
     var tempObj = this;
     
     this.draw = function(id){
-        drawables.push(new PointText({ point: tempObj.pos + [5, -5], fontSize: '16px', fillColor: 'black', content: ' '+ parseInt(id.split('_')[1])}));
+        drawables.push(new PointText({ matrix: new Matrix(1,0,0,-1, tempObj.pos.x+3, tempObj.pos.y+5), fontSize: '16px', fillColor: 'black', content: ' '+ id[1]}));
         
         tempObj.path = new Path.Circle({ name: id, center: tempObj.pos, radius: 5, fillColor: 'black'});
         drawables.push(tempObj.path);
+        
+        tempObj.path.onMouseDrag = function(event){
+            tempObj.mouseDragEvent(event);
+        }
     };
     
+    this.mouseDragEvent = function(){
+        console.log('heyhey3')	
+    }
+    
     this.toString = function ToString() {
-        return ''+tempObj.pos;  
+        return tempObj.path.name+' '+tempObj.pos;  
     };
     
     return this;
@@ -271,22 +277,24 @@ var origin = new Point(0, 0);
 
 function convertToRealCoord(p){
     var temp = p.clone();
-    temp *= 60;
+    temp *= 50;
     temp += new Point(0, 0);
-    //temp.y = 600 - temp.y;
     
     return temp;
 }
 
 function drawCoordinateSystem(){ 
+    new Path.Circle({ center: [0,0], radius: 5, fillColor: 'black'});
+    new PointText({ fontSize: '14px', fillColor: 'black', content: '(0,0)', matrix: new Matrix(1,0,0,-1, 10, 10) });
+
     new Path.Line({name: 'x-coord', from: [-400, origin.y], to:[892, origin.y], strokeColor:'black', strokeWidth: 2})
     new Path.Line({name: 'y-coord', from: [origin.x, -400], to:[origin.x, 420], strokeColor:'black', strokeWidth: 2})
     
-    for(i = -7; i <= 10; i++)
-       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(-7, i)), to: convertToRealCoord(new Point(10, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
+    for(i = 0; i <= 10; i++)
+       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(0, i)), to: convertToRealCoord(new Point(12, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
  
-    for(i = -7; i <= 10; i++)
-       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(i, -7)), to: convertToRealCoord(new Point(i, 7)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})  
+    for(i = 0; i <= 12; i++)
+       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(i, 0)), to: convertToRealCoord(new Point(i, 12)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})  
 }
 
 if(logStr.length == 0)
@@ -298,17 +306,22 @@ if(logStr.length == 0)
 
 //end-script
 drawCoordinateSystem();
-
-polygon = createRandomPolygon(); // first create a random polygon, then modify by dragging
+//polygon = createRandomPolygon(); // first create a random polygon, then modify by dragging
 polygon = createPolygon('square'); // first create a random polygon, then modify by dragging
 
 //polygon.sort();
 polygon.draw();
 
-function onMouseMove(){
-	clear();
+polygon.mouseDragEvent = function(){
+    clear();
 	for (var i in polygon.points)
-		print(i+": " + polygon.points[i])
+		print(i+":" + polygon.points[i])
+}
+
+polygon.points.p0.mouseDragEvent = function(){
+	console.log('heyhey')	
+    clear()
+    print(polygon.points.p0)
 }
 
 //dd = createPolygon('square')

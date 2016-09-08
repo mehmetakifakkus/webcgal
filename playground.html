@@ -291,10 +291,10 @@ function drawCoordinateSystem(){
     new Path.Line({name: 'y-coord', from: [origin.x, -400], to:[origin.x, 420], strokeColor:'black', strokeWidth: 2})
     
     for(i = 0; i <= 10; i++)
-       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(0, i)), to: convertToRealCoord(new Point(12, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
+       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(0, i)), to: convertToRealCoord(new Point(18, i)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})
  
-    for(i = 0; i <= 12; i++)
-       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(i, 0)), to: convertToRealCoord(new Point(i, 12)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})  
+    for(i = 0; i <= 18; i++)
+       new Path.Line({name: 'coord', from: convertToRealCoord(new Point(i, 0)), to: convertToRealCoord(new Point(i, 18)), strokeColor:'black', strokeWidth: 1, dashArray: [1,2]})  
 }
 
 if(logStr.length == 0)
@@ -315,7 +315,7 @@ polygon.draw();
 polygon.mouseDragEvent = function(){
     clear();
 	for (var i in polygon.points)
-		print(i+":" + polygon.points[i])
+		print(polygon.points[i])
 }
 
 polygon.points.p0.mouseDragEvent = function(){
@@ -328,14 +328,12 @@ polygon.points.p0.mouseDragEvent = function(){
 //dd.draw()
 //dd.translate([150,0])
 
-print(project.activeLayer.matrix);
 
 
 // end of script
 
 </script>
 
-   
 </div>
         
 </article>    
@@ -360,32 +358,6 @@ print(project.activeLayer.matrix);
     
 </svg>
     
-</body>
-
-<script>
-
-//function createCodeMirror2(place, options, source) {
-//	return new CodeMirror(place, $.extend({}, {
-//		mode: 'javascript',
-//		tabSize: 4, indentUnit: 4, readOnly: true,
-//		value: source.match(
-//			// Remove first & last empty line
-//			/^\s*?[\n\r]?([\u0000-\uffff]*?)[\n\r]?\s*?$/)[1]
-//	}, options));
-//}
-//
-//var deneme = `var pols = polygons[sel];                
-//var polygon = new Polygon();
-//`;    
-//    
-//var place = document.getElementById("console");
-//editor = createCodeMirror2(place, {}, deneme);   
-//    
-//    
-   
-    
-</script>
-
-
+    </body>
 </html>
 

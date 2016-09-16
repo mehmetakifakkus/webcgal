@@ -131,7 +131,7 @@ span.cm-attribute {
     margin: 0 !important; }
   .paperscript .CodeMirror-gutter-text,
   .paperscript .CodeMirror-lines {
-    padding-top: 15px;
+    padding-top: 10px;
     padding-bottom: 10px; }
   .paperscript .canvas {
     line-height: 0; }

@@ -31,6 +31,73 @@ article p, article ul, article ol {
     margin: 0 10px 20px 0;
 }
 
+#doc_nav {
+  position: fixed;
+  margin: 0 0 0 900px;
+  padding-top: 120px;
+  max-height: 100%;
+  box-sizing: -moz-border-box;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  left: 0; right: none;
+  width: 200px;
+  text-align: left;
+  z-index: 1;
+}
+
+#doc_nav ul {
+  display: block;
+  margin: 0; padding: 0;
+  margin-bottom: 32px;
+}
+
+#doc_nav li {
+  display: block;
+  margin-bottom: 4px;
+}
+
+#doc_nav li ul {
+  font-size: 80%;
+  margin-bottom: 0;
+  display: none;
+}
+
+#doc_nav li.active ul {
+  display: block;
+}
+
+#doc_nav li li a {
+  padding-left: 20px;
+  display: inline-block;
+}
+
+#doc_nav ul a {
+  color: black;
+  padding: 0 7px 1px 15px;
+}
+
+#doc_nav ul a.active, #doc_nav ul a:hover {
+  border-bottom: 1px solid #61adff;
+/*  border-bottom-color: #009dec;*/
+
+  margin-bottom: -1px;
+  color: #61adff;
+}
+
+#doc_nav .menu-root {
+    padding-left: -5px;
+    font-size: 1.05em;
+}
+#doc_nav .menu-sub {
+    font-size: 0.9em;
+    padding-left: 0px;
+}
+#doc_nav .menu-subsub {
+    font-size: 0.8em;
+    padding-left: 5px;
+}
+
 
 h1, h2, h3, h4 {
     font-weight: normal;

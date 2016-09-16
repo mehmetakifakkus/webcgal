@@ -20,7 +20,7 @@ app.get('/', function(req, res) {
         
  res.render('index', {
     pageTitle: 'Home',
-    pageID: '/'  
+    pageID: ''  
   });
 });
 

@@ -4,12 +4,6 @@ var router = express.Router();
 router.get('/documentation', function(req, res) {
 
     var selfLocal = req.app.locals;
-  
-    req.app.locals.link = function(temp){ // link('Polygon') returns <a></a> 
-        var filename = temp.split("/").pop();
-        return "<a href='/"+temp+"' target='_blank'> "+filename+" </a>" 
-        
-    }
 
     req.app.locals.findandChange = function(str){
         var output = str, re_start = new RegExp('link_to\\(','gi'), re_end = new RegExp('link_to\\(([a-z]+\\/*)+\\)','gi'); // 'gi' is  global match and ignore case
@@ -17,11 +11,8 @@ router.get('/documentation', function(req, res) {
         if(re_end.lastIndex){
             var linkName = str.substring(re_start.lastIndex, re_end.lastIndex - 1);
             var splitted = linkName.split("/"); 
-            var replace = "<a href='/"+linkName+"' target='_blank'>"+splitted.pop()+"</a>"; 
-            output = [str.slice(0, re_start.lastIndex-8), replace, str.slice(re_end.lastIndex)].join('');
-            //output = [str.slice(0, re_start.lastIndex-8), replace].join('');
-
-            
+            var replace = "<a href='/"+linkName+"'>"+splitted.pop()+"</a>"; 
+            output = [str.slice(0, re_start.lastIndex-8), replace, str.slice(re_end.lastIndex)].join('');   
         }
         return output; 
     }
@@ -33,7 +24,8 @@ router.get('/documentation', function(req, res) {
             var res = sl.findandChange(item); 
             while(res != item){item = res; res = sl.findandChange(item);} 
             total += item;});
-    return total;} 
+        return total;
+    } 
     
     req.app.locals.someHelper = function(name){
         return ("hello " + name);
@@ -41,18 +33,14 @@ router.get('/documentation', function(req, res) {
     
   res.render('documentation', {
     pageTitle: 'Documentation',
-    pageID: 'documentation'  
+    pageID: 'documentation',
+    pageURL: req.originalUrl  
   });
 });
 
 router.get('/documentation/:item', function(req, res) {
   var text;   
-  var data = req.app.get('documentsData');
-
-  req.app.locals.someHelper = function(name) {
-    return ("hello " + name);
-  }
-    
+  var data = req.app.get('documentsData');  
     
   data.objects.forEach(function(it){
     if(it.name == req.params.item){
@@ -60,12 +48,11 @@ router.get('/documentation/:item', function(req, res) {
     }  
   });    
     
-   
-    
   res.render('documentationItem', {
     pageTitle: req.params.item,
     pageID: req.params.item,
-    pageText: text        
+    pageText: text,
+    pageURL: req.originalUrl  
   });
 });
 

@@ -14,9 +14,9 @@
 
     <% if(id == item.link){ %>  
         <% found = 1;  %>
-        <li> <a class = "active" href=" <%=item.link%> "><%=item.name%></a> </li>
+        <li> <a id="<%=item.name%>" class = "active" href="/<%=item.link%> "><%=item.name%></a> </li>
     <%} else{ %>      
-    <li> <a href=" <%=item.link%> "><%=item.name%></a>  </li>
+    <li> <a id="<%=item.name%>" href="/<%=item.link%> "><%=item.name%></a>  </li>
     <% } %>      
 
     <% if(found == 0 && typeof item.sublinks !='undefined'){ %>

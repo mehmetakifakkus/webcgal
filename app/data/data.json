@@ -36,27 +36,27 @@
     "menu":[
     {
         "name":"Home",
-        "link":"/",
+        "link":"",
         "type":"node"
     },{
         "name":"Features",
-        "link":"/#features",
+        "link":"#features",
         "type":"start"
     },{
         "name":"Browser Support",
-        "link":"/#browsersupport",
+        "link":"#browsersupport",
         "type":"end"
     },{
         "name":"Documentation",
-        "link":"/documentation",
+        "link":"documentation",
         "type":"node"
     },{
         "name":"Playground",
-        "link":"/playground",
+        "link":"playground",
         "type":"node"
     },{
         "name":"Examples",
-        "link":"/examples",
+        "link":"examples",
         "type":"node",
         "sublinks":[
             {

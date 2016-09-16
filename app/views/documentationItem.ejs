@@ -10,9 +10,30 @@
 <div id="nav">
     <% include partials/templates/navigation.ejs %>
 </div>
+    
+<div id="doc_nav">
+    
+    <ul class = "menu-root">
+        <li><a class="" href="/documentation">Docs Home</a></li>
+    </ul>
+    
+    <ul class = "menu-sub">
+    <% documentsData.objects.forEach(function(item){ %>
+       <% if(pageID == item.name){ %>
+        <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+        <%} else { %>
+        <li><a class="" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <% }}); %>
+    </ul>
+</div>
 
 <article>     
 
+    <script>
+        
+        document.getElementById('Documentation').className = "active";
+    </script>
+    
     <h2><%= pageTitle %>  </h2> 
     <%-myConcat(pageText); %> 
 

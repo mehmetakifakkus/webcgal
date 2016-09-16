@@ -1,0 +1,38 @@
+
+{
+  "objects" :[{
+      "name": "Polygon",
+      "text": [
+        "<p>As we all know, polygon is a plane figure that is bounded by a finite chain of 2D line segments. link_to(documentation/Polygon) and link_to(documentation/PolygonPoint). Here, Polygon is an object made of closed form of PolygonPoint's. </p>",  
+        "<p>Each polygon can be repositionesd by mouse dragging. Moreover, it is also possible to move each PolygonPoint.</p>",
+        "<p>Polygon can be initialized by several ways. Here you will see some examples:</p>",
+        "<h3>With predefined polygons:</h3>" ,
+        "<pre class='code' start='1'>",
+        "var polygon = createPolygon('square');\n",
+        "var polygon = createPolygon('star');\n",
+        "var polygon = createPolygon('triangle_set');",
+        "</pre> ",
+          
+        "<div class='panel note'>",
+        "<b>Note:</b> <p>In createPolygon, 'star', 'square', 'triangle_set' are predefined strings. It does not support polygon types other than those.</p>",   
+        "</div> "          
+        ]
+    },{
+      "name": "PolygonPoint",
+      "text": ["<p>PolygonPoint is an object which represents 2D point in the plane. It is visually shown as black point and id.</p>","lkjl"]
+    },{
+
+        "name": "clear",
+        "text": [
+            "<h2>clear( )</h2>",
+            "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
+            "<pre class='code' start='6'>\nclear();\n",
+            "for (var i in polygon.points) // access each polygon point",
+            "   print(polygon.points[i])",
+            "</pre>"
+        ]
+        
+    }
+              
+]
+}

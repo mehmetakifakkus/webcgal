@@ -1,0 +1,51 @@
+
+
+
+
+
+<% function findandChange(str){%> 
+<%   var output = str, re_start = new RegExp('link_to\\(','gi'), re_end = new RegExp('link_to\\(([a-z]+\\/+)+\\)','gi'); // 'gi' is global match and ignore case%>
+<%   re_start.exec(str); re_end.exec(str);%>
+<%   if(re_end.lastIndex)%>
+<%   {%>
+<%     var linkName = str.substring(re_start.lastIndex, re_end.lastIndex - 1); %>
+<%     var replace = link(linkName); %>
+<%     output = [str.slice(0, re_start.lastIndex-8), replace, str.slice(re_start.lastIndex + linkName.length +1)].join('');%>
+<%   }%>
+<%      return output; %>
+<%} %>
+
+<% function myConcat(list){%>
+<%    var total = '';%>
+<%    list.forEach(function(item){ %>
+<%        var res = findandChange(item); %>
+<%        while(res != item){%>
+<%            item = res;%>
+<%            res = findandChange(item);%>
+<%        } %>
+<%        total += item; %>
+<%    }); %>
+<%    return total; } %>
+
+
+
+
+    <%function link(str){ // link('Polygon') returns <a></a>%>
+    <%    return "<a href='/"+str+"' target='_blank'> "+str+" </a>"}%>           
+                   
+    <%function findandChange(str){%> 
+    <%   var output = str, re_start = new RegExp('link_to\\(','gi'), re_end = new RegExp('link_to\\(([a-z]+\\/+)+\\)','gi'); // 'gi' is global match and ignore case%> 
+    <%   re_start.exec(str); re_end.exec(str);%> 
+    <%   if(re_end.lastIndex){%> 
+    <%     var linkName = str.substring(re_start.lastIndex, re_end.lastIndex - 1); %> 
+    <%     var replace = link(linkName); %> 
+    <%     output = [str.slice(0, re_start.lastIndex-8), replace, str.slice(re_start.lastIndex + linkName.length +1)].join('');%> 
+    <%    }%> 
+    <%  return output; }%> 
+
+    <%function myConcat(list){%>
+    <%    var total = '';%>
+    <%    list.forEach(function(item){ %>
+    <%        var res = findandChange(item); %>  
+    <%        while(res != item){item = res; res = findandChange(item);} total += item;});%>
+    <%return total;} %>

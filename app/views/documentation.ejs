@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/templates/head.ejs %> 
+    <link rel="stylesheet" href="/static/css/documentation.css">
+    <% include partials/templates/jsdefaults.ejs %> 
+</head>
+<body>
+
+<div id="nav">
+    <% include partials/templates/navigation.ejs %>
+</div>
+    
+    <article>     
+
+    <h1>Documentation</h1>    
+    Hello, in this page there wil be a tutorial on how to use webCgal.    
+        <h2><%= documentsData.objects[0].name %>  </h2> 
+        <%-myConcat(documentsData.objects[0].text); %>
+                
+        <br>
+        <p>Here there is on-live example:</p>
+        
+    <div class="paperscript split">
+    <div class="buttons">
+        <div class="button run">Source</div>
+    </div>
+        
+<script  type="text/paperscript" canvas="canvas-1">
+//end-script
+var cc = new Path.Circle({radius: 80, strokeColor: 'black' })
+
+        var myPath = new Path();
+        myPath.add(new Point(10,10));
+
+
+        </script>
+        
+          <div class="canvas down">
+    <canvas width="200px" height="240px" id="canvas-1"></canvas>
+</div>  
+</div>
+        
+    <div class="panel note">
+        <b>Note:</b> <p>This computer geometry programmings are actually for learning the idea behind the algorithm visually. WebCgal uses mainly <a href="http://paperjs.org/" target="_blank">paper.js</a> javascript library and you can refer to it for reference. 
+    </p>
+    </div>
+        
+    <div class="panel warning">
+        <b>Warning:</b> mesaj burada gozukecek
+        
+    </div>
+        
+        
+    <div class="panel info">
+        <b>Info:</b> merhaba arkadaslar
+        
+    </div>
+    <div class="w3-note">
+        merhaba arkadaslar
+        
+    </div>
+        
+    </article>    
+
+</body>
+</html>
+
+<script src="/reload/reload.js"></script>

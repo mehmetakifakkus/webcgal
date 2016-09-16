@@ -1,0 +1,16 @@
+  <div class="maincontent">
+
+    <article class="article">
+      <div class="pixgrid clearfix">
+      <% appData.links.forEach(function(item) { %>
+          <h2><%=item.name%></h2>
+          <a href=" <%=item.link%> ">
+          <img class="speakerslist-img img-circle pull-left" src="<%= item.image %>" alt="Artwork <%= item.image %>">
+          </a> 
+          <p><%=item.description%></p>
+          <br><hr>
+      <% }); %>
+
+     </div>
+    </article>  
+  </div>

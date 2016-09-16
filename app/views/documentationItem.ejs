@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/templates/head.ejs %> 
+    <link rel="stylesheet" href="/static/css/documentation.css">
+    <% include partials/templates/jsdefaults.ejs %> 
+</head>
+<body>
+
+<div id="nav">
+    <% include partials/templates/navigation.ejs %>
+</div>
+
+<article>     
+
+    <h2><%= pageTitle %>  </h2> 
+    <%-myConcat(pageText); %> 
+
+</article>    
+
+</body>
+</html>
+
+<script src="/reload/reload.js"></script>

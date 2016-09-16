@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/templates/headpaper.ejs %>
+    <% include partials/templates/jsdefaults.ejs %> 
+</head>
+    
+<body>
+
+<div id="nav">
+<% include partials/templates/navigation.ejs %>
+</div>
+    
+    <article>
+
+<!--        <div class="paperscript">-->        
+<div class="paperscript split">  
+    
+<div class="canvas up">
+    <div class="left-div">
+        <canvas width="892px" height="420px" id="canvas-1"></canvas>
+    </div>
+    <div class = "right-div" id="console">
+    </div>
+</div>
+    
+    
+<div class="buttons">
+<div class="button run">Source</div>
+</div>
+<script type="text/paperscript" canvas="canvas-1">
+    
+paper.settings.applyMatrix = false; 
+project.activeLayer.transform( new Matrix(1,0,0,-1, 0, view.size.height) );
+
+var colors = ['red', 'blue', 'yellow', 'magenta', 'green'];
+var drawables = [], path = null, polPoint = null 
+polygon = null;
+var hitOptions = {segments: true, fill: true, stroke: true, tolerance: 10};
+
+function onMouseMove(event) { 
+	project.activeLayer.selected = false;
+    //if (event.item)
+      //  event.item.bringToFront();
+}
+
+function onMouseDown(event) { 
+
+    path = polPoint =  null;
+    
+	var hitResult = project.hitTest(event.point, hitOptions);
+    if (hitResult){                       //console.log(event.item.name)
+            
+        if(event.item.name.startsWith('path_polygon'))
+            path = hitResult.item;
+        else if (event.item.name.startsWith('p'))
+            polPoint = event.item;
+    }
+}
+
+function onMouseDrag(event) {     
+	if (path)
+        polygon.changePosition(event.delta * [1, -1]); // mirroring on y-axis, since it is changed on active layer
+    else if (polPoint)
+        polygon.changePosition2(polPoint, event.delta * [1, -1]);
+ }
+
+///////////////////////////////    Visual Part      ///////////////////////////////
+
+function clearDrawables(){
+    for(i=0; i<drawables.length; i++) // it is for lines, circles, texts etc.
+        drawables[i].remove();
+    PolygonPoint.counter = 0;
+}
+
+Array.prototype.clear = function() {
+  while (this.length) 
+    this.pop();
+};
+
+
+///////////////////////////////////  Classes  ///////////////////////////////////
+
+<% include partials/paperjs/createDefinedPolygon.js %>
+
+<% include partials/paperjs/polygon.js %>
+<% include partials/paperjs/polygonPoint.js %>
+
+<% include partials/paperjs/codeInserting.js %>
+<% include partials/paperjs/drawCoordinateSystem.js %>
+
+//end-script
+<% include partials/paperjs/sampleCodes/code1.js %>
+
+</script>
+
+</div>
+        
+</article>    
+
+    <% include partials/paperjs/pre_defined_polygons.svg %>
+    </body>
+</html>
+
+<script src="/reload/reload.js"></script>

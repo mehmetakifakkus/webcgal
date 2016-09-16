@@ -1,0 +1,19 @@
+<svg id = "polygons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="5" visibility="hidden">
+
+    <g id="star">    
+        <path d="M 333.547 110.616 L 376.019 223.374 L 505.349 225.806 L 402.268 297.927 L 439.726 412.188 L 333.547 344.003 L 227.368 412.188 L 264.826 297.927 L 161.745 225.806 L 291.075 223.374 Z" data-bx-shape="star 333.547 277.321 180.643 166.705 0.4 5 1@f58dba71" style="fill: none; stroke: rgb(0, 0, 0); stroke-width: 2;"></path>
+    </g>
+    
+    <g id="square">
+        <path d="M 100 100 H 350 V 350 H 100 V 100 Z" data-bx-shape="rect 150.596 179.275 226.592 226.592 0 0 0 0 1@02fc28bb" style="fill: none; stroke: rgb(0, 0, 0); stroke-width: 2"></path>
+    </g>
+
+    <g id="triangle_set">
+        <path d="M 403.809 180 L 488.935 380 L 574.062 180 L 654.651 380 L 735.305 180 L 884.509 510  L 99.797 510 L 249.001 180.086 L 326.437 380 Z" style="fill: none; stroke-width: 2" data-bx-origin="0 Infinity"></path>
+    </g>
+    
+    <g id="arbitrary1" >
+        <path d="M 358.79 225.54 L 427.471 273.365 L 369.637 327.132 L 447.776 338.998 L 409.174 452.863 L 371.688 452.863 L 322.828 359.203 L 273.968 452.863 L 238.557 452.863 L 204.321 351.875 L 287.419 325.559 L 218.357 274.69 L 291.344 223.866 L 325.42 304.555 Z" style="fill: none; stroke: rgb(0, 0, 0); stroke-width: 2;" data-bx-origin="0 0"></path>
+    </g>
+    
+</svg>

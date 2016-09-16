@@ -1,0 +1,31 @@
+<a href="/">
+    <img id="logo" width ="100px" height ="100px" src="/static/images/logo.svg"/>
+</a>
+
+<% var levels = appData.menu_levels; %>
+<% var id = pageID; %>
+<% var found = 0; %>
+<% function traverseTree(tree, depth) { %> 
+    <% tree.forEach(function(item){ %> 
+    <% if(item.type == "start" || item.type == "node"){ %>
+      <ul class=" <%= levels[depth].name %>">
+    <% } %> 
+
+
+    <% if(id == item.link){ %>  
+        <% found = 1;  %>
+        <li> <a class = "active" href=" <%=item.link%> "><%=item.name%></a> </li>
+    <%} else{ %>      
+    <li> <a href=" <%=item.link%> "><%=item.name%></a>  </li>
+    <% } %>      
+
+    <% if(found == 0 && typeof item.sublinks !='undefined'){ %>
+          <% traverseTree(item.sublinks, depth+1);  %>
+    <% } %>
+
+    <% if(item.type == "end" || item.type == "node"){ %>
+    </ul>
+    <% } %>     
+<% }); %>
+<% } %>
+<% traverseTree(appData.menu, 0); %>

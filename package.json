@@ -1,0 +1,28 @@
+{
+  "name": "webcgal",
+  "version": "1.0.0",
+  "description": "webcgal web site",
+  "main": "app/app.js",
+  "scripts": {
+    "start": "nodemon -e css,js,ejs,json --watch app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mehmetakifakkus/webcgal.git"
+  },
+  "keywords": [
+    "mehmetakifakkus",
+    "webcgal"
+  ],
+  "author": "Mehmet Akif AKKUS",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mehmetakifakkus/webcgal/issues"
+  },
+  "homepage": "https://github.com/mehmetakifakkus/webcgal#readme",
+  "dependencies": {
+    "ejs": "^2.5.2",
+    "express": "^4.14.0",
+    "reload": "^1.0.1"
+  }
+}

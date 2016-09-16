@@ -18,20 +18,33 @@
     
     <ul class = "menu-sub">
     <% documentsData.objects.forEach(function(item){ %>
-       <% if(pageID == item.name){ %>
-        <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
-        <%} else { %>
         <li><a class="" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
-    <% }}); %>
+    <% }); %>
     </ul>
 </div>    
     
     <article>     
 
     <h1>Documentation</h1>    
-    Hello, in this page there wil be a tutorial on how to use webCgal.    
-        <h2><%= documentsData.objects[0].name %>  </h2> 
-        <%-myConcat(documentsData.objects[0].text); %>
+        <p>Hello, in this page there wil be a tutorial on how to use webCgal.</p>
+
+        <p> Objects: </p>
+        <ul>
+        <% documentsData.objects.forEach(function(item){ %>
+            <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+        <% }); %>
+        </ul>
+
+       <p> Functions: </p>
+        <ul>
+        <% documentsData.functions.forEach(function(item){ %>
+            <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+        <% }); %>
+        </ul>
+
+
+        <h2><%#- documentsData.objects[0].name %>  </h2>
+        <%#-myConcat(documentsData.objects[0].text); %>
                 
         <br>
         <p>Here there is on-live example:</p>

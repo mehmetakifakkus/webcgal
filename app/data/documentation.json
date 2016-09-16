@@ -22,17 +22,28 @@
       "text": ["<p>PolygonPoint is an object which represents 2D point in the plane. It is visually shown as black point and id.</p>","lkjl"]
     },{
 
-        "name": "clear",
-        "text": [
-            "<h2>clear( )</h2>",
-            "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
-            "<pre class='code' start='6'>\nclear();\n",
-            "for (var i in polygon.points) // access each polygon point",
-            "   print(polygon.points[i])",
-            "</pre>"
-        ]
-        
+      "name": "Deneme",
+      "text": [
+          "<h2>clear( )</h2>",
+          "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
+          "<pre class='code' start='6'>\nclear();\n",
+          "for (var i in polygon.points) // access each polygon point",
+          "   print(polygon.points[i])",
+          "</pre>"
+      ]
+    }],
+    "functions":[{
+
+      "name": "clear",
+      "text": [
+          "<h2>clear( )</h2>",
+          "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
+          "<pre class='code' start='6'>\nclear();\n",
+          "for (var i in polygon.points) // access each polygon point",
+          "   print(polygon.points[i])",
+          "</pre>"
+      ]
     }
-              
-]
+
+    ]
 }

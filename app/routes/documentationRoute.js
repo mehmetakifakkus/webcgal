@@ -42,12 +42,18 @@ router.get('/documentation/:item', function(req, res) {
   var text;   
   var data = req.app.get('documentsData');  
     
-  data.objects.forEach(function(it){
+  data.objects.forEach(function(it){ // search in objects
     if(it.name == req.params.item){
          text = it.text;   
     }  
   });    
     
+  data.functions.forEach(function(it){ // search in functions
+    if(it.name == req.params.item){
+         text = it.text;
+    }
+  });
+
   res.render('documentationItem', {
     pageTitle: req.params.item,
     pageID: req.params.item,

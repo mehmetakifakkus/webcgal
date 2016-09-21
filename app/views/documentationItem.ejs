@@ -18,13 +18,24 @@
     </ul>
     
     <ul class = "menu-sub">
+    <li class="header">Objects:</li>
     <% documentsData.objects.forEach(function(item){ %>
-       <% if(pageID == item.name){ %>
-        <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+        <% if(pageID == item.name){ %>
+            <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
         <%} else { %>
-        <li><a class="" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
-    <% }}); %>
+            <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+        <% }}); %>
     </ul>
+
+    <ul class = "menu-sub">
+        <li class="header"> Functions:</li>
+        <% documentsData.functions.forEach(function(item){ %>
+        <% if(pageID == item.name){ %>
+            <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+        <%} else { %>
+            <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+        <% }}); %>
+        </ul>
 </div>
 
 <article>     
@@ -34,7 +45,7 @@
         document.getElementById('Documentation').className = "active";
     </script>
     
-    <h2><%= pageTitle %>  </h2> 
+    <h1><%= pageTitle %>  </h1>
     <%-myConcat(pageText); %> 
 
 </article>    

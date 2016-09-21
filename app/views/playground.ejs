@@ -29,12 +29,10 @@
 <div class="button run">Source</div>
 </div>
 <script type="text/paperscript" canvas="canvas-1">
-    
-paper.settings.applyMatrix = false; 
-project.activeLayer.transform( new Matrix(1,0,0,-1, 0, view.size.height) );
+
 
 var colors = ['red', 'blue', 'yellow', 'magenta', 'green'];
-var drawables = [], path = null, polPoint = null 
+var path = null, polPoint = null
 polygon = null;
 var hitOptions = {segments: true, fill: true, stroke: true, tolerance: 10};
 
@@ -65,29 +63,10 @@ function onMouseDrag(event) {
         polygon.changePosition2(polPoint, event.delta * [1, -1]);
  }
 
-///////////////////////////////    Visual Part      ///////////////////////////////
-
-function clearDrawables(){
-    for(i=0; i<drawables.length; i++) // it is for lines, circles, texts etc.
-        drawables[i].remove();
-    PolygonPoint.counter = 0;
-}
-
-Array.prototype.clear = function() {
-  while (this.length) 
-    this.pop();
-};
-
-
-///////////////////////////////////  Classes  ///////////////////////////////////
-
-<% include partials/paperjs/createDefinedPolygon.js %>
-
-<% include partials/paperjs/polygon.js %>
-<% include partials/paperjs/polygonPoint.js %>
+<% include partials/paperjs/all.js %>
 
 <% include partials/paperjs/codeInserting.js %>
-<% include partials/paperjs/drawCoordinateSystem.js %>
+<% include partials/paperjs/clearPrints.js %>
 
 //end-script
 <% include partials/paperjs/sampleCodes/code1.js %>

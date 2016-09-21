@@ -18,7 +18,7 @@ function PolygonPoint(p){
     
     this.mouseDragEvent = function(){
         console.log('mouse drag event on a polygon point')	
-    }
+    };
     
     this.toString = function ToString() {
         return tempObj.path.name+' '+tempObj.pos;  

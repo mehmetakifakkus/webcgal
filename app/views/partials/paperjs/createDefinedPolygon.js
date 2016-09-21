@@ -33,7 +33,7 @@ function createPolygon(str, position, scaleFactor ){
     web.style = {fillColor: 'white', strokeColor: 'black', strokeWidth: 2}
 
     web.applyMatrix = true;
-    web.position = position || [250, 200];
+    web.position = position || [250, 180];
     web.scale(scaleFactor || 1);
 
     var polygon = new Polygon(str);

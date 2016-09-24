@@ -75,31 +75,25 @@
     <p>Here there is a live example:</p>
         
 <% canvas_id=0 // initialize public variable %>
-<% include partials/content/documentationPaperStart.js %>
-<% include partials/paperjs/all.js %>
-//end-script
+
+<% include partials/content/documentationPaperStart.ejs %>
 var polygon = createPolygon('star');
 polygon.draw();
-<% include partials/content/documentationPaperEnd.js %>
+<% include partials/content/documentationPaperEnd.ejs %>
 
 <br>
         
-<% include partials/content/documentationPaperStart.js %>
-<% include partials/paperjs/all.js %>
-//end-script
+<% include partials/content/documentationPaperStart.ejs %>
 var polygon = createPolygon('triangle_set');
 polygon.draw();
-<% include partials/content/documentationPaperEnd.js %>
+<% include partials/content/documentationPaperEnd.ejs %>
         
 <br>
         
-<% include partials/content/documentationPaperStart.js %>
-
-<% include partials/paperjs/all.js %>
-//end-script
+<% include partials/content/documentationPaperStart.ejs %>
 var polygon = createPolygon('square');
 polygon.draw();
-<% include partials/content/documentationPaperEnd.js %>
+<% include partials/content/documentationPaperEnd.ejs %>
 
 
 <div class="panel warning">

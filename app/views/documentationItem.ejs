@@ -4,6 +4,7 @@
     <% include partials/templates/head.ejs %> 
     <link rel="stylesheet" href="/static/css/documentation.css">
     <% include partials/templates/jsdefaults.ejs %> 
+
 </head>
 <body>
 
@@ -38,19 +39,28 @@
         </ul>
 </div>
 
-<article>     
-
-    <script>
-        
-        document.getElementById('Documentation').className = "active";
-    </script>
+<article>
     
     <h1><%= pageTitle %>  </h1>
     <%-myConcat(pageText); %> 
 
+    <% canvas_id=0 // initialize canvas public variable %>
+
+    <%if(typeof pageCode != 'undefined'){%>
+    <% include partials/content/documentationPaperStart.ejs %>
+<%- pageCode[0].join('') %>
+    <% include partials/content/documentationPaperEnd.ejs %>
+    <% }%>
+
+
+
 </article>    
 
 </body>
+        <% include partials/paperjs/pre_defined_polygons.svg %>
 </html>
 
+<script>
+    document.getElementById('Documentation').className = "active";
+</script>
 <script src="/reload/reload.js"></script>

@@ -70,11 +70,12 @@
         "<div class='panel note'>",
         "<b>Note:</b> In createPolygon, 'star', 'square', 'triangle_set' are predefined strings. It does not support polygon types other than those.",
         "</div> ",
+        "<h2>Live Demo</h2>",
+        "put_code(1)",
+        "put_code(2)"
 
-        "<h2>Live Demo</h2>"
       ],
       "code":[
-
          [
             "var polygon = createPolygon('star');\n",
             "polygon.draw();"
@@ -84,7 +85,11 @@
             "var polygon = createPolygon('square');\n",
             "polygon.draw();"
           ]
-
+        ,
+          [
+            "var polygon = createPolygon('triangle_set');\n",
+            "polygon.draw();"
+          ]
       ]
     },
     {

@@ -44,19 +44,15 @@ router.get('/documentation/:item', function(req, res) {
             total += item;
         });
 
-        //str = "<%d = 3%><h1>merhaba <%= d %></h1><%- include('filename', {filename:'../views/partials/content/documentationPaperStart'}); %>"
-        //str = "<%d = 3%><h1>merhaba <%= d %></h1>"
-        //var html = ejs.render(str);
-
-        //var fn = ejs.compile(fs.readFileSync('../views/partials/content/documentationPaperStart', 'utf-8'), { basedir: __dirname});
-
-        //console.log(fn());
-
         return total;
     } 
     
     req.app.locals.someHelper = function(name){
         return ("hello " + name);
+    }
+
+    req.app.locals.addCode = function(){
+        return ("hello <% include('filename', {filename:'../views/partials/templates/head.ejs'}) %>");
     }
 
     

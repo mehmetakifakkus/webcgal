@@ -13,45 +13,35 @@
 </div>
     
 <div id="doc_nav">
-    
-    <ul class = "menu-root">
-        <li><a class="" href="/documentation">Docs Home</a></li>
-    </ul>
-    
-    <ul class = "menu-sub">
-    <li class="header">Objects:</li>
-    <% documentsData.objects.forEach(function(item){ %>
-        <% if(pageID == item.name){ %>
-            <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
-        <%} else { %>
-            <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
-        <% }}); %>
-    </ul>
-
-    <ul class = "menu-sub">
-        <li class="header"> Functions:</li>
-        <% documentsData.functions.forEach(function(item){ %>
-        <% if(pageID == item.name){ %>
-            <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
-        <%} else { %>
-            <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
-        <% }}); %>
-        </ul>
+    <% include partials/templates/doc_navigation.ejs %>
 </div>
 
+
+
 <article>
+    <% canvas_id=0 // initialize canvas public variable %>
     
     <h1><%= pageTitle %>  </h1>
-    <%-myConcat(pageText); %> 
+    <% var deneme = myConcat(pageText); %>
 
-    <% canvas_id=0 // initialize canvas public variable %>
+    <% var code = pageCode; %>
+    <% function put_code(str){ %>
+    <%     var output = str, re_start = new RegExp('put_code\\([0-9]+\\)','gi')// 'gi' is  global match and ignore case %>
+    <%     re_start.exec(str); %>
+    <%     if(re_start.lastIndex && typeof code != 'undefined'){ %>
+    <%         var no = str.substring(re_start.lastIndex-2, re_start.lastIndex - 1); %>
+    <%-         str.slice(0, re_start.lastIndex-11)%>
+    <%          include partials/content/documentationPaperStart.ejs %><%- code[no].join('') %>
+    <%          include partials/content/documentationPaperEnd.ejs %>
+    <%-         str.slice(re_start.lastIndex)%>
+    <%         var replace = '';  %>
+    <%         output = [str.slice(0, re_start.lastIndex-11), replace, str.slice(re_start.lastIndex)].join('');    %>
+    <%     } %>
+    <%     return output;  %>
+    <% } %>
 
-    <%if(typeof pageCode != 'undefined'){%>
-    <% include partials/content/documentationPaperStart.ejs %>
-<%- pageCode[0].join('') %>
-    <% include partials/content/documentationPaperEnd.ejs %>
-    <% }%>
-
+    <% deneme = put_code(deneme) %>
+    <% deneme = put_code(deneme) %>
 
 
 </article>    

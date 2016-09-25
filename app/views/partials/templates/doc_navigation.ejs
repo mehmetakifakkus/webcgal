@@ -1,0 +1,23 @@
+<ul class = "menu-root">
+    <li><a class="" href="/documentation">Docs Home</a></li>
+</ul>
+
+<ul class = "menu-sub">
+<li class="header">Objects:</li>
+<% documentsData.objects.forEach(function(item){ %>
+    <% if(pageID == item.name){ %>
+        <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <%} else { %>
+        <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <% }}); %>
+</ul>
+
+<ul class = "menu-sub">
+    <li class="header"> Functions:</li>
+    <% documentsData.functions.forEach(function(item){ %>
+    <% if(pageID == item.name){ %>
+        <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <%} else { %>
+        <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <% }}); %>
+    </ul>

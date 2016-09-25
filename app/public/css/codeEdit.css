@@ -138,7 +138,7 @@ span.cm-attribute {
   .paperscript .canvas.border canvas {
     border: 1px solid #999; }
 
-  .paperscript.split .canvas.bottom {
+  .paperscript.split .canvas.down {
     border: 1px solid #999;
     border-top: 0; }
   .paperscript.split .canvas.up {

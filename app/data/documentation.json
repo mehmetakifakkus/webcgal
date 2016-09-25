@@ -71,9 +71,19 @@
         "<b>Note:</b> In createPolygon, 'star', 'square', 'triangle_set' are predefined strings. It does not support polygon types other than those.",
         "</div> ",
         "<h2>Live Demo</h2>",
-        "put_code(1)",
-        "put_code(2)"
-
+        "put_code(0)",
+        "<h2>Customize polygon creation</h2>",
+        "<p>It is also possible to determine the location and size of a polygon while creating it.</p> ",
+        "<ul>",
+        "<li> ",
+        "  <h3> createPolygon(type, location); </h3>",
+        "   put_code(1)",
+        "</li>",
+        "<li> ",
+        "  <h3> createPolygon(type, location, scale); </h3>",
+        "   put_code(2)",
+        "</li>",
+        "</ul>"
       ],
       "code":[
          [
@@ -82,12 +92,12 @@
          ]
         ,
           [
-            "var polygon = createPolygon('square');\n",
+            "var polygon = createPolygon('square', [125, 125]);\n",
             "polygon.draw();"
           ]
         ,
           [
-            "var polygon = createPolygon('triangle_set');\n",
+            "var polygon = createPolygon('square', [200, 200], 0.5);\n",
             "polygon.draw();"
           ]
       ]
@@ -97,7 +107,8 @@
       "text": [
         "<p>It produces randomly created simple polygon. You can try live demo here:</p>",
 
-        "<h2>Live Demo</h2>"
+        "<h2>Live Demo</h2>",
+        "put_code(0)"
       ],
        "code":[
 

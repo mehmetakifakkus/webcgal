@@ -3,8 +3,8 @@
 </a>
 
 <% var levels = appData.menu_levels; %>
-<% var id = pageID; %>
-<% var found = 0; %>
+<% var id = pageID, found = 0; %>
+
 <% function traverseTree(tree, depth) { %> 
     <% tree.forEach(function(item){ %> 
     <% if(item.type == "start" || item.type == "node"){ %>
@@ -12,14 +12,13 @@
     <% } %> 
 
 
-    <% if(id == item.link){ %>  
-        <% found = 1;  %>
+    <% if(id == item.link){ %>
         <li> <a id="<%=item.name%>" class = "active" href="/<%=item.link%> "><%=item.name%></a> </li>
     <%} else{ %>      
-    <li> <a id="<%=item.name%>" href="/<%=item.link%> "><%=item.name%></a>  </li>
+        <li> <a id="<%=item.name%>" href="/<%=item.link%> "><%=item.name%></a>  </li>
     <% } %>      
 
-    <% if(found == 0 && typeof item.sublinks !='undefined'){ %>
+    <% if(id == item.link && typeof item.sublinks !='undefined'){ %>
           <% traverseTree(item.sublinks, depth+1);  %>
     <% } %>
 

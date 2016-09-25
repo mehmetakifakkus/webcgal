@@ -59,34 +59,34 @@
         "link":"examples",
         "type":"node",
         "sublinks":[
+        {
+            "name":"Boolean Process",
+            "link":"boolean",
+            "type":"start"
+        },{
+            "name":"L-monoton Polygon",
+            "link":"L-monoton",
+            "type":"-"
+        },{
+            "name":"Duality",
+            "link":"duality",
+            "type":"-",
+            "sublinks":[
             {
-                "name":"Boolean Process",
-                "link":"boolean",
+                "name":"Dual Line",
+                "link":"duality/dualLine.html",
                 "type":"start"
             },{
-                "name":"L-monoton Polygon",
-                "link":"L-monoton",
-                "type":"-"
-            },{
-                "name":"Duality",
-                "link":"duality",
-                "type":"-",
-                "sublinks":[
-                    {
-                        "name":"Dual Line",
-                        "link":"duality/dualLine.html",
-                        "type":"start"
-                    },{
-                        "name":"Check Stabber",
-                        "link":"duality/checkStabber.html",
-                        "type":"end"
-                    }
-                ]
-            },{
-                "name":"Smallest Enclosing Disk",
-                "link":"smallestEnclosingDisk",
+                "name":"Check Stabber",
+                "link":"duality/checkStabber.html",
                 "type":"end"
             }
+            ]
+        },{
+            "name":"Smallest Enclosing Disk",
+            "link":"smallestEnclosingDisk",
+            "type":"end"
+        }
         ]
     }   
 ], 

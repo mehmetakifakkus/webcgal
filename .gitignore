@@ -7,11 +7,4 @@
 **/DS_Store?
 
 #sub-folders# since it has own repository 
-partitioning/
-musicGeneration/
-pongGame/
-partitioning/**
-musicGeneration/**
-pongGame/**
-
-
+node_modules/**

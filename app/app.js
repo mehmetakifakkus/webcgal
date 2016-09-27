@@ -8,10 +8,12 @@ app.set('view engine', 'ejs');
 app.set('views', 'app/views');
 
 app.locals.siteTitle = "WebCgal";
-app.locals.appData = require('./data/data.json');
-var docsData = require('./data/documentation.json');
-app.locals.documentsData = docsData;
-app.set('documentsData', docsData);
+
+app.locals.linkData =  require('./data/linkData.json');
+app.set('linkData', app.locals.linkData);
+
+app.locals.docsData = require('./data/documentationData.json')
+app.set('docsData', app.locals.docsData);
 
 app.use('/static', express.static('app/public'));
 
@@ -24,14 +26,8 @@ app.get('/', function(req, res) {
   });
 });
 
-app.get('/examples', function(req, res) {
-        
- res.render('examplesPage', {
-    pageTitle: 'Examples',
-    pageID: 'examples'  
-  });
-});
 
+app.use(require('./routes/examplesRoute'));
 app.use(require('./routes/documentationRoute'));
 
 

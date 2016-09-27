@@ -1,7 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var ejs = require('ejs');
-var fs   = require('fs');
 
 
 router.get('/documentation', function(req, res) {
@@ -18,9 +16,9 @@ router.get('/documentation', function(req, res) {
 
 router.get('/documentation/:item', function(req, res) {
   var text, code;
-  var data = req.app.get('documentsData');
+  var data = req.app.get('docsData');
 
-      var selfLocal = req.app.locals;
+  var selfLocal = req.app.locals;
 
     req.app.locals.findandChange = function(str){
         var output = str, re_start = new RegExp('link_to\\(','gi'), re_end = new RegExp('link_to\\(([a-z]+\\/*)+\\)','gi'); // 'gi' is  global match and ignore case

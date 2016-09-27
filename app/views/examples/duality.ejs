@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
-<head><% include partials/templates/head.ejs %> </head>
+<head><% include ../partials/templates/head.ejs %> </head>
 <body>
 
 <div id="nav">
-    <% include partials/templates/navigation.ejs %>
+    <% include ../partials/templates/navigation.ejs %>
 </div>
-    
-    <article>     
-        <% appData.dual_links.forEach(function(item) { %>    
+
+    <article>
+        <% linkData.dual_links.forEach(function(item) { %>
         <h2><%=item.name%></h2>
 
         <div class="effects pure-g">
@@ -23,8 +23,8 @@
                 <textarea readonly="readonly"><%=item.description%></textarea>
             </div>
         </div>
-        <% }); %>    
-    </article>    
+        <% }); %>
+    </article>
 
 </body>
 </html>

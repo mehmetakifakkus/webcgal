@@ -19,7 +19,7 @@
 
     <ul class="menu-sub">
         <li class="header">Objects:</li>
-        <% documentsData.objects.forEach(function(item){ %>
+        <% docsData.objects.forEach(function(item){ %>
             <li>
                 <a href="/documentation/<%= item.name %>">
                     <%= item.name %>
@@ -30,7 +30,7 @@
 
     <ul class="menu-sub">
         <li class="header"> Functions:</li>
-        <% documentsData.functions.forEach(function(item){ %>
+        <% docsData.functions.forEach(function(item){ %>
             <li>
                 <a href="/documentation/<%= item.name %>">
                     <%= item.name %>
@@ -52,7 +52,7 @@
 
             <p> Objects: </p>
             <ul>
-            <% documentsData.objects.forEach(function(item){ %>
+            <% docsData.objects.forEach(function(item){ %>
                 <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
             <% }); %>
             </ul>
@@ -62,15 +62,15 @@
 
            <p> Functions: </p>
             <ul>
-            <% documentsData.functions.forEach(function(item){ %>
+            <% docsData.functions.forEach(function(item){ %>
                 <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
             <% }); %>
             </ul>
         </div>
     </div>
         
-    <h2><%#- documentsData.objects[0].name %>  </h2>
-    <%#-myConcat(documentsData.objects[0].text); %>
+    <h2><%#- docsData.objects[0].name %>  </h2>
+    <%#-myConcat(docsData.objects[0].text); %>
 
     <p>Here there is a live example:</p>
         

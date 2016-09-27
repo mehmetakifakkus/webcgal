@@ -2,7 +2,7 @@
     <img id="logo" width ="100px" height ="100px" src="/static/images/logo.svg"/>
 </a>
 
-<% var levels = appData.menu_levels; %>
+<% var levels = linkData.menu_levels; %>
 <% var id = pageID, found = 0; %>
 
 <% function traverseTree(tree, depth) { %> 
@@ -27,4 +27,4 @@
     <% } %>     
 <% }); %>
 <% } %>
-<% traverseTree(appData.menu, 0); %>
+<% traverseTree(linkData.menu, 0); %>

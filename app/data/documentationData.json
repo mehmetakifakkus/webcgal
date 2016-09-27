@@ -8,7 +8,7 @@
         "<p>Polygon can be initialized by several ways. You can see details on link_to(documentation/createPolygon) function documentation page.</p>",
         "<h2>Drag Event</h2>",
           "<p>Mouse drag event can be triggered, when it is used this way:</p>",
-          
+
         "<pre class='code' start='1'>",
         "  // event triggering to polygon, when it is dragged\n",
         "  polygon.mouseDragEvent = function(){\n",

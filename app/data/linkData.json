@@ -16,23 +16,23 @@
       "description": "Checking line for stabbery?"
     },{
       "name": "Smallest Enclosing Disk",
-      "link": "/examples/smallestEnclosureDisk",
+      "link": "/examples/smallestEnclosingDisk",
       "image": "images/smallestDisk_tn.png",
       "description": "Smallest Enclosing Disk"
-    }       
-],  
+    }
+],
     "dual_links" :[{
       "name": "Duality",
-      "link": "/examples/duality/dualLine.html",
+      "link": "/examples/duality/dualLine",
       "image": "images/dualLine_tn.png",
       "description": "What is duality for 2D?"
     },{
       "name": "Stabbery Checking",
-      "link": "/examples/duality/checkStabber.html",
+      "link": "/examples/duality/checkStabber",
       "image": "images/stabber_tn.png",
       "description": "Checking line for stabbery?"
-    }       
-],  
+    }
+],
     "menu":[
     {
         "name":"Home",
@@ -65,31 +65,31 @@
             "type":"start"
         },{
             "name":"L-monoton Polygon",
-            "link":"L-monoton",
+            "link":"examples/L-monoton",
             "type":"-"
         },{
             "name":"Duality",
-            "link":"duality",
+            "link":"examples/duality",
             "type":"-",
             "sublinks":[
             {
                 "name":"Dual Line",
-                "link":"duality/dualLine.html",
+                "link":"duality/dualLine",
                 "type":"start"
             },{
                 "name":"Check Stabber",
-                "link":"duality/checkStabber.html",
+                "link":"duality/checkStabber",
                 "type":"end"
             }
             ]
         },{
             "name":"Smallest Enclosing Disk",
-            "link":"smallestEnclosingDisk",
+            "link":"examples/smallestEnclosingDisk",
             "type":"end"
         }
         ]
-    }   
-], 
+    }
+],
     "menu_levels":[
         {
             "level": "0",

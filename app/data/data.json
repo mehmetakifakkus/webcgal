@@ -1,22 +1,22 @@
 {
   "example_links" :[{
       "name": "L-monotone",
-      "link": "/examples/L-monoton/index.html",
+      "link": "/examples/L-monoton",
       "image": "images/lmonoton_tn.png",
       "description": "What is being monotone for a polygon?"
     },{
       "name": "Duality",
-      "link": "/examples/duality/dualLine.html",
+      "link": "/examples/duality/dualLine",
       "image": "images/dualLine_tn.png",
       "description": "What is duality for 2D?"
     },{
       "name": "Stabbery Checking",
-      "link": "/examples/duality/checkStabber.html",
+      "link": "/examples/duality",
       "image": "images/stabber_tn.png",
       "description": "Checking line for stabbery?"
     },{
       "name": "Smallest Enclosing Disk",
-      "link": "/examples/smallestEnclosureDisk/index.html",
+      "link": "/examples/smallestEnclosureDisk",
       "image": "images/smallestDisk_tn.png",
       "description": "Smallest Enclosing Disk"
     }       

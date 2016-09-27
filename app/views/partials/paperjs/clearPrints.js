@@ -12,13 +12,5 @@ function clear(){
     $(document.getElementById("console").childNodes[0]).remove()
 }
 
-function convertToRealCoord(p){
-    var temp = p.clone();
-    temp *= 50;
-    temp += new Point(0, 0);
-
-    return temp;
-}
-
 if(logStr.length == 0)
     clear();

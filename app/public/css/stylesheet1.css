@@ -28,7 +28,7 @@ h3 { font-size: 110%; }
 article > h2:first-child, section:first-child > h2 { margin-top: 0; }
 
 article {
-  max-width: 1000px;
+  max-width: 880px;
   margin: 0 0 0 200px;
   border-left: 2px solid #61adff;
   border-right: 1px solid #ddd;

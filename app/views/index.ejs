@@ -25,10 +25,10 @@
     <p><strong>WebCgal</strong> is a web tool and abreviation of <strong>Web</strong> of <strong>C</strong>omputer <strong>G</strong>eometry <strong>Al</strong>gorithms. It is  specialized to ease understanding computer geometry algorithms. Main features of the website are:
         
   <ul>
-      <li>It is written on <strong>javascript language</strong> and works on almost every web browser. (platform independent)</li>
-      <li>You can see how algorithms work on <strong>live animation</strong>. </li>
-      <li>You can <strong>modify</strong> codes on live. Therefore, you can try your own algorithm.</li>
-   </ul>
+      <li>Responsive visualisation and <strong>immediate</strong> results.</li>
+      <li><strong>No need to install</strong> anything.</li>
+    <li>Just code and see the result.</li>
+  </ul>
     
     <p> This computer geometry programmings are actually for learning the idea behind the algorithm visually. WebCgal uses mainly <a href="http://paperjs.org/" target="_blank">paper.js</a> javascript library and you can refer to it for reference. 
     </p>
@@ -38,7 +38,7 @@
     </p>
     
 </section>
-
+<br>
 <div class="paperscript">
     <div class="buttons">
         <div class="button run">Source</div>
@@ -89,8 +89,12 @@ function onFrame(event){
 }
     
 </script>
-    
-<script>    
+  <div class="canvas">
+    <canvas width="400px" height="300px" id="canvas-1"></canvas>
+</div>
+</div>
+
+    <script>
     var downloadAsSVG = function (fileName) {
 
    if(!fileName) {
@@ -109,20 +113,21 @@ function onFrame(event){
         downloadAsSVG('logo.svg')    
     }
 </script>
-    
-  <div class="canvas">
-    <canvas width="400px" height="240px" id="canvas-1"></canvas>
-</div>  
-</div>
-        
+
 <!--<button type="button" class="btn btn-link" onclick="save()">save</button>  -->
         
        
 <section id="features">
   <h2>Features</h2>
   <ul>
-    <li>Support for <a href="http://codemirror.net/mode/index.html">over 100 languages</a> out of the box
- </li></ul>
+    <li>Responsive visualisation and immediate results.</li>
+    <li>It is written on <strong>javascript language</strong> and works on almost every web browser. (platform independent)</li>
+    <li>You can <strong>modify</strong> codes on live. Therefore, you can try your own algorithm.</li>
+    <li>You can see how algorithms work on <strong>live animation</strong>. </li>
+    <li>Support for almost all web browsers. </li>
+    <li>You can write your own code at the <a href="/playground">playground</a> page. </li>
+    <li>There is an extensive doc at the page <a href="/documentation">documenentation</a> page. </li>
+</ul>
 </section>
       
 <section id=browsersupport>

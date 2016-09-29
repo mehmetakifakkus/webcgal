@@ -1,0 +1,13 @@
+article {
+  max-width: 1080px;
+  margin: 0 0 0 200px;
+  border-left: 2px solid #61adff;
+  border-right: 1px solid #ddd;
+  padding: 30px 50px 100px 50px;
+  background: white;
+  z-index: 2;
+  position: relative;
+  min-height: 100%;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}

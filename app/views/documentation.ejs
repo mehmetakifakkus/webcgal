@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/templates/head.ejs %> 
+    <link rel="stylesheet" href="/static/css/documentation.css">
+    <% include partials/templates/jsdefaults.ejs %> 
+
+</head>
+<body>
+
+<div id="nav">
+    <% include partials/templates/navigation.ejs %>
+</div>
+<div id="doc_nav">
+    
+    <ul class="menu-root">
+        <li><a class="" href="/documentation">Docs Home</a></li>
+    </ul>
+
+    <ul class="menu-sub">
+        <li class="header">Objects:</li>
+        <% docsData.objects.forEach(function(item){ %>
+            <li>
+                <a href="/documentation/<%= item.name %>">
+                    <%= item.name %>
+                </a>
+            </li>
+            <% }); %>
+    </ul>
+
+    <ul class="menu-sub">
+        <li class="header"> Functions:</li>
+        <% docsData.functions.forEach(function(item){ %>
+            <li>
+                <a href="/documentation/<%= item.name %>">
+                    <%= item.name %>
+                </a>
+            </li>
+            <% }); %>
+    </ul>
+
+</div>    
+    
+    <article>     
+
+    <h1>Documentation</h1>    
+        <p>Hello, in this page there wil be a tutorial on how to use webCgal.</p>
+
+    <div class="effects pure-g">
+
+        <div class = "example pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
+
+            <p> Objects: </p>
+            <ul>
+            <% docsData.objects.forEach(function(item){ %>
+                <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+            <% }); %>
+            </ul>
+        </div>
+
+        <div class = "example pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
+
+           <p> Functions: </p>
+            <ul>
+            <% docsData.functions.forEach(function(item){ %>
+                <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+            <% }); %>
+            </ul>
+        </div>
+    </div>
+        
+    <h2><%#- docsData.objects[0].name %>  </h2>
+    <%#-myConcat(docsData.objects[0].text); %>
+
+    <p>Here there is a live example:</p>
+        
+<% canvas_id=0 // initialize public variable %>
+
+<% include partials/content/documentationPaperStart.ejs %>
+var polygon = createPolygon('star');
+polygon.draw();
+<% include partials/content/documentationPaperEnd.ejs %>
+
+<div class="panel warning">
+    <b>Warning:</b> mesaj burada gozukecek
+</div>
+
+<div class="panel info">
+    <b>Info:</b> merhaba arkadaslar
+</div>
+
+        
+    </article>    
+    <% include partials/paperjs/pre_defined_polygons.svg %>
+
+</body>
+</html>
+
+
+<script src="/reload/reload.js"></script>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <% include partials/templates/head.ejs %> 
+    <link rel="stylesheet" href="/static/css/documentation.css">
+    <% include partials/templates/jsdefaults.ejs %> 
+
+</head>
+<body>
+
+<div id="nav">
+    <% include partials/templates/navigation.ejs %>
+</div>
+    
+<div id="doc_nav">
+    <% include partials/templates/doc_navigation.ejs %>
+</div>
+
+
+
+<article>
+    <% canvas_id=0 // initialize canvas public variable %>
+    
+    <h1><%= pageTitle %>  </h1>
+    <% var pageStr = myConcat(pageText); %>
+
+    <% var code = pageCode; %>
+    <% function put_code(str){ %>
+    <%     var output = str, re_start = new RegExp('put_code\\([0-9]+\\)','gi')// 'gi' is  global match and ignore case %>
+    <%     var results_start = new Array();//this is the results you want %>
+    <%     while (re_start.exec(str)){ //find and push the places %>
+    <%       results_start.push(re_start.lastIndex);}  %>
+
+    <% if(results_start.length){ // put first text %>
+        <%-         str.slice(0, results_start[0]-11)%>
+
+    <%  for(var i=0; i< results_start.length-1; i++){  // put text between put_code()%>
+    <%     if(results_start[i]){ %>
+    <%         var no = str.substring(results_start[i]-2, results_start[i] - 1); %>
+    <%          include partials/content/documentationPaperStart.ejs %><%- code[no].join('') %>
+    <%          include partials/content/documentationPaperEnd.ejs %>
+    <%-         str.slice(results_start[i], results_start[i+1]-11)%>
+    <%     } %>
+    <%   } %>
+    <%   var no = str.substring(results_start[results_start.length-1]-2, results_start[results_start.length-1] - 1); // put last text%>
+    <%    include partials/content/documentationPaperStart.ejs %><%- code[no].join('') %>
+    <%    include partials/content/documentationPaperEnd.ejs %>
+    <%-   str.slice(results_start[results_start.length-1])%>
+    <% }else{ %>
+    <%- str %>
+    <% } %>
+    <%} %>
+
+    <% put_code(pageStr) %>
+
+
+</article>    
+
+</body>
+        <% include partials/paperjs/pre_defined_polygons.svg %>
+</html>
+
+<script>
+    document.getElementById('Documentation').className = "active";
+</script>
+<script src="/reload/reload.js"></script>

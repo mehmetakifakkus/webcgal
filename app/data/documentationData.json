@@ -1,0 +1,129 @@
+
+{
+  "objects" :[{
+      "name": "Polygon",
+      "text": [
+        "<p>As we all know, polygon is a plane figure that is bounded by a finite chain of 2D line segments. Here, link_to(documentation/Polygon) is an object made of closed form of link_to(documentation/PolygonPoint)'s. </p>",
+        "<p>Each polygon can be repositioned by mouse dragging. Moreover, it is also possible to move each PolygonPoint.</p>",
+        "<p>Polygon can be initialized by several ways. You can see details on link_to(documentation/createPolygon) function documentation page.</p>",
+        "<h2>Drag Event</h2>",
+          "<p>Mouse drag event can be triggered, when it is used this way:</p>",
+
+        "<pre class='code' start='1'>",
+        "  // event triggering to polygon, when it is dragged\n",
+        "  polygon.mouseDragEvent = function(){\n",
+        "    clear();\n",
+        "    for (var i in polygon.points) // access each polygon point\n",
+		"        print(polygon.points[i])\n",
+        "  }\n",
+        "</pre>  "
+        ]
+    },{
+      "name": "PolygonPoint",
+      "text": [
+          "<p>PolygonPoint is an object which represents 2D point in the plane. It is visually shown as black point and id.</p>",
+          "<h3>Drag Event</h3>",
+          "<p>Mouse drag event can be triggered, when it is used this way:</p>",
+
+        "<pre class='code' start='1'>",
+        "  polygon.points.p0.mouseDragEvent = function(){ // event triggering to polygon point\n",
+        "    clear();\n",
+        "    print(polygon.points.p0); // print polygon point position\n",
+        "  }\n",
+        "</pre>  "
+
+      ]
+    }],
+
+
+    "functions":[{
+
+      "name": "clear",
+      "text": [
+          "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
+          "<pre class='code' start='1'>\nclear();\n",
+          "for (var i in polygon.points) // access each polygon point\n",
+          "   print(polygon.points[i])",
+          "</pre>"
+      ]
+    },
+    {
+      "name": "draw",
+      "text": [
+          "<p>This function is used to draw objects on the screen.</p>",
+          "<pre class='code' start='1'>",
+          "var polygon = createPolygon('square');\n",
+          "ploygon.draw();",
+          "</pre>"
+      ]
+    },
+    {
+      "name": "createPolygon",
+      "text": [
+        "<p>Polygon can be created by several ways. This function takes predefined strings to run properly. Otherwise it returns an error. Here you will see some examples:</p>",
+        "<pre class='code' start='1'>",
+        "var polygon = createPolygon('square');\n",
+        "var polygon = createPolygon('star');\n",
+        "var polygon = createPolygon('triangle_set');",
+        "</pre> ",
+
+        "<div class='panel note'>",
+        "<b>Note:</b> In createPolygon, 'star', 'square', 'triangle_set' are predefined strings. It does not support polygon types other than those.",
+        "</div> ",
+        "<h2>Live Demo</h2>",
+        "put_code(0)",
+        "<h2>Customize polygon creation</h2>",
+        "<p>It is also possible to determine the location and size of a polygon while creating it.</p> ",
+        "<ul>",
+        "<li> ",
+        "  <h3> createPolygon(type, location); </h3>",
+        "   put_code(1)",
+        "</li>",
+        "<li> ",
+        "  <h3> createPolygon(type, location, scale); </h3>",
+        "   put_code(2)",
+        "</li>",
+        "</ul>"
+      ],
+      "code":[
+         [
+            "var polygon = createPolygon('star');\n",
+            "polygon.draw();"
+         ]
+        ,
+          [
+            "var polygon = createPolygon('square', [125, 125]);\n",
+            "polygon.draw();"
+          ]
+        ,
+          [
+            "var polygon = createPolygon('square', [200, 200], 0.5);\n",
+            "polygon.draw();"
+          ]
+      ]
+    },
+    {
+      "name": "createRandomPolygon",
+      "text": [
+        "<p>It produces randomly created simple polygon. You can try live demo here:</p>",
+
+        "<h2>Live Demo</h2>",
+        "put_code(0)"
+      ],
+       "code":[
+
+         [
+            "var polygon = createRandomPolygon();\n",
+            "polygon.draw();"
+         ]
+        ,
+          [
+            "var polygon = createPolygon('square');\n",
+            "polygon.draw();"
+          ]
+
+      ]
+    }
+
+    ]
+}

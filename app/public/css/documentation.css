@@ -1,0 +1,167 @@
+/* This css modifies stylesheet1.css for documentations 
+Author: Mehmet Akif AKKUS
+*/
+
+p {
+    margin: 20px 0;
+    text-rendering: optimizeLegibility;
+}
+
+article { display: block; padding: 0; }
+
+article {
+  max-width: 700px;
+  margin: 0 0 0 200px;
+  border-left: 2px solid #61adff;
+  border-right: 2px solid #61adff;
+  padding: 1px 50px 100px 50px;
+  background: white;
+  z-index: 2;
+  position: relative;
+  min-height: 100%;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+article > h2:first-child, section:first-child > h2 {
+    margin-top: 30px;
+}
+
+article p, article ul, article ol {
+    margin: 0 10px 20px 0;
+}
+
+#doc_nav {
+  position: fixed;
+  margin: 0 0 0 900px;
+  padding-top: 120px;
+  max-height: 100%;
+  box-sizing: -moz-border-box;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  left: 0; right: none;
+  width: 200px;
+  text-align: left;
+  z-index: 1;
+}
+
+#doc_nav ul {
+  display: block;
+  margin: 0; padding: 0;
+  margin-bottom: 32px;
+}
+
+#doc_nav li {
+  display: block;
+  margin-bottom: 4px;
+}
+
+#doc_nav li ul {
+  font-size: 80%;
+  margin-bottom: 0;
+  display: none;
+}
+
+#doc_nav li.active ul {
+  display: block;
+}
+
+#doc_nav li li a {
+  padding-left: 20px;
+  display: inline-block;
+}
+
+#doc_nav ul a {
+  color: black;
+  padding: 0 7px 1px 15px;
+}
+
+#doc_nav ul a.active, #doc_nav ul a:hover {
+  border-bottom: 1px solid #61adff;
+/*  border-bottom-color: #009dec;*/
+
+  margin-bottom: -1px;
+  color: #61adff;
+}
+
+#doc_nav .menu-root {
+    padding-left: -5px;
+    font-size: 1.05em;
+}
+#doc_nav .menu-sub {
+    font-size: 0.9em;
+    padding-left: 0px;
+}
+#doc_nav .menu-subsub {
+    font-size: 0.8em;
+    padding-left: 5px;
+}
+
+.header {
+    padding-left: 10px!important;
+    color: #CC342D;
+}
+
+
+h1, h2, h3, h4 {
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 24px;
+    margin: 35px 0 5px;
+    text-rendering: optimizeLegibility;
+    color: #CC342D;
+/*    font-weight: bold;*/
+}
+
+
+h1 {
+    font-size: 24px;
+    line-height: 28px;
+}
+
+h2 {
+    font-size: 20px;
+    line-height: 24px;    
+    margin: 25px 0 5px;
+}
+
+h3 {
+    font-size: 18px;
+    line-height: 22px;
+    margin: 20px 0 5px;
+}
+
+
+#content {
+    margin: 0 0 48px 0;
+}
+
+#content p.summary {
+    margin-top: 8px;
+    font-size: 20px;
+    line-height: 26px;
+}
+
+
+
+.panel {
+    padding: 0.01em 16px;
+    margin-top: 16px!important;
+    margin-bottom: 16px!important;
+}
+
+.note {
+    background-color: #ffffcc;
+    border-radius: 10px;
+    border-left: 6px solid #ffeb3b;
+}
+
+.warning {
+ background-color:#ffdddd;
+ border-left:6px solid #f44336;
+}
+.info {
+ background-color:#ddffdd;
+ border-left:6px solid #4CAF50;
+}

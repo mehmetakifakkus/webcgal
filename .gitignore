@@ -1,0 +1,10 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+
+**/DS_Store
+**/DS_Store?
+
+#sub-folders# since it has own repository 
+node_modules/**

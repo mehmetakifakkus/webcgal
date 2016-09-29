@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><% include ../partials/templates/head.ejs %> </head>
+<body>
+
+<div id="nav">
+    <% include ../partials/templates/navigation.ejs %>
+</div>
+
+    <article>
+        <% linkData.dual_links.forEach(function(item) { %>
+        <h2><%=item.name%></h2>
+
+        <div class="effects pure-g">
+            <div class = "example pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
+                <figure class="imghvr-fade" style="background-color:#D14233;">
+                    <img src="/static/<%=item.image%>" width="300px">
+                    <figcaption>
+                        What is being monotone for a polygon?
+                    </figcaption>
+                    <a href="<%=item.link%>"></a>
+                </figure>
+                <textarea readonly="readonly"><%=item.description%></textarea>
+            </div>
+        </div>
+        <% }); %>
+    </article>
+
+</body>
+</html>
+
+<script src="/reload/reload.js"></script>

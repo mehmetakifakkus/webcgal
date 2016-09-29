@@ -1,0 +1,105 @@
+{
+  "example_links" :[{
+      "name": "L-monotone",
+      "link": "/examples/L-monoton",
+      "image": "images/lmonoton_tn.png",
+      "description": "What is being monotone for a polygon?"
+    },{
+      "name": "Duality",
+      "link": "/examples/duality/dualLine",
+      "image": "images/dualLine_tn.png",
+      "description": "What is duality for 2D?"
+    },{
+      "name": "Stabbery Checking",
+      "link": "/examples/duality",
+      "image": "images/stabber_tn.png",
+      "description": "Checking line for stabbery?"
+    },{
+      "name": "Smallest Enclosing Disk",
+      "link": "/examples/smallestEnclosingDisk",
+      "image": "images/smallestDisk_tn.png",
+      "description": "Smallest Enclosing Disk"
+    }
+],
+    "dual_links" :[{
+      "name": "Duality",
+      "link": "/examples/duality/dualLine",
+      "image": "images/dualLine_tn.png",
+      "description": "What is duality for 2D?"
+    },{
+      "name": "Stabbery Checking",
+      "link": "/examples/duality/checkStabber",
+      "image": "images/stabber_tn.png",
+      "description": "Checking line for stabbery?"
+    }
+],
+    "menu":[
+    {
+        "name":"Home",
+        "link":"",
+        "type":"node"
+    },{
+        "name":"Features",
+        "link":"#features",
+        "type":"start"
+    },{
+        "name":"Browser Support",
+        "link":"#browsersupport",
+        "type":"end"
+    },{
+        "name":"Documentation",
+        "link":"documentation",
+        "type":"node"
+    },{
+        "name":"Playground",
+        "link":"playground",
+        "type":"node"
+    },{
+        "name":"Examples",
+        "link":"examples",
+        "type":"node",
+        "sublinks":[
+        {
+            "name":"Boolean Process",
+            "link":"boolean",
+            "type":"start"
+        },{
+            "name":"L-monoton Polygon",
+            "link":"examples/L-monoton",
+            "type":"-"
+        },{
+            "name":"Duality",
+            "link":"examples/duality",
+            "type":"-",
+            "sublinks":[
+            {
+                "name":"Dual Line",
+                "link":"duality/dualLine",
+                "type":"start"
+            },{
+                "name":"Check Stabber",
+                "link":"duality/checkStabber",
+                "type":"end"
+            }
+            ]
+        },{
+            "name":"Smallest Enclosing Disk",
+            "link":"examples/smallestEnclosingDisk",
+            "type":"end"
+        }
+        ]
+    }
+],
+    "menu_levels":[
+        {
+            "level": "0",
+            "name": "menu-root"
+        },{
+            "level": "1",
+            "name": "menu-sub"
+        },{
+            "level": "2",
+            "name": "menu-subsub"
+        }
+    ]
+}

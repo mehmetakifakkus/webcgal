@@ -1,5 +1,6 @@
 function Polygon(name){
 
+
     //if ((typeof Polygon.id == 'undefined'))
       //  Polygon.id = 0;
     

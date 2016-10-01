@@ -8,7 +8,7 @@ function onMouseMove(event) {
 
 function onMouseDown(event) {
 
-    path = polPoint =  null;
+    path = polPoint = textPoint = null;
 
 	var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult){                       //console.log(event.item.name)
@@ -17,6 +17,8 @@ function onMouseDown(event) {
             path = hitResult.item;
         else if (event.item.name.startsWith('p'))
             polPoint = event.item;
+        else if (event.item.name.startsWith('_p'))
+            textPoint = event.item;
     }
 }
 
@@ -25,4 +27,6 @@ function onMouseDrag(event) {
         polygon.changePosition(event.delta * [1, -1]); // mirroring on y-axis, since it is changed on active layer
     else if (polPoint)
         polygon.changePosition2(polPoint, event.delta * [1, -1]);
+    else if (textPoint)
+        textPoint += event.delta * [1, -1];
  }

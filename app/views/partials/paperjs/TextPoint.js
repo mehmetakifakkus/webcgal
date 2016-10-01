@@ -134,6 +134,12 @@ function PointsTempObject()
         fn(points);
         count++;
     }
+
+    this.drawPoints = function(points){
+
+        for(var i=0; i < points.length; i++)
+            points[i].draw();
+    }
 }
 
 var Points = new PointsTempObject();

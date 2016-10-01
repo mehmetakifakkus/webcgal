@@ -7,14 +7,14 @@ function getCenterAndRadius3(p1, p2, p3){
     var eq3 = p3.x*p3.x + p3.y*p3.y +'+'+p3.x+'*d+'+p3.y+'*e+f=0';
 
     var sol = nerdamer.solveEquations([eq1, eq2, eq3]);
-    
+
     var x = sol[0][1]/-2;
     var y = sol[1][1]/-2;
-    
+
     var res = x*x + y*y+'+'+sol[0][1]+'*x+'+sol[1][1]+'*y+'+sol[2][1];
     var r2 = nerdamer(res, {x:x, y:y}, 'numer');
     var r = Math.sqrt(Math.abs(parseInt(r2.toString())));
-    
+
     return {center: new Point(x,y), r:r}
 }
 

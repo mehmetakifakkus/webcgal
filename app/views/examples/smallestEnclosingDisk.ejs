@@ -2,7 +2,7 @@
 <html>
 <head>
     <% include ../partials/templates/head.ejs %>
-    <% include ../partials/templates/jsDefaults.ejs %>
+    <% include ../partials/templates/jsdefaults.ejs %>
     <script src="/static/js/nerdamer/nerdamer.core.js"></script>
     <script src="/static/js/nerdamer/Algebra.js"></script>
     <script src="/static/js/nerdamer/Calculus.js"></script>
@@ -27,7 +27,8 @@
 </div>
 
 <script type="text/paperscript" canvas="canvas-1">
-<% include ../partials/paperjs/circle.ejs %>
+<% include ../partials/paperjs/circle.js %>
+<% include ../partials/paperjs/Functions.js %>
 
 var points = [];
 var drawables = [];
@@ -57,29 +58,11 @@ function drawCircle(circle){
         drawables.push(new Path.Circle({ name: 'circle', center: circle.center, radius: circle.r, strokeColor: 'black'}));
 }
 
-function convexHull(polygon){
-
-    var data = getDataFromPath(polygon);
-    data.sort(function(a, b) {return a[0] - b[0];});
-    N = points.length;
-    center = [numeric.sum(getCol(data, 0))/N, numeric.sum(getCol(data, 1))/N];
-}
-
 
 ////////////////////////////////    Main   ////////////////////////////////
 
-//end-script////////////////////// Smallest Disk Functions  //////////////////////////
-function shuffle(a) {
-    var result = [], j, i, temp = a.slice(0); // copy the content
-
-    for (i = temp.length; i; i--) {
-        j = Math.floor(Math.random() * i);
-        result.push(temp[j])
-        temp.splice(j, 1) //bu eksiltme işlemi burada gerçekleşiyor
-    }
-    return result;
-}
-
+//end-script
+////////////////////// Smallest Disk Functions  //////////////////////////
 function miniDisc(points){
     var ps = shuffle(points);
     var lastCircle = getCenterAndRadius2(ps[0], ps[1]);
@@ -103,7 +86,6 @@ function miniDiscWithPoint(points, q){
 }
 
 function miniDiscWitTwoPoints(points, q1, q2){
-
     var lastCircle = getCenterAndRadius2(q1, q2);
 
     for(k=0; k<points.length; k++)

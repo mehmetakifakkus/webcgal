@@ -60,8 +60,8 @@
         "type":"node",
         "sublinks":[
         {
-            "name":"Boolean Process",
-            "link":"boolean",
+            "name":"Convex Hull",
+            "link":"examples/convexHull",
             "type":"start"
         },{
             "name":"L-monoton Polygon",

@@ -2,7 +2,7 @@
 <html>
 <head>
     <% include ../partials/templates/head.ejs %>
-    <% include ../partials/templates/jsDefaults.ejs %>
+    <% include ../partials/templates/jsdefaults.ejs %>
     <script src="/static/js/nerdamer/nerdamer.core.js"></script>
     <script src="/static/js/nerdamer/Algebra.js"></script>
     <script src="/static/js/nerdamer/Calculus.js"></script>
@@ -20,72 +20,45 @@
 
 <div class="paperscript split">
 <div class="canvas up">
-    <canvas width="900px" height="360px" id="canvas-1"></canvas>
+    <canvas width="900px" height="400px" id="canvas-1"></canvas>
 </div>
 <div class="buttons">
 <div class="button run">Source</div>
 </div>
 
 <script type="text/paperscript" canvas="canvas-1">
-<% include ../partials/paperjs/circle.ejs %>
+<% include ../partials/paperjs/all.js %>
+<% include ../partials/paperjs/circle.js %>
+<% include ../partials/paperjs/Functions.js %>
 
-var points = [];
-var drawables = [];
 
 ////////////////////////////     event handling  /////////////////////////////
 
 function onMouseDown(event) {
-    points.push(event.point);
-    refreshPoints();
-    miniDisc(points)
+
+    clearDrawables();
+    var p = new Point(event.point.x, view.size.height - event.point.y);
+    mouseDown(p);
+}
+
+function mouseDown(point){  // my mouse down function prototype
+
 }
 
 ////////////////////////////     Visual Part      ////////////////////////////
 
-function refreshPoints(){
-    for(i=0; i<drawables.length; i++) // it is for lines, circles, texts etc.
-        drawables[i].remove();
-
-    for(k=0; k < points.length; k++)
-    {
-        drawables.push(new Path.Circle({ name: 'vertice-'+k, center: points[k], radius: 5, fillColor: 'black'}));
-        drawables.push(new PointText({ point: points[k] + [5, -5], fontSize: '16px', fillColor: 'black', content: ' '+ k}));
-    }
-}
-
 function drawCircle(circle){
-        drawables.push(new Path.Circle({ name: 'circle', center: circle.center, radius: circle.r, strokeColor: 'black'}));
+    drawables.push(new Path.Circle({ name: 'circle', center: circle.center, radius: circle.r, strokeColor: 'black'}));
 }
 
-function convexHull(polygon){
-
-    var data = getDataFromPath(polygon);
-    data.sort(function(a, b) {return a[0] - b[0];});
-    N = points.length;
-    center = [numeric.sum(getCol(data, 0))/N, numeric.sum(getCol(data, 1))/N];
-}
-
-
-////////////////////////////////    Main   ////////////////////////////////
-
-//end-script////////////////////// Smallest Disk Functions  //////////////////////////
-function shuffle(a) {
-    var result = [], j, i, temp = a.slice(0); // copy the content
-
-    for (i = temp.length; i; i--) {
-        j = Math.floor(Math.random() * i);
-        result.push(temp[j])
-        temp.splice(j, 1) //bu eksiltme işlemi burada gerçekleşiyor
-    }
-    return result;
-}
-
+//end-script
+////////////////////// Smallest Disk Functions  //////////////////////////
 function miniDisc(points){
     var ps = shuffle(points);
-    var lastCircle = getCenterAndRadius2(ps[0], ps[1]);
+    var lastCircle = getCenterAndRadius2(ps[0].pos, ps[1].pos);
 
     for(i=2; i<ps.length; i++)
-        if(inCircle(lastCircle.center, lastCircle.r, ps[i]) > 0)
+        if(inCircle(lastCircle.center, lastCircle.r, ps[i].pos) > 0)
             lastCircle = miniDiscWithPoint(ps.slice(0, i), ps[i])
 
     drawCircle(lastCircle);
@@ -93,40 +66,42 @@ function miniDisc(points){
 
 function miniDiscWithPoint(points, q){
     var ps = shuffle(points);
-    var lastCircle = getCenterAndRadius2(ps[0], q);
+    var lastCircle = getCenterAndRadius2(ps[0].pos, q.pos);
 
     for(j=1; j<ps.length; j++)
-        if(inCircle(lastCircle.center, lastCircle.r, ps[j]) > 0)
+        if(inCircle(lastCircle.center, lastCircle.r, ps[j].pos) > 0)
             lastCircle = miniDiscWitTwoPoints(ps.slice(0, j), ps[j], q)
 
     return lastCircle;
 }
 
 function miniDiscWitTwoPoints(points, q1, q2){
-
-    var lastCircle = getCenterAndRadius2(q1, q2);
+    var lastCircle = getCenterAndRadius2(q1.pos, q2.pos);
 
     for(k=0; k<points.length; k++)
-        if(inCircle(lastCircle.center, lastCircle.r, points[k]) > 0)
-            lastCircle = getCenterAndRadius3(q1, q2, points[k]);
+        if(inCircle(lastCircle.center, lastCircle.r, points[k].pos) > 0)
+            lastCircle = getCenterAndRadius3(q1.pos, q2.pos, points[k].pos);
 
     return lastCircle;
 }
 
-function initialPoints(){
-    var pos = [[270, 128], [260, 239], [214, 113], [315, 63], [250, 214], [411, 127]];
-    for(i=0; i < pos.length; i++)
-        points.push(new Point(pos[i][0], pos[i][1]))
+var points = Points.createRandom(7);
+miniDisc(points);
+
+function mouseDown(point){
+
+    points.push(new TextPoint(point));
+    miniDisc(points)
+
+    Points.drawPoints(points);
 }
 
-initialPoints();
-refreshPoints();
-miniDisc(points);
 
 </script>
 
 </div>
 </article>
+<% include ../partials/paperjs/pre_defined_polygons.svg %>
 
     </body>
 </html>

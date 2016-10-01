@@ -70,12 +70,5 @@ function TextPoint(x,y){
     this.toString = function() {
         return ''+self.path.name+' ';
         //        return ''+self.path.name+' '+self.pos;
-
     };
-
-    this.valueOf = function(){
-        return self.pos;
-    }
-
-    //return this.pos;
 };

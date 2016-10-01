@@ -2,7 +2,7 @@
 <html>
 <head>
     <% include ../partials/templates/head.ejs %>
-    <% include ../partials/templates/jsDefaults.ejs %>
+    <% include ../partials/templates/jsdefaults.ejs %>
     <script src="/static/js/nerdamer/nerdamer.core.js"></script>
     <script src="/static/js/nerdamer/Algebra.js"></script>
     <script src="/static/js/nerdamer/Calculus.js"></script>
@@ -29,206 +29,19 @@
 <script type="text/paperscript" canvas="canvas-1">
 <%- include ../partials/paperjs/all.js %>
 
-//////////////// math functions  ////////////////////////
-
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-function add(p1, p2){
-    return p1.pos + p2.pos;
-}
-
-function subtract(p1, p2){
-    return p1.pos - p2.pos;
-}
-
-function range(start, stop, step){
-  var a=[start], b=start;
-  while(b<stop){b+=step;a.push(b)}
-  return a;
-};
-
-Array.prototype.shuffle = function() {
-  var i = this.length, j, temp;
-  if ( i == 0 ) return this;
-  while ( --i ) {
-     j = Math.floor( Math.random() * ( i + 1 ) );
-     temp = this[i];
-     this[i] = this[j];
-     this[j] = temp;
-  }
-  return this;
-}
-
-//console.log(range(1,10,1).shuffle())
-
-///////////////////////////////   vector processes   ///////////////////////////////
-
-function dotProduct(v1, v2){
-    return v1.x * v2.x + v1.y * v2.y;
-}
-
-function crossProduct(v1, v2){
-    return v1.x * v2.y - v2.x * v1.y;
-}
-
-function PointsTempObject()
-{
-    var self = this;
-
-    function clearDrawables2(){
-        for(i=0; i<drawables.length; i++) // it is for lines, circles, texts etc.
-            drawables[i].remove();
-        //TextPoint.id = 0;
-    }
-
-    var ids = [];
-
-    this.createRandom = function(n){
-
-        var temp = []
-
-        for(var i=0; i < n; i++)
-        {
-            var x = getRandomInt(50, 500);
-            var y = getRandomInt(30, 300);
-            var tmpP = new TextPoint(x,y);
-
-            temp.push(tmpP);
-            ids.push(tmpP.path.name); // store points names in an array when they are created
-        }
-        return temp;
-    }
-
-    this.sortX = function(points, dir){
-        var points2 = points.sort(function(a, b) {return a.pos.x - b.pos.x;});
-
-        clearDrawables2();
-
-        for(var i=0; i < points2.length; i++)
-            points2[i].draw();
-
-        return points2;
-    }
-
-    this.sortY = function(points){
-        var points2 = points.sort(function(a, b) {return a.pos.y - b.pos.y;});
-
-        clearDrawables2();
-
-        for(var i=0; i < points2.length; i++)
-        {
-            points2[i].draw();
-            TextPoint.id++;
-        }
-        return points2;
-    }
-
-
-    var count = 0;
-    this.animateVibrate = function(fn, points){
-
-        clearDrawables();
-
-        var offset = new Point(2, 1) * [Math.sin(count / 30), Math.sin(count / 40)];
-
-        for(var i=0; i < points.length; i++)
-            getTextPoint(ids[i]).pos +=  offset * getRandomInt(-5,5);
-
-        for(var i=0; i < points.length; i++)
-            points[i].draw();
-
-        fn(points);
-        count++;
-    }
-
-    this.animateRandom = function(fn, points){
-
-        clearDrawables();
-
-        for(var i=0; i < ids.length; i++)
-            //points[ids[i]].pos +=  new Point(3, 2) * [Math.sin((i+10)/3 * count / 170), Math.sin( (i+10)/3 * count / 90)];
-            getTextPoint(ids[i]).pos += new Point(3, 2) * [Math.sin((i+10)/3 * count / 170), Math.sin( (i+10)/3 * count / 90)];
-        for(var i=0; i < points.length; i++)
-            points[i].draw();
-
-        fn(points);
-        count++;
-    }
-}
-
-function drawLine(p1, p2){
-    drawables.push(new Path.Line({from: p1.pos, to: p2.pos, strokeColor: 'black', strokeWidth:2}))
-}
-
-function drawLines(points){
-    for(var i=0; i < points.length-1; i++){
-        drawLine(points[i], points[i+1])
-    }
-}
-
-function getTextPoint(str){
-    for(var i=0; i < points.length; i++){
-        if(points[i].path.name.startsWith(str))
-            return points[i];
-
-    }
-}
-var Points = new PointsTempObject();
-
+<%- include ../partials/paperjs/convexHull.js %>
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //end-script
 var points = Points.createRandom(7);
 
-function convexHull(points){
-    points = Points.sortX(points); // n log n time complexity
+var chPoints = convexHull(points);
+drawLines(chPoints);
 
-    var Lupper = [], Llower = [];      // initialize upper and lower points
-    Lupper.push(points[0], points[1]); // add p_0 and p_1
-
-    for(var i=2; i<points.length; i++) // starting from p2
-    {
-        Lupper.push(points[i]);
-        var last = Lupper.length-1;
-
-        while(Lupper.length > 2 && isLeftTurn(Lupper) ){
-            last = Lupper.length-1;
-            Lupper = Lupper.slice(0,last-1).concat(Lupper.slice(last)); //delete the middle of the last three points
-        }
-    }
-
-    var last = points.length-1;
-    Llower.push(points[last], points[last-1]); // add p_n and p_n-1
-    for(var i=last-2; i >= 0; i--) // starting from p_n-2
-    {
-        Llower.push(points[i]);
-        var last = Llower.length-1;
-
-        while(Llower.length > 2 && isLeftTurn(Llower) ){
-            last = Llower.length-1;
-            Llower = Llower.slice(0,last-1).concat(Llower.slice(last)); //delete the middle of the last three points
-        }
-    }
-    drawLines(Lupper.concat(Llower));
-}
-
-function isLeftTurn(Lupper){
-    var last = Lupper.length-1;
-
-    var v1 = subtract(Lupper[last], Lupper[last-1]);
-    var v2 = subtract(Lupper[last-1], Lupper[last-2]);
-
-    return (crossProduct(v1, v2) < 0)
-}
-
-convexHull(points);
-
-//function onFrame(event){
-    //Points.animateRandom(convexHull, points); // function name and variables as parameter
+function onFrame(event){
+    Points.animateRandom(convexHull, points); // function name and variables as parameter
     //Points.animateVibrate(convexHull, points); // function name and variables as parameter
-//}
+}
 
 
 </script>

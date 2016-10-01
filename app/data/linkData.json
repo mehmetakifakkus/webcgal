@@ -37,14 +37,14 @@
     {
         "name":"Home",
         "link":"",
-        "type":"node"
+        "type":"start"
     },{
         "name":"Features",
         "link":"#features",
-        "type":"start"
+        "type":"-"
     },{
-        "name":"Browser Support",
-        "link":"#browsersupport",
+        "name":"About",
+        "link":"#about",
         "type":"end"
     },{
         "name":"Documentation",

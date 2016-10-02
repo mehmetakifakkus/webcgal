@@ -16,7 +16,7 @@
       "image": "images/lmonoton_tn.png",
       "description": "Polygon P in the plane is called monotone with respect to a straight line L. What is this L?"
     },{
-      "name": "Duality",
+      "name": "Dual Line",
       "link": "/examples/duality/dualLine",
       "image": "images/dualLine_tn.png",
       "description": "This application shows dual of a 2D point as a line in xy-coordinate system."
@@ -28,7 +28,7 @@
     }
 ],
     "dual_links" :[{
-      "name": "Duality",
+      "name": "Dual Line",
       "link": "/examples/duality/dualLine",
       "image": "images/dualLine_tn.png",
       "description": "This application shows dual of a 2D point as a line in xy-coordinate system."

@@ -11,6 +11,17 @@
 <% include partials/templates/headpaper.ejs %>
 <% include partials/templates/jsdefaults.ejs %> 
 
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85079944-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
 </head>
 <body>
 
@@ -18,26 +29,132 @@
 <% include partials/templates/navigation.ejs %>
 </div>
   
-<article>       
+<article>
     
-    <h2> Home </h2>        
+<div class="paperscript split">
+<div class="canvas">
+    <canvas width="1500px" height="600px" id="canvas-convexHull" style="position:absolute; top:-30px; right:0; bottom:0; left:-50px; z-index:-11; opacity: 0.3;"></canvas>
+</div>
+
+<div class="buttons">
+    <div class="button run">Source</div>
+</div>
+<script type="text/paperscript" canvas="canvas-convexHull">
+<%- include partials/paperjs/all.js %>
+
+<%- include partials/paperjs/convexHull.js %>
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//end-script
+var points = Points.createRandom(10);
+
+function loop(){
+    chPoints = Points.animateRandomWide(convexHull, points); // function name and variables as parameter
+    drawLines(chPoints);
+}
+
+
+</script>
+</div>
+
+<div style="margin: 40px;"></div>
+
 <section id="description" class="first">
     <p><strong2>WebCgal</strong2> is a web tool and abreviation of <strong2>Web</strong2> of <strong2>C</strong2>omputer <strong2>G</strong2>eometry <strong2>Al</strong2>gorithms. It is  specialized to ease understanding computer geometry algorithms. Main features of the website are:
         
   <ul>
       <li><strong>No need to install</strong> anything, just <strong>code</strong> and see the result</li>
-      <li>Some of the <strong>Computer Geormetry Algorithms</strong> coded in advance. </li>
-      <li>You can review and try how algorithms work.</li>
+      <li>Some of the <strong>Computer Geormetry Algorithms</strong> coded in advance. You can review them.</li>
+      <li>You can write your own algorithm.</li>
   </ul>
     
-    <p> This computer geometry programmings are actually for learning the idea behind the algorithm visually.
+    <p> WebCgal actually is a tool for learning the idea behind the algorithm visually.
     </p>
     
     <p>
-        Below you can see an interactive demo of the intersection of web site logo (text) and a circle. You can see its code by clicking upper right of the animation. You can simply edit and run your code.
+        Above you can see a piece of WebCgal code. Writing code here is as easy as it is seen. An interactive demo of the code lies at the background of the web site. You can modify number of random points and click run to see the result. You can simply edit and run your code. By the way, Convex Hull function is written on page <a href="/examples/convexHull">/examples/convexHull</a>
+    </p>
+
+    <p>
+    Please visit the <a href="/documentation">documentation</a> page to get detailed information about WebCgal computational geometry language. WebCgal is easy to learn and you can start programming in small amount of time. You will see that it makes lots of work extremely easy.
     </p>
     
 </section>
+
+    <script>
+    var downloadAsSVG = function (fileName) {
+
+   if(!fileName) {
+       fileName = "paperjs_example.svg"
+   }
+
+   var url = "data:image/svg+xml;utf8," + encodeURIComponent(paper.project.exportSVG({asString:true}));
+
+   var link = document.createElement("a");
+   link.download = fileName;
+   link.href = url;
+   link.click();
+}
+
+    window.save = function(){
+        downloadAsSVG('logo.svg')
+    }
+</script>
+
+<!--<button type="button" class="btn btn-link" onclick="save()">save</button>  -->
+
+
+<section id="features">
+  <h2>Features</h2>
+
+    <p>
+    WebCgal works exactly on your browser. It does not require server respons. Therefore it is fast and you start immediately. Most prominent features are listed here:
+    </p>
+
+  <ul>
+    <li>Responsive visualisation and immediate results.</li>
+    <li>It is written on <strong>javascript language</strong> and works on almost every web browser. (platform independent)</li>
+    <li>You can <strong>modify</strong> codes on live. Therefore, you can try your own algorithm.</li>
+    <li>You can see how algorithms work on <strong>live animation</strong>. </li>
+    <li>Support for almost all web browsers. </li>
+    <li>You can write your own code at the <a href="/playground">playground</a> page. </li>
+    <li>There is an extensive doc at the page <a href="/documentation">documenentation</a> page. </li>
+</ul>
+</section>
+
+<section id=browsersupport>
+  <h2>Browser support</h2>
+WebCgal is aimed at modern browsers with support for the Canvas object and EcmaScript 5.
+  <p>Support for modern mobile browsers is experimental. Recent versions of the iOS browser and Chrome on Android should work pretty well.</p>
+
+<p>
+    Some of the mobile device OS (according to their version in Android and iOS) does not support properly when you interact with the drawings. In most of the problems, visualisations are really responsive and accurate.
+</p>
+<p>
+    As you can realize, coding on that devices are not that easy. It is highly recommended to use any desktop OS and Chrome browser.
+</p>
+</section>
+
+<% include ../public/images/webcgal.svg %>
+<% include partials/paperjs/pre_defined_polygons.svg %>
+
+
+<section id=about style = "margin-top: -200px ">
+  <h2>About</h2>
+    <p>
+        WebCgal uses HTML5 Canvas and <a href="http://paperjs.org/" target="_blank">paper.js</a> vector graphics. Paperjs is a javascript library and you can refer to it for reference. See the paperJs <a href="http://paperjs.org/tutorials/">tutorial</a> and <a href="http://paperjs.org/reference/">reference</a> for extra information.
+    </p>
+
+    <p>WebCgal is an open source project and licensed under MIT. You can reach the code at <a href="https://github.com/mehmetakifakkus/webcgal">GitHub</a>.
+    </p>
+
+        <p>
+        Below you can see an interactive demo of the intersection of web site logo (text) and a circle. You can see its code by clicking upper right of the animation. You can simply edit and run your code as aways.
+    </p>
+
+    <p>Happy coding!</p>
+
+
 <br>
 <div class="paperscript">
     <div class="buttons">
@@ -46,6 +163,7 @@
         
 <script  type="text/paperscript" canvas="canvas-1">
 //end-script
+
 var cc = new Path.Circle({radius: 80, strokeColor: 'black' })
 
 var cgal = project.importSVG(document.getElementById("svg_cgal"));
@@ -67,7 +185,12 @@ function showIntersectionArea(path, color){
 }
 
 function onFrame(event){
-    var offset = new Point(100, 50) * [Math.sin(event.count / 30), Math.sin(event.count / 40)];
+
+    if(event.count % 10 != 0)
+        return;
+
+
+    var offset = new Point(100, 50) * [Math.sin(event.count / 300), Math.sin(event.count / 400)];
     cc.position = new Point(200, 100) + offset;
 
     for(var i=0; i<garbage.length; i++) // Remove the result of the last path operation:
@@ -94,67 +217,13 @@ function onFrame(event){
 </div>
 </div>
 
-    <script>
-    var downloadAsSVG = function (fileName) {
 
-   if(!fileName) {
-       fileName = "paperjs_example.svg"
-   }
-
-   var url = "data:image/svg+xml;utf8," + encodeURIComponent(paper.project.exportSVG({asString:true}));
-
-   var link = document.createElement("a");
-   link.download = fileName;
-   link.href = url;
-   link.click();
-}
-
-    window.save = function(){
-        downloadAsSVG('logo.svg')    
-    }
-</script>
-
-<!--<button type="button" class="btn btn-link" onclick="save()">save</button>  -->
-        
-       
-<section id="features">
-  <h2>Features</h2>
-  <ul>
-    <li>Responsive visualisation and immediate results.</li>
-    <li>It is written on <strong>javascript language</strong> and works on almost every web browser. (platform independent)</li>
-    <li>You can <strong>modify</strong> codes on live. Therefore, you can try your own algorithm.</li>
-    <li>You can see how algorithms work on <strong>live animation</strong>. </li>
-    <li>Support for almost all web browsers. </li>
-    <li>You can write your own code at the <a href="/playground">playground</a> page. </li>
-    <li>There is an extensive doc at the page <a href="/documentation">documenentation</a> page. </li>
-</ul>
-</section>
-      
-<section id=browsersupport>
-  <h2>Browser support</h2>
-WebCgal is aimed at modern browsers with support for the Canvas object and EcmaScript 5. 
-  <p>Support for modern mobile browsers is experimental. Recent versions of the iOS browser and Chrome on Android should work pretty well.</p>
-
-<p>
-    Most of the mobile device OS (such as Android and IOS) does not support properly. As you can realize, coding on that devices are not that easy.
-</p>
-</section>
-
-<section id=about>
-  <h2>About</h2>
-    <p>
-        WebCgal uses mainly <a href="http://paperjs.org/" target="_blank">paper.js</a> javascript library and you can refer to it for reference.
-    </p>
-
-    <p>See the paperJs <a href="http://paperjs.org/tutorials/">tutorial</a> and <a href="http://paperjs.org/reference/">reference</a> for editing.
-    </p>
 
 </section>
         
     </article>
     
-<% include ../public/images/webcgal.svg %> 
-    
+
 </body>
 </html>
 

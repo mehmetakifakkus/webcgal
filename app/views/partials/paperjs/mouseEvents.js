@@ -30,3 +30,9 @@ function onMouseDrag(event) {
     else if (textPoint)
         textPoint += event.delta * [1, -1];
  }
+
+function onFrame(event){
+    loop(event);
+}
+
+function loop(){} // dummy to prevent it is not defined

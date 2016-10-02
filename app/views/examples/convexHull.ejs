@@ -20,7 +20,7 @@
 
 <div class="paperscript split">
 <div class="canvas up">
-    <canvas width="775px" height="400px" id="canvas-1"></canvas>
+    <canvas width="775px" height="360px" id="canvas-1"></canvas>
 </div>
 <div class="buttons">
 <div class="button run">Source</div>
@@ -29,20 +29,13 @@
 <script type="text/paperscript" canvas="canvas-1">
 <%- include ../partials/paperjs/all.js %>
 
+//end-script
 <%- include ../partials/paperjs/convexHull.js %>
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//end-script
-var points = Points.createRandom(7);
+var points = Points.createRandom(7, 50, 600, 50, 300); // number, xMin, xMax, yMin, yMax,
 
-var chPoints = convexHull(points);
+var chPoints = convexHull(points); // convex Hull points is stored here.
 drawLines(chPoints);
-
-function onFrame(event){
-    Points.animateRandom(convexHull, points); // function name and variables as parameter
-    //Points.animateVibrate(convexHull, points); // function name and variables as parameter
-}
-
 
 </script>
 

@@ -1,0 +1,64 @@
+    <p>
+        Below you can see an interactive demo of the intersection of web site logo (text) and a circle. You can see its code by clicking upper right of the animation. You can simply edit and run your code.
+    </p>
+    
+</section>
+    
+<br>
+<div class="paperscript">
+    <div class="buttons">
+        <div class="button run">Source</div>
+    </div>
+        
+<script  type="text/paperscript" canvas="canvas-1">
+//end-script
+
+/*
+var cc = new Path.Circle({radius: 80, strokeColor: 'black' })
+
+var cgal = project.importSVG(document.getElementById("svg_cgal"));
+cgal.style = {fillColor: 'white', strokeColor: 'red', strokeWidth: 1}
+cgal.position = new Point(200, 130)
+
+var web = project.importSVG(document.getElementById("svg_web"));
+web.style = {fillColor: 'white', strokeColor: 'black', strokeWidth: 1}
+web.position = [275, 30]
+web.scale(0.3)
+
+var garbage = [];
+
+function showIntersectionArea(path, color){
+    var w = cc.intersect(path)
+    w.fillColor = color  
+    w.bringToFront();
+    garbage.push(w)
+}
+
+function onFrame(event){
+    var offset = new Point(100, 50) * [Math.sin(event.count / 30), Math.sin(event.count / 40)];
+    cc.position = new Point(200, 100) + offset;
+
+    for(var i=0; i<garbage.length; i++) // Remove the result of the last path operation:
+       garbage[i].remove()    
+
+    for(var jc=0; jc<cgal.children.length; jc++)
+    {
+        var intersections = cc.getIntersections(cgal.children[jc]);
+
+        for (var k = 0; k < intersections.length; k++)
+            garbage.push(new Path.Circle({ center: intersections[k].point, radius: 5, strokeColor: 'black' }))      
+
+        showIntersectionArea(cgal.children[jc], 'red');
+    }
+
+    for(var iw=0; iw<web.children.length; iw++)
+        showIntersectionArea(web.children[iw], 'black');
+
+}
+    
+*/    
+</script>
+  <div class="canvas">
+<!--    <canvas width="400px" height="300px" id="canvas-1"></canvas>-->
+</div>
+</div>

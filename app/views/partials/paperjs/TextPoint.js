@@ -64,14 +64,14 @@ function PointsTempObject()
 
     var ids = [];
 
-    this.createRandom = function(n){
+    this.createRandom = function(n, minX, maxX, minY, maxY){
 
         var temp = []
 
         for(var i=0; i < n; i++)
         {
-            var x = getRandomInt(50, 500);
-            var y = getRandomInt(30, 300);
+            var x = getRandomInt(minX || 100, maxX || 700);
+            var y = getRandomInt(minY || 200, maxY || 400);
             var tmpP = new TextPoint(x,y);
 
             temp.push(tmpP);
@@ -131,9 +131,27 @@ function PointsTempObject()
         for(var i=0; i < points.length; i++)
             points[i].draw();
 
-        fn(points);
+        var chPoints = fn(points);
         count++;
+        return chPoints;
     }
+
+
+    this.animateRandomWide = function(fn, points){
+
+        clearDrawables();
+
+        for(var i=0; i < ids.length; i++)
+            //points[ids[i]].pos +=  new Point(3, 2) * [Math.sin((i+10)/3 * count / 170), Math.sin( (i+10)/3 * count / 90)];
+            getTextPoint(ids[i]).pos += new Point(i < ids.length/2 ? 2: -2, i < ids.length/2 ? 1: -2) * [Math.sin((i+10)/3 * count / 270), Math.sin( (i+10)/3 * count / 290)];
+        for(var i=0; i < points.length; i++)
+            points[i].draw();
+
+        var chPoints = fn(points);
+        count++;
+        return chPoints;
+    }
+
 
     this.drawPoints = function(points){
 

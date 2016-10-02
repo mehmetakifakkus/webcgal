@@ -27,8 +27,7 @@ function convexHull(points){
             Llower = Llower.slice(0,last-1).concat(Llower.slice(last)); //delete the middle of the last three points
         }
     }
-    drawLines(Lupper.concat(Llower));
-    return Lupper.concat(Llower);
+    return Lupper.concat(Llower); // return upper and lower part
 }
 
 function isLeftTurn(Lupper){

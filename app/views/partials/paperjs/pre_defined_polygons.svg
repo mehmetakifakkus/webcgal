@@ -1,4 +1,4 @@
-<svg id = "polygons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="5" visibility="hidden">
+<svg id = "polygons" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="10" visibility="hidden">
 
     <g id="star">    
         <path d="M 333.547 110.616 L 376.019 223.374 L 505.349 225.806 L 402.268 297.927 L 439.726 412.188 L 333.547 344.003 L 227.368 412.188 L 264.826 297.927 L 161.745 225.806 L 291.075 223.374 Z" data-bx-shape="star 333.547 277.321 180.643 166.705 0.4 5 1@f58dba71" style="fill: none; stroke: rgb(0, 0, 0); stroke-width: 2; "></path>

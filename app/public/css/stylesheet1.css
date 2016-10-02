@@ -63,7 +63,6 @@ article a:hover {
 
 #nav h1 {
   margin-right: 12px;
-  margin-top: 0;
   margin-bottom: 2px;
   color: #166ac6;
   letter-spacing: .5px;
@@ -71,7 +70,6 @@ article a:hover {
 
 #nav {
   position: fixed;
-  padding-top: 30px;
   max-height: 100%;
   box-sizing: -moz-border-box;
   box-sizing: border-box;
@@ -136,9 +134,9 @@ article a:hover {
 #nav #logo {
   border: 0;
   transform: matrix(1, 0, 0, 1, -10, 0);
-  margin: -20px 0px;
+  margin: -5px 0px;
   margin-left: 100px;
-  margin-bottom: 10px;
+  margin-bottom: 60px;
   overflow-x: hidden
 }
 

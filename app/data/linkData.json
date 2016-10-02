@@ -1,36 +1,42 @@
 {
-  "example_links" :[{
-      "name": "L-monotone",
-      "link": "/examples/L-monoton",
-      "image": "images/lmonoton_tn.png",
-      "description": "What is being monotone for a polygon?"
-    },{
-      "name": "Duality",
-      "link": "/examples/duality/dualLine",
-      "image": "images/dualLine_tn.png",
-      "description": "What is duality for 2D?"
-    },{
-      "name": "Stabbery Checking",
-      "link": "/examples/duality",
-      "image": "images/stabber_tn.png",
-      "description": "Checking line for stabbery?"
+  "example_links" :[
+    {
+      "name": "Convex Hull",
+      "link": "/examples/convexHull",
+      "image": "images/convexHull_tn.png",
+      "description": "Well know Convex Hull problem is coded here. It is very basic algorithm in Computational Geometry."
     },{
       "name": "Smallest Enclosing Disk",
       "link": "/examples/smallestEnclosingDisk",
       "image": "images/smallestDisk_tn.png",
-      "description": "Smallest Enclosing Disk"
+      "description": "Problem of finding smallest circle that contains all of a given set of points in the Euclidean plane."
+    },{
+      "name": "L-monotone",
+      "link": "/examples/L-monoton",
+      "image": "images/lmonoton_tn.png",
+      "description": "Polygon P in the plane is called monotone with respect to a straight line L. What is this L?"
+    },{
+      "name": "Duality",
+      "link": "/examples/duality/dualLine",
+      "image": "images/dualLine_tn.png",
+      "description": "This application shows dual of a 2D point as a line in xy-coordinate system."
+    },{
+      "name": "Stabbery Checking",
+      "link": "/examples/duality/checkStabber",
+      "image": "images/stabber_tn.png",
+      "description": "Checking line for stabbery? If intersection exists there must be a line intersects all line segments."
     }
 ],
     "dual_links" :[{
       "name": "Duality",
       "link": "/examples/duality/dualLine",
       "image": "images/dualLine_tn.png",
-      "description": "What is duality for 2D?"
+      "description": "This application shows dual of a 2D point as a line in xy-coordinate system."
     },{
       "name": "Stabbery Checking",
       "link": "/examples/duality/checkStabber",
       "image": "images/stabber_tn.png",
-      "description": "Checking line for stabbery?"
+      "description": "Checking line for stabbery? If intersection exists there must be a line intersects all line segments."
     }
 ],
     "menu":[
@@ -64,6 +70,10 @@
             "link":"examples/convexHull",
             "type":"start"
         },{
+            "name":"Smallest Enclosing Disk",
+            "link":"examples/smallestEnclosingDisk",
+            "type":"-"
+        },{
             "name":"L-monoton Polygon",
             "link":"examples/L-monoton",
             "type":"-"
@@ -82,10 +92,6 @@
                 "type":"end"
             }
             ]
-        },{
-            "name":"Smallest Enclosing Disk",
-            "link":"examples/smallestEnclosingDisk",
-            "type":"end"
         }
         ]
     }

@@ -68,10 +68,13 @@ function PointsTempObject()
 
         var temp = []
 
+        var x_ = maxX || view.size.width;
+        var y_ = maxY || view.size.height;
+
         for(var i=0; i < n; i++)
         {
-            var x = getRandomInt(minX || 100, maxX || 700);
-            var y = getRandomInt(minY || 200, maxY || 400);
+            var x = getRandomInt(minX || 0.1 * x_, 0.8 * x_);
+            var y = getRandomInt(minY || 0.1 * y_, 0.8 * y_);
             var tmpP = new TextPoint(x,y);
 
             temp.push(tmpP);
@@ -80,7 +83,7 @@ function PointsTempObject()
         return temp;
     }
 
-    this.sortX = function(points, dir){
+    this.sortX = function(points){
         var points2 = points.sort(function(a, b) {return a.pos.x - b.pos.x;});
 
         clearDrawables2();
@@ -105,7 +108,7 @@ function PointsTempObject()
     }
 
         var count = 0;
-    this.animateVibrate = function(fn, points){
+    this.animateVibrate = function(points, fn){
 
         clearDrawables();
 
@@ -117,27 +120,33 @@ function PointsTempObject()
         for(var i=0; i < points.length; i++)
             points[i].draw();
 
-        fn(points);
+        var func = fn || function(){};
+
+        var chPoints = func(points);
+
         count++;
+        return chPoints;
     }
 
-    this.animateRandom = function(fn, points){
+    this.animateRandom = function(points, fn){
 
         clearDrawables();
 
         for(var i=0; i < ids.length; i++)
             //points[ids[i]].pos +=  new Point(3, 2) * [Math.sin((i+10)/3 * count / 170), Math.sin( (i+10)/3 * count / 90)];
-            getTextPoint(ids[i]).pos += new Point(3, 2) * [Math.sin((i+10)/3 * count / 170), Math.sin( (i+10)/3 * count / 90)];
+            getTextPoint(ids[i]).pos += new Point(2, 1) * [Math.sin((i+10)/3 * count / 170), Math.sin( (i+10)/3 * count / 90)];
         for(var i=0; i < points.length; i++)
             points[i].draw();
 
-        var chPoints = fn(points);
+        var func = fn || function(){};
+
+        var chPoints = func(points);
         count++;
         return chPoints;
     }
 
 
-    this.animateRandomWide = function(fn, points){
+    this.animateRandomWide = function(points, fn){
 
         clearDrawables();
 
@@ -147,17 +156,44 @@ function PointsTempObject()
         for(var i=0; i < points.length; i++)
             points[i].draw();
 
+        var func = fn || function(){};
+
         var chPoints = fn(points);
         count++;
         return chPoints;
     }
 
 
-    this.drawPoints = function(points){
+    this.drawPoints = function(points){  // they are automatically drawed
 
         for(var i=0; i < points.length; i++)
             points[i].draw();
     }
+
+    this.shuffle = function(a) {
+        var result = [], j, i, temp = a.slice(0); // copy the content
+
+        for (i = temp.length; i; i--) {
+            j = Math.floor(Math.random() * i);
+            result.push(temp[j])
+            temp.splice(j, 1) //bu eksiltme işlemi burada gerçekleşiyor
+        }
+        return result;
+    }
+
+    /////////////////////////////////////////  Visual  ////////////////////////////////////////////////////
+
+
+    this.drawLine = function(p1, p2){
+        drawables.push(new Path.Line({from: p1.pos, to: p2.pos, strokeColor: 'black', strokeWidth:2}))
+    }
+
+    this.drawLines = function(points){
+        for(var i=0; i < points.length-1; i++){
+            self.drawLine(points[i], points[i+1])
+        }
+    }
+
 }
 
 var Points = new PointsTempObject();
@@ -174,17 +210,5 @@ function subtract(p1, p2){
     return p1.pos - p2.pos;
 }
 
-/////////////////////////////////////////  Visual  ////////////////////////////////////////////////////
-
-
-function drawLine(p1, p2){
-    drawables.push(new Path.Line({from: p1.pos, to: p2.pos, strokeColor: 'black', strokeWidth:2}))
-}
-
-function drawLines(points){
-    for(var i=0; i < points.length-1; i++){
-        drawLine(points[i], points[i+1])
-    }
-}
 
 

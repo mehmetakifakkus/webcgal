@@ -61,12 +61,27 @@ router.get('/documentation/:item', function(req, res) {
     }  
   });    
     
-  data.functions.forEach(function(it){ // search in functions
+  data.general_functions.forEach(function(it){ // search in functions
     if(it.name == req.params.item){
          text = it.text;
          code = it.code;
     }
   });
+
+  data.points_functions.forEach(function(it){ // search in functions
+    if(it.name == req.params.item){
+         text = it.text;
+         code = it.code;
+    }
+  });
+
+  data.misc_functions.forEach(function(it){ // search in functions
+    if(it.name == req.params.item){
+         text = it.text;
+         code = it.code;
+    }
+  });
+
 
   res.render('documentationItem', {
     pageTitle: req.params.item,

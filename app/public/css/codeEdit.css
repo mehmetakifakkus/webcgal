@@ -106,9 +106,9 @@ span.cm-attribute {
   .paperscript .explain {
     float: right;
     display: none;
-    font-size: 12px;
+    font-size: 18px;
     line-height: 16px;
-    padding: 2px 6px;
+    padding: 7px 20px;
     border-radius: 4px;
     -moz-border-radius: 4px;
     -webkit-border-radius: 4px;
@@ -134,7 +134,9 @@ span.cm-attribute {
     padding-top: 10px;
     padding-bottom: 10px; }
   .paperscript .canvas {
-    line-height: 0; }
+    line-height: 0;
+    margin-bottom: 10px;
+    }
   .paperscript .canvas.border canvas {
     border: 1px solid #999; }
 

@@ -27,7 +27,7 @@ app.get('/', function(req, res) {
 });
 
 
-app.use(require('./routes/examplesRoute'));
+app.use(require('./routes/algorithmsRoute'));
 app.use(require('./routes/documentationRoute'));
 
 

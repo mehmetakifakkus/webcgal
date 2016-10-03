@@ -2,39 +2,39 @@
   "example_links" :[
     {
       "name": "Convex Hull",
-      "link": "/examples/convexHull",
+      "link": "/algorithms/convexHull",
       "image": "images/convexHull_tn.png",
       "description": "Well know Convex Hull problem is coded here. It is very basic algorithm in Computational Geometry."
     },{
       "name": "Smallest Enclosing Disk",
-      "link": "/examples/smallestEnclosingDisk",
+      "link": "/algorithms/smallestEnclosingDisk",
       "image": "images/smallestDisk_tn.png",
       "description": "Problem of finding smallest circle that contains all of a given set of points in the Euclidean plane."
     },{
       "name": "L-monotone",
-      "link": "/examples/L-monoton",
+      "link": "/algorithms/L-monoton",
       "image": "images/lmonoton_tn.png",
       "description": "Polygon P in the plane is called monotone with respect to a straight line L. What is this L?"
     },{
       "name": "Dual Line",
-      "link": "/examples/duality/dualLine",
+      "link": "/algorithms/duality/dualLine",
       "image": "images/dualLine_tn.png",
       "description": "This application shows dual of a 2D point as a line in xy-coordinate system."
     },{
       "name": "Stabbery Checking",
-      "link": "/examples/duality/checkStabber",
+      "link": "/algorithms/duality/checkStabber",
       "image": "images/stabber_tn.png",
       "description": "Checking line for stabbery? If intersection exists there must be a line intersects all line segments."
     }
 ],
     "dual_links" :[{
       "name": "Dual Line",
-      "link": "/examples/duality/dualLine",
+      "link": "/algorithms/duality/dualLine",
       "image": "images/dualLine_tn.png",
       "description": "This application shows dual of a 2D point as a line in xy-coordinate system."
     },{
       "name": "Stabbery Checking",
-      "link": "/examples/duality/checkStabber",
+      "link": "/algorithms/duality/checkStabber",
       "image": "images/stabber_tn.png",
       "description": "Checking line for stabbery? If intersection exists there must be a line intersects all line segments."
     }
@@ -61,25 +61,25 @@
         "link":"playground",
         "type":"node"
     },{
-        "name":"Examples",
-        "link":"examples",
+        "name":"Algorithms",
+        "link":"algorithms",
         "type":"node",
         "sublinks":[
         {
             "name":"Convex Hull",
-            "link":"examples/convexHull",
+            "link":"algorithms/convexHull",
             "type":"start"
         },{
             "name":"Smallest Enclosing Disk",
-            "link":"examples/smallestEnclosingDisk",
+            "link":"algorithms/smallestEnclosingDisk",
             "type":"-"
         },{
             "name":"L-monoton Polygon",
-            "link":"examples/L-monoton",
+            "link":"algorithms/L-monoton",
             "type":"-"
         },{
             "name":"Duality",
-            "link":"examples/duality",
+            "link":"algorithms/duality",
             "type":"-",
             "sublinks":[
             {

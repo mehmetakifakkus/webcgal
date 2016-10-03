@@ -15,13 +15,19 @@ function getCenterAndRadius3(p1, p2, p3){
     var r2 = nerdamer(res, {x:x, y:y}, 'numer');
     var r = Math.sqrt(Math.abs(parseInt(r2.toString())));
 
-    return {center: new Point(x,y), r:r}
+    return {center: new Point(x,y), radius:r}
 }
 
 function getCenterAndRadius2(p1, p2){
-    return {center: (p1+p2)/2, r:(p1.getDistance(p2)/2)}
+    return {center: (p1+p2)/2, radius:(p1.getDistance(p2)/2)}
 }
 
 function inCircle(center, radius, p){
     return Math.sqrt(Math.pow(p.x-center.x, 2)+ Math.pow(p.y-center.y, 2)) - radius;
+}
+
+////////////////////////////     Visual Part      ////////////////////////////
+
+function drawCircle(circle){
+    drawables.push(new Path.Circle({ name: 'circle', center: circle.center, radius: circle.radius, strokeColor: 'black'}));
 }

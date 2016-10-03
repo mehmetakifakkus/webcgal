@@ -6,6 +6,14 @@
         "<p>As we all know, polygon is a plane figure that is bounded by a finite chain of 2D line segments. Here, link_to(documentation/Polygon) is an object made of closed form of link_to(documentation/PolygonPoint)'s. </p>",
         "<p>Each polygon can be repositioned by mouse dragging. Moreover, it is also possible to move each PolygonPoint.</p>",
         "<p>Polygon can be initialized by several ways. You can see details on link_to(documentation/createPolygon) function documentation page.</p>",
+
+        "<h2>Polygon.draw()</h2>",
+        "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
+        "<pre class='code' start='1'>\nclear();\n",
+        "for (var i in polygon.points) // access each polygon point\n",
+        "   print(polygon.points[i])",
+        "</pre>",
+
         "<h2>Drag Event</h2>",
           "<p>Mouse drag event can be triggered, when it is used this way:</p>",
 
@@ -33,10 +41,30 @@
         "</pre>  "
 
       ]
+    },{
+      "name": "Points",
+      "text": [
+          "<p>This objects is a helper can be used for so many purposes. It helps for creating random points, sorting them and animating them. Here what you can do: </p>",
+          "<h3>Points.createRandom(n)</h3>",
+          "<p>Details of the function is at link_to(documentation/createRandom)</p>",
+          "<h3>Points.createRandom(n, minX, maxX, minY, maxY)</h3>",
+          "<p>Details of the function is at link_to(documentation/createRandom)</p>",
+          "<h3>Points.sortX(points)</h3>",
+          "<p>Details of the function is at link_to(documentation/sort)</p>",
+          "<h3>Points.sortY(points)</h3>",
+          "<p>Details of the function is at link_to(documentation/sort)</p>",
+          "<h3>Points.animateRandom(points, function)</h3>",
+          "<p>Details of the function is at link_to(documentation/animate)</p>",
+          "<h3>Points.animateVibrate(points, function)</h3>",
+          "<p>Details of the function is at link_to(documentation/animate)</p>",
+         ""
+
+
+      ]
     }],
 
 
-    "functions":[{
+    "general_functions":[{
 
       "name": "clear",
       "text": [
@@ -44,16 +72,6 @@
           "<pre class='code' start='1'>\nclear();\n",
           "for (var i in polygon.points) // access each polygon point\n",
           "   print(polygon.points[i])",
-          "</pre>"
-      ]
-    },
-    {
-      "name": "draw",
-      "text": [
-          "<p>This function is used to draw objects on the screen.</p>",
-          "<pre class='code' start='1'>",
-          "var polygon = createPolygon('square');\n",
-          "ploygon.draw();",
           "</pre>"
       ]
     },
@@ -68,7 +86,10 @@
         "</pre> ",
 
         "<div class='panel note'>",
-        "<b>Note:</b> In createPolygon, 'star', 'square', 'triangle_set' are predefined strings. It does not support polygon types other than those.",
+        "<b>Note:</b> In createPolygon, 'star', 'square', 'triangle_set' are predefined strings.",
+        "</div> ",
+        "<div class='panel warning'>",
+        "<b>Warning:</b> It does not support polygon types other than those.",
         "</div> ",
         "<h2>Live Demo</h2>",
         "put_code(0)",
@@ -89,17 +110,15 @@
          [
             "var polygon = createPolygon('star');\n",
             "polygon.draw();"
-         ]
-        ,
-          [
+         ],
+         [
             "var polygon = createPolygon('square', [125, 125]);\n",
             "polygon.draw();"
-          ]
-        ,
-          [
+         ],
+         [
             "var polygon = createPolygon('square', [200, 200], 0.5);\n",
             "polygon.draw();"
-          ]
+         ]
       ]
     },
     {
@@ -111,19 +130,206 @@
         "put_code(0)"
       ],
        "code":[
-
          [
             "var polygon = createRandomPolygon();\n",
             "polygon.draw();"
-         ]
-        ,
-          [
+         ],
+         [
             "var polygon = createPolygon('square');\n",
             "polygon.draw();"
-          ]
+         ]
+      ]
+    }
+    ],
 
+    "points_functions":[
+     {
+      "name": "createRandom",
+      "text": [
+          "<p>This function has two alternatives. Let's have a look at them: </p>",
+          "<h2>Points.createRandom(n)</h2>",
+          "<p><strong>n</strong> is the number of point. This function can produce random points inside the canvas. </p>",
+          "<p>Here is the live example:</p>",
+          "put_code(0)",
+
+          "<h2>Points.createRandom(n, minX, maxX, minY, maxY)</h2>",
+          "<p>Using this function we can use limit the bounds. Our canvas has the size of 600x380. So we can select bounds like this:</p>",
+            "put_code(1)"
+      ],
+       "code":[
+         [ "var points = Points.createRandom(5);\n" ]
+        ,
+          [ "var points = Points.createRandom(10, 0, 600, 200, 250);\n"  ]
+      ]
+    },    {
+      "name": "sort",
+      "text": [
+          "<p>This function can sort points in two different ways. The first one is according to x-coordinate, the other one is according to y-coordinate </p>",
+            "<pre class='code' start='1'>",
+            "var points = Points.sortX(points);\n",
+            "var points = Points.sortY(points);\n",
+        "</pre> ",
+        "<div class='panel warning'>",
+        "<b>Warning:</b> This function does not sort visually, after sort operation points[0] is guaranteed to be the smallest.",
+        "</div> "
+      ]
+    },    {
+      "name": "shuffle",
+      "text": [
+          "<p>This function can shuffle points. When you access a certain index after shuffle operation, a different point will be returned.  </p>",
+            "<pre class='code' start='1'>",
+            "var points = Points.createRandom(5);\n",
+            "var shuffled = Points.shuffle(points);\n",
+        "</pre> ",
+        "<div class='panel warning'>",
+        "<b>Warning:</b> This function does not shuffle visually, after shuffle operation points[0] is likely to change.",
+        "</div> "
+      ]
+    },     {
+      "name": "animate",
+      "text": [
+          "<p>Sometimes we may want to animate our points. Main reason for that is to try algorithms with different 2D point combinations. . We can have a chance to see if there is a weakness in our algorithm. </p>",
+          "<p>Here, you will introduce with a new function named <strong>loop( )</strong> which we use for creating an animation. </p>",
+          "<p><strong>animate( )</strong> function has two alternatives. Let's have a look at them: </p>",
+          "<h2>Points.animateRandom(points)</h2>",
+          "<p>In this example we will not use any function. Here is the live example:</p>",
+          "put_code(0)",
+          "<h2>Points.animateRandom(points, function)</h2>",
+          "<p>Now, we will call <strong> convexHull( )</strong> function with initially random 5 points. Then as we animate through points we will call that function repetitively.</p>",
+            "put_code(1)",
+          "<p>Here another function <strong> miniDisc( )</strong> which finds smallest Enclosing Disk.</p>",
+            "put_code(2)",
+          "<h2>Points.animateVibrate(points, function)</h2>",
+          "<p>Now, we will call <strong> convexHull( )</strong> function with another type of animation.</p>",
+            "put_code(3)"
+      ],
+       "code":[
+         [
+            "var points = Points.createRandom(5);\n\n",
+            "function loop(){\n",
+            "    Points.animateRandom(points); // function name and variables as parameter\n",
+            "}\n"
+         ],
+         [
+            "var points = Points.createRandom(5);\n\n",
+            "function loop(){\n",
+            "    chPoints = Points.animateRandom(points, convexHull); // function name and variables as parameter\n",
+            "    drawLines(chPoints);\n",
+            "}\n"
+         ],
+         [
+            "var points = Points.createRandom(5);\n\n",
+            "function loop(){\n",
+            "    var circlePoints = Points.animateRandom(points, miniDisc); // function name and variables as parameter\n",
+            "    drawCircle(circlePoints);\n",
+            "}\n"
+         ],
+         [
+            "var points = Points.createRandom(5);\n\n",
+            "function loop(){\n",
+            "    var circlePoints = Points.animateVibrate(points, miniDisc); // function name and variables as parameter\n",
+            "    drawCircle(circlePoints);\n",
+            "}\n"
+         ]
       ]
     }
 
+    ],
+
+     "misc_functions":[{
+
+      "name": "loop",
+      "text": [
+          "<p>This function is invoked 30 times per second. It is good for creating animations. You can review link_to(documentation/animate) for animation examples. </p>",
+
+          "<p>Function defition and usage is like that:</p>",
+
+          "<pre class='code' start='1'>\n",
+            "function loop(){\n",
+            "    // codes will be executed\n",
+            "}\n",
+          "</pre>"
+      ]
+    },
+    {
+      "name": "mouseDown",
+      "text": [
+          "<p>You may want to create apps with user interaction. Therefore, we need to trigger a function to detect user clicks. </p>",
+          "<p>Function usage is like this: put_code(0)</p>",
+          "<p>Another function with mouseDown is like this: put_code(1)</p>"
+      ],
+        "code":[
+         [
+            "var points = Points.createRandom(7);\n",
+            "drawCircle(miniDisc(points));\n\n",
+
+            "function mouseDown(point){\n",
+            "    points.push(point); // store new point in points array\n\n",
+            "    Points.drawPoints(points); // draw Points after new one is added\n",
+            "    drawCircle(miniDisc(points));\n",
+            "}\n"
+         ],
+         [
+            "var points = Points.createRandom(7);\n",
+            "drawLines(convexHull(points));\n\n",
+
+            "function mouseDown(point){\n",
+            "    points.push(point); // store new point in points array\n\n",
+            "    Points.drawPoints(points); // draw Points after new one is added\n",
+            "    drawLines(convexHull(points));\n",
+            "}\n"
+         ]
+      ]
+    },
+    {
+      "name": "getCenterAndRadius",
+      "text": [
+          "<p>It is a useful function that returns center and radius. drawCircle function can visualise this.</p>",
+          "<p>Two points version usage is like this: put_code(0)</p>",
+          "<p>Another function with 3 points is like this: put_code(1)</p>"
+      ],
+        "code":[
+         [
+            "var points = Points.createRandom(2);\n\n",
+            "var result = getCenterAndRadius2(points[0].pos, points[1].pos);\n",
+            "drawCircle(result);\n"
+         ],
+         [
+            "var ps = Points.createRandom(3);\n\n",
+            "var result = getCenterAndRadius3(ps[0].pos, ps[1].pos, ps[2].pos);\n",
+            "drawCircle(result);\n"
+         ]
+      ]
+    },
+    {
+      "name": "draw",
+      "text": [
+          "<p>They are variety of drawing functions available in WebCgal. Let's review them with examples:</p>",
+          "<h3>Points.drawLine(p1, p2)</h3>",
+          "<p>Result is like this: put_code(0)</p>",
+          "<h3>Points.drawLines(points)</h3>",
+          "<div class='panel warning'>",
+          "<b>Warning:</b> Drawing lines between random points is meaningless unless it is not Convex Hull points. As you can see we use this function in <a href= '/algorithms/convexHull'>convexHull</a> and it yields perfect.",
+          "</div> ",
+          "<p>Result is like that with multiple points: put_code(1)</p>",
+          "<h3>drawCircle({center, radius})</h3>",
+          "<p>Result is like this: put_code(2)</p>"
+      ],
+        "code":[
+         [
+            "var points = Points.createRandom(2);\n",
+            "Points.drawLine(points[0], points[1]);\n"
+         ],
+         [
+            "var points = Points.createRandom(10);\n",
+            "Points.drawLines(points);\n"
+         ],
+         [
+            "var p = Points.createRandom(1);\n",
+            "drawCircle({center:p[0].pos, radius: getRandomInt(10, 100)});\n"
+         ]
+      ]
+    }
     ]
 }
+

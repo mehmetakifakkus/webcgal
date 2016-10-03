@@ -27,15 +27,16 @@
 </div>
 
 <script type="text/paperscript" canvas="canvas-1">
-<%- include ../partials/paperjs/all.js %>
+<% include ../partials/paperjs/all.js %>
 
 //end-script
-<%- include ../partials/paperjs/convexHull.js %>
+////////////////////// Convex Hull Functions  //////////////////////////
+<% include ../partials/paperjs/convexHull.js %>
 
-var points = Points.createRandom(7, 50, 600, 50, 300); // number, xMin, xMax, yMin, yMax,
+var points = Points.createRandom(7);
 
 var chPoints = convexHull(points); // convex Hull points is stored here.
-drawLines(chPoints);
+Points.drawLines(chPoints);
 
 </script>
 

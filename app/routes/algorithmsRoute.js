@@ -1,17 +1,17 @@
 var express = require('express');
 var router = express.Router();
 
-router.get('/examples', function(req, res) {
+router.get('/algorithms', function(req, res) {
 
- res.render('examplesPage', {
-    pageTitle: 'Examples',
-    pageID: 'examples'
+ res.render('algorithmsPage', {
+    pageTitle: 'Algorithm',
+    pageID: 'algorithms'
   });
 });
 
 
 
-router.get('/examples/:item', function(req, res) {
+router.get('/algorithms/:item', function(req, res) {
   var name;
   var data = req.app.get('linkData');
 
@@ -32,7 +32,7 @@ router.get('/examples/:item', function(req, res) {
 
 
 
-router.get('/examples/:item1/:item2', function(req, res) {
+router.get('/algorithms/:item1/:item2', function(req, res) {
   var name;
   var data = req.app.get('linkData');
 

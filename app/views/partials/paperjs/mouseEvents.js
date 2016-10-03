@@ -20,6 +20,15 @@ function onMouseDown(event) {
         else if (event.item.name.startsWith('_p'))
             textPoint = event.item;
     }
+
+    clearDrawables();
+
+    var p = new Point(event.point.x, view.size.height - event.point.y);
+    mouseDown(new TextPoint(p));
+}
+
+function mouseDown(point){  // my mouse down function prototype
+
 }
 
 function onMouseDrag(event) {
@@ -36,3 +45,5 @@ function onFrame(event){
 }
 
 function loop(){} // dummy to prevent it is not defined
+
+

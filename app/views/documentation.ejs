@@ -5,6 +5,34 @@
     <link rel="stylesheet" href="/static/css/documentation.css">
     <% include partials/templates/jsdefaults.ejs %> 
 
+    <style>
+        div.column{
+            float: left;
+            width: 28.5%;
+
+            padding: 5px 5px 5px 5px;
+            margin: 5px 15px 10px 0px;
+
+            border: 1px solid #d8d8d8;
+            border-radius: 5px;
+
+            height:200px;
+        }
+
+        .column ul{
+
+            margin-left:-15px;
+            padding-left:20px;
+            margin-top:-10px;
+
+        }
+
+        .column li{
+            list-style:none;
+        }
+
+    </style>
+
 </head>
 <body>
 
@@ -12,33 +40,7 @@
     <% include partials/templates/navigation.ejs %>
 </div>
 <div id="doc_nav">
-    
-    <ul class="menu-root">
-        <li><a class="" href="/documentation">Docs Home</a></li>
-    </ul>
-
-    <ul class="menu-sub">
-        <li class="header">Objects:</li>
-        <% docsData.objects.forEach(function(item){ %>
-            <li>
-                <a href="/documentation/<%= item.name %>">
-                    <%= item.name %>
-                </a>
-            </li>
-            <% }); %>
-    </ul>
-
-    <ul class="menu-sub">
-        <li class="header"> Functions:</li>
-        <% docsData.functions.forEach(function(item){ %>
-            <li>
-                <a href="/documentation/<%= item.name %>">
-                    <%= item.name %>
-                </a>
-            </li>
-            <% }); %>
-    </ul>
-
+    <% include partials/templates/doc_navigation.ejs %>
 </div>    
     
     <article>     
@@ -46,11 +48,8 @@
     <h1>Documentation</h1>    
         <p>Hello, in this page there wil be a tutorial on how to use webCgal.</p>
 
-    <div class="effects pure-g">
-
-        <div class = "example pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
-
-            <p> Objects: </p>
+        <div class = "column">
+            <p class="big"> Objects: </p>
             <ul>
             <% docsData.objects.forEach(function(item){ %>
                 <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
@@ -58,39 +57,56 @@
             </ul>
         </div>
 
-        <div class = "example pure-u-1 pure-u-sm-1-2 pure-u-md-1-3 pure-u-lg-1-4">
-
-           <p> Functions: </p>
+        <div class = "column">
+           <p class="big"> General Functions: </p>
             <ul>
-            <% docsData.functions.forEach(function(item){ %>
+            <% docsData.general_functions.forEach(function(item){ %>
                 <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
             <% }); %>
             </ul>
         </div>
-    </div>
+
+       <div class = "column">
+            <p class="big"> Points Functions: </p>
+            <ul>
+            <% docsData.points_functions.forEach(function(item){ %>
+                <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+            <% }); %>
+            </ul>
+        </div>
+
+        <div class = "column">
+            <p class="big"> Misc. Functions: </p>
+            <ul>
+            <% docsData.misc_functions.forEach(function(item){ %>
+                <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+            <% }); %>
+            </ul>
+        </div>
+
+
         
     <h2><%#- docsData.objects[0].name %>  </h2>
     <%#-myConcat(docsData.objects[0].text); %>
 
-    <p>Here there is a live example:</p>
+
+<!--This is the EJS mode exactly. More automated than the one in playground.ejs-->
         
-<% canvas_id=0 // initialize public variable %>
+<%# canvas_id=0 // initialize public variable %>
 
-<% include partials/content/documentationPaperStart.ejs %>
-var polygon = createPolygon('star');
-polygon.draw();
-<% include partials/content/documentationPaperEnd.ejs %>
+<%# include partials/content/documentationPaperStart.ejs %>
+<!--var polygon = createPolygon('star');-->
+<!--polygon.draw();-->
+<%# include partials/content/documentationPaperEnd.ejs %>
 
-<div class="panel warning">
-    <b>Warning:</b> mesaj burada gozukecek
-</div>
+<div style="margin: 500px;"></div>
 
 <div class="panel info">
-    <b>Info:</b> merhaba arkadaslar
+    <b>Info:</b> Please send an email to the developer if you realize that there is something to document or written incorrectly. Contact information of developer is at <a href = "/#about">about</a> page.
 </div>
 
         
-    </article>    
+</article>
     <% include partials/paperjs/pre_defined_polygons.svg %>
 
 </body>

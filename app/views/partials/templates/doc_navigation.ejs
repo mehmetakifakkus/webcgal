@@ -13,11 +13,34 @@
 </ul>
 
 <ul class = "menu-sub">
-    <li class="header"> Functions:</li>
-    <% docsData.functions.forEach(function(item){ %>
+    <li class="header"> General Functions:</li>
+    <% docsData.general_functions.forEach(function(item){ %>
     <% if(pageID == item.name){ %>
         <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
     <%} else { %>
         <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
     <% }}); %>
-    </ul>
+</ul>
+
+
+<ul class = "menu-sub">
+    <li class="header"> Points Functions:</li>
+    <% docsData.points_functions.forEach(function(item){ %>
+    <% if(pageID == item.name){ %>
+        <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <%} else { %>
+        <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <% }}); %>
+</ul>
+
+<ul class = "menu-sub">
+    <li class="header"> Miscalleneous Functions:</li>
+    <% docsData.misc_functions.forEach(function(item){ %>
+    <% if(pageID == item.name){ %>
+        <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <%} else { %>
+        <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <% }}); %>
+</ul>
+
+

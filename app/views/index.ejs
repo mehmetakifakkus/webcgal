@@ -7,9 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-touch-fullscreen" content="yes"/>
 <meta name="msapplication-tap-highlight" content="no"/>    
+<link rel='shortcut icon' href='/static/images/favicon.ico'/>
 
-<% include partials/templates/headpaper.ejs %>
-<% include partials/templates/jsdefaults.ejs %> 
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -33,23 +32,22 @@
     
 <div class="paperscript split">
 <div class="canvas">
-    <canvas width="1500px" height="600px" id="canvas-convexHull" style="position:absolute; top:-30px; right:0; bottom:0; left:-50px; z-index:-11; opacity: 0.3;"></canvas>
+    <canvas width="1200px" height="600px" id="canvas-convexHull" style="position:absolute; top:-30px; right:0; bottom:0; left:-50px; z-index:-1; opacity: 0.3;"></canvas>
 </div>
 
 <div class="buttons">
     <div class="button run">Source</div>
 </div>
 <script type="text/paperscript" canvas="canvas-convexHull">
-<%- include partials/paperjs/all.js %>
+<% include partials/paperjs/all.js %>
 
-<%- include partials/paperjs/convexHull.js %>
+<% include partials/paperjs/convexHull.js %>
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //end-script
 var points = Points.createRandom(10);
 
 function loop(){
-    chPoints = Points.animateRandomWide(convexHull, points); // function name and variables as parameter
+    chPoints = Points.animateRandomWide(points, convexHull); // function name and variables as parameter
     drawLines(chPoints);
 }
 
@@ -72,7 +70,7 @@ function loop(){
     </p>
     
     <p>
-        Above you can see a piece of WebCgal code. Writing code here is as easy as it is seen. An interactive demo of the code lies at the background of the web site. You can modify number of random points and click run to see the result. You can simply edit and run your code. By the way, Convex Hull function is written on page <a href="/examples/convexHull">/examples/convexHull</a>
+        Above you can see a piece of WebCgal code. Writing code here is as easy as it is seen. An interactive demo of the code lies at the background of the web site. You can modify number of random points and click run to see the result. You can simply edit and run your code. By the way, Convex Hull function is written on page <a href="/algorithms/convexHull">/algorithms/convexHull</a>
     </p>
 
     <p>
@@ -118,7 +116,7 @@ function loop(){
     <li>You can see how algorithms work on <strong>live animation</strong>. </li>
     <li>Support for almost all web browsers. </li>
     <li>You can write your own code at the <a href="/playground">playground</a> page. </li>
-    <li>There is an extensive doc at the page <a href="/documentation">documenentation</a> page. </li>
+    <li>There is an extensive doc at the <a href="/documentation">documentation</a> page. </li>
 </ul>
 </section>
 
@@ -141,13 +139,19 @@ WebCgal is aimed at modern browsers with support for the Canvas object and EcmaS
 
 <section id=about style = "margin-top: -200px ">
   <h2>About</h2>
+
+  <p>WebCgal is an open source project and licensed under MIT. You can reach the code at <a href="https://github.com/mehmetakifakkus/webcgal">GitHub</a>.
+    </p>
+
     <p>
         WebCgal uses HTML5 Canvas and <a href="http://paperjs.org/" target="_blank">paper.js</a> vector graphics. Paperjs is a javascript library and you can refer to it for reference. See the paperJs <a href="http://paperjs.org/tutorials/">tutorial</a> and <a href="http://paperjs.org/reference/">reference</a> for extra information.
     </p>
 
-    <p>WebCgal is an open source project and licensed under MIT. You can reach the code at <a href="https://github.com/mehmetakifakkus/webcgal">GitHub</a>.
+    <p>Developer contact is <a href="https://mehmetakifakkus.github.io/contact">here</a>. You can ask anything about the web site.
     </p>
 
+    <br>
+    <hr>
         <p>
         Below you can see an interactive demo of the intersection of web site logo (text) and a circle. You can see its code by clicking upper right of the animation. You can simply edit and run your code as aways.
     </p>
@@ -226,6 +230,10 @@ function onFrame(event){
 
 </body>
 </html>
+
+<% include partials/templates/headpaper.ejs %>
+<% include partials/templates/jsdefaults.ejs %>
+
 
 <script src="/reload/reload.js"></script>
 

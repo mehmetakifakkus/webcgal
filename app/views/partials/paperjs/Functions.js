@@ -1,4 +1,4 @@
-//////////////// math functions  ////////////////////////
+//////////////// math functions  //////////////////////////
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
@@ -21,7 +21,16 @@ function shuffle(a) {
     return result;
 }
 
-///////////////////////////////   vector processes   ///////////////////////////////
+//////////////// Array Functions  ////////////////////////////
+
+// -1 refers last element
+Array.prototype.delete = function(n){
+    var del = (n < 0) ? del = this.length + n : n;
+    return this.slice(0, del).concat(this.slice(del+1)); //delete the middle of the last three points
+}
+
+
+////////////////   vector processes   ////////////////////////
 
 function dotProduct(v1, v2){
     return v1.x * v2.x + v1.y * v2.y;

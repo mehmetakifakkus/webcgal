@@ -214,7 +214,7 @@
             "var points = Points.createRandom(5);\n\n",
             "function loop(){\n",
             "    chPoints = Points.animateRandom(points, convexHull); // function name and variables as parameter\n",
-            "    drawLines(chPoints);\n",
+            "    Points.drawLines(chPoints);\n",
             "}\n"
          ],
          [

@@ -13,22 +13,28 @@ function onMouseDown(event) {
 	var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult){                       //console.log(event.item.name)
 
+        print('Clicked: '+ event.item.name)
+
         if(event.item.name.startsWith('path_polygon'))
             path = hitResult.item;
-        else if (event.item.name.startsWith('p'))
+        else if (event.item.name.startsWith('p')) // polygon point
             polPoint = event.item;
-        else if (event.item.name.startsWith('_p'))
+        else if (event.item.name.startsWith('_p')) // text polygon
             textPoint = event.item;
+        else{
+
+            //// yeni Text Point ekle ////////////////////////////////////////////////////////////////
+            var p = new Point(event.point.x, view.size.height - event.point.y);
+            mouseDown(new TextPoint(p));
+        }
     }
 
-    clearDrawables();
 
-    var p = new Point(event.point.x, view.size.height - event.point.y);
-    mouseDown(new TextPoint(p));
 }
 
 function mouseDown(point){  // my mouse down function prototype
 
+    //clearScreen();
 }
 
 function onMouseDrag(event) {

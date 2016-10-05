@@ -4,7 +4,7 @@ polygon = createPolygon('square'); // create a square shape polygon, then modify
 polygon.draw();
 
 clear();
-for (var i in polygon.points) // access each polygon point
+for(var i=0; i < polygon.points.length; i++) // access each polygon point
     print(polygon.points[i])
 
     

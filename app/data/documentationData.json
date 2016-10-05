@@ -264,9 +264,9 @@
             "drawCircle(miniDisc(points));\n\n",
 
             "function mouseDown(point){\n",
-            "    points.push(point); // store new point in points array\n\n",
-            "    Points.drawPoints(points); // draw Points after new one is added\n",
-            "    drawCircle(miniDisc(points));\n",
+            "   points.push(point); // store point in other 7\n\n",
+            "   Points.drawPoints(points); // clear olds, draw points again\n",
+            "   drawCircle(miniDisc(points));\n",
             "}\n"
          ],
          [
@@ -274,9 +274,9 @@
             "drawLines(convexHull(points));\n\n",
 
             "function mouseDown(point){\n",
-            "    points.push(point); // store new point in points array\n\n",
-            "    Points.drawPoints(points); // draw Points after new one is added\n",
-            "    drawLines(convexHull(points));\n",
+            "   points.push(point); // store point in other 7\n\n",
+            "   Points.drawPoints(points); // clear olds, draw points again\n",
+            "   Points.drawLines(convexHull(points));\n",
             "}\n"
          ]
       ]

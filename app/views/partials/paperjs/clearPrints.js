@@ -1,6 +1,6 @@
 logStr = '';
 function print(str){
-    logStr = logStr.concat(str+'\n');
+    logStr = logStr.concat(''+str+'\n');
 
     var place = document.getElementById("console");
     $(place.childNodes[0]).remove()

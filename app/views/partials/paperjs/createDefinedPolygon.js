@@ -1,18 +1,37 @@
 function createRandomPolygon(){ 
+/*
 
-    var sel = Math.floor(Math.random() * 3)
+    var sel = getRandomInt(0,3);
+
     var polygons = [
                     [[350.5,104],[300.5,231],[326.5,359],[236.5,335],[37.5,194],[181.5,161],[257.5,57]],
                     [[401.5,104],[450.5,246],[386.5,379],[236.5,335],[97.5,194],[287.5,222],[257.5,57]],
                     [[432.5,100],[481.5,242],[417.5,375],[267.5,331],[128.5,190],[200.5,90],[288.5,53]]
                    ];
                               
-    var pols = polygons[sel];                
-    var polygon = new Polygon('random');
+    var pols = polygons[sel];
     
+    var polygon = new Polygon('random');
+
     for(var k=0; k < pols.length; k++)
         polygon.addPoint(new Point(pols[k]));
+*/
     
+    var polygon = new Polygon('random');
+
+    var count = 6
+    var origin = view.size/2;
+
+    for (var i = 0; i < count; i++) {
+        var vector = new Point({
+            angle: 360/count * i,
+            length: getRandomInt(10,200)
+        });
+
+        //print(origin+vector)
+        polygon.addPoint(origin+vector);
+    }
+
     return polygon;
 }
 

@@ -4,12 +4,11 @@
 <% include Functions.js %>
 <%# include clearPrints.js %>
 
-<% include clearDrawables.js %>
+<% include clearScreen.js %>
 <% include createDefinedPolygon.js %>
 
-<% include Polygon.js %>
-<% include PolygonPoint.js %>
 <% include TextPoint.js %>
+<% include Polygon.js %>
 
 <% include drawCoordinateSystem.js %>
 

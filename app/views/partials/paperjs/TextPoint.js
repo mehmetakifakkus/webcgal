@@ -26,7 +26,7 @@ function TextPoint(x,y){
 
     this.mouseDragEvent = function(event){
 
-        clearDrawables();
+        clearScreen();
 
         console.log('default mouse drag event on a TextPoint '+self.id)
         self.pos += event.delta * [1, -1];
@@ -38,8 +38,8 @@ function TextPoint(x,y){
     };
 
     this.toString = function() {
-        return ''+self.path.name+' ';
-        //        return ''+self.path.name+' '+self.pos;
+        //return ''+self.path.name+' ';
+                return ''+self.path.name+' '+self.pos;
     };
 };
 
@@ -110,7 +110,7 @@ function PointsTempObject()
         var count = 0;
     this.animateVibrate = function(points, fn){
 
-        clearDrawables();
+        clearScreen();
 
         var offset = new Point(2, 1) * [Math.sin(count / 30), Math.sin(count / 40)];
 
@@ -130,7 +130,7 @@ function PointsTempObject()
 
     this.animateRandom = function(points, fn){
 
-        clearDrawables();
+        clearScreen();
 
         for(var i=0; i < ids.length; i++)
             //points[ids[i]].pos +=  new Point(3, 2) * [Math.sin((i+10)/3 * count / 170), Math.sin( (i+10)/3 * count / 90)];
@@ -144,25 +144,6 @@ function PointsTempObject()
         count++;
         return chPoints;
     }
-
-
-    this.animateRandomWide = function(points, fn){
-
-        clearDrawables();
-
-        for(var i=0; i < ids.length; i++)
-            //points[ids[i]].pos +=  new Point(3, 2) * [Math.sin((i+10)/3 * count / 170), Math.sin( (i+10)/3 * count / 90)];
-            getTextPoint(ids[i]).pos += new Point(i < ids.length/2 ? 2: -2, i < ids.length/2 ? 1: -2) * [Math.sin((i+10)/3 * count / 270), Math.sin( (i+10)/3 * count / 290)];
-        for(var i=0; i < points.length; i++)
-            points[i].draw();
-
-        var func = fn || function(){};
-
-        var chPoints = fn(points);
-        count++;
-        return chPoints;
-    }
-
 
     this.drawPoints = function(points){  // they are automatically drawed
 
@@ -209,6 +190,8 @@ function add(p1, p2){
 function subtract(p1, p2){
     return p1.pos - p2.pos;
 }
+
+
 
 
 

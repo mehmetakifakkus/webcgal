@@ -13,8 +13,8 @@
 </ul>
 
 <ul class = "menu-sub">
-    <li class="header"> General Functions:</li>
-    <% docsData.general_functions.forEach(function(item){ %>
+    <li class="header"> Polygon Functions:</li>
+    <% docsData.polygon_functions.forEach(function(item){ %>
     <% if(pageID == item.name){ %>
         <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
     <%} else { %>
@@ -32,6 +32,17 @@
         <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
     <% }}); %>
 </ul>
+
+<ul class = "menu-sub">
+    <li class="header"> Drawing Functions:</li>
+    <% docsData.drawing_functions.forEach(function(item){ %>
+    <% if(pageID == item.name){ %>
+        <li><a class="active" href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <%} else { %>
+        <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+    <% }}); %>
+</ul>
+
 
 <ul class = "menu-sub">
     <li class="header"> Miscalleneous Functions:</li>

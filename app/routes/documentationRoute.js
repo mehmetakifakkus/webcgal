@@ -61,7 +61,7 @@ router.get('/documentation/:item', function(req, res) {
     }  
   });    
     
-  data.general_functions.forEach(function(it){ // search in functions
+  data.drawing_functions.forEach(function(it){ // search in functions
     if(it.name == req.params.item){
          text = it.text;
          code = it.code;
@@ -76,6 +76,13 @@ router.get('/documentation/:item', function(req, res) {
   });
 
   data.misc_functions.forEach(function(it){ // search in functions
+    if(it.name == req.params.item){
+         text = it.text;
+         code = it.code;
+    }
+  });
+
+  data.polygon_functions.forEach(function(it){ // search in functions
     if(it.name == req.params.item){
          text = it.text;
          code = it.code;

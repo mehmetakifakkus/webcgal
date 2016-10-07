@@ -135,7 +135,7 @@ span.cm-attribute {
     padding-bottom: 10px; }
   .paperscript .canvas {
     line-height: 0;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
     }
   .paperscript .canvas.border canvas {
     border: 1px solid #999; }

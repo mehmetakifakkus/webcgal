@@ -1,5 +1,5 @@
 logStr = '';
-function print(str){
+function printLog(str){
     logStr = logStr.concat(''+str+'\n');
 
     var place = document.getElementById("console");
@@ -7,10 +7,10 @@ function print(str){
     editor = createCodeMirror2(place, {}, logStr);
 }
 
-function clear(){
+function clearLog(){
     logStr = '';
     $(document.getElementById("console").childNodes[0]).remove()
 }
 
 if(logStr.length == 0)
-    clear();
+    clearLog();

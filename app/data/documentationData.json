@@ -3,44 +3,47 @@
   "objects" :[{
       "name": "Polygon",
       "text": [
-        "<p>As we all know, polygon is a plane figure that is bounded by a finite chain of 2D line segments. Here, link_to(documentation/Polygon) is an object made of closed form of link_to(documentation/PolygonPoint)'s. </p>",
+        "<p>As we all know, polygon is a plane figure that is bounded by a finite chain of 2D line segments. Here, link_to(documentation/Polygon) is an object made of closed form of link_to(documentation/TextPoint)'s. </p>",
         "<p>Each polygon can be repositioned by mouse dragging. Moreover, it is also possible to move each PolygonPoint.</p>",
         "<p>Polygon can be initialized by several ways. You can see details on link_to(documentation/createPolygon) function documentation page.</p>",
 
         "<h2>Polygon.draw()</h2>",
         "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
-        "<pre class='code' start='1'>\nclear();\n",
-        "for (var i in polygon.points) // access each polygon point\n",
-        "   print(polygon.points[i])",
-        "</pre>",
+          "put_code(0)",
 
         "<h2>Drag Event</h2>",
           "<p>Mouse drag event can be triggered, when it is used this way:</p>",
 
         "<pre class='code' start='1'>",
         "  // event triggering to polygon, when it is dragged\n",
-        "  polygon.mouseDragEvent = function(){\n",
-        "    clear();\n",
-        "    for (var i in polygon.points) // access each polygon point\n",
-		"        print(polygon.points[i])\n",
+        "  // This part will be implemented later",
         "  }\n",
         "</pre>  "
-        ]
-    },{
-      "name": "PolygonPoint",
-      "text": [
-          "<p>PolygonPoint is an object which represents 2D point in the plane. It is visually shown as black point and id.</p>",
-          "<h3>Drag Event</h3>",
-          "<p>Mouse drag event can be triggered, when it is used this way:</p>",
-
-        "<pre class='code' start='1'>",
-        "  polygon.points.p0.mouseDragEvent = function(){ // event triggering to polygon point\n",
-        "    clear();\n",
-        "    print(polygon.points.p0); // print polygon point position\n",
-        "  }\n",
-        "</pre>  "
+        ],
+      "code":
+      [
+          [
+            "var polygon = createPolygon('star');\n",
+            "polygon.draw()\n"
+          ]
 
       ]
+    },{
+      "name": "TextPoint",
+      "text": [
+          "<p>TextPoint is an object which represents 2D point in the plane. It is visually shown as black point and id.</p>",
+          "put_code(0)",
+          "<h3>Drag Event</h3>",
+          "<p>Mouse drag event can be triggered, this part will be documented later./p>"
+      ],
+        "code":[
+           [
+                "var p0 = new TextPoint(100,100);  //create a visual point \n",
+                "var p1 = new TextPoint(250,250);  //create a visual point "
+           ]
+
+
+        ]
     },{
       "name": "Points",
       "text": [
@@ -64,17 +67,62 @@
     }],
 
 
-    "general_functions":[{
-
-      "name": "clear",
+    "drawing_functions":[
+    {
+      "name": "clearScreen",
       "text": [
-          "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
-          "<pre class='code' start='1'>\nclear();\n",
-          "for (var i in polygon.points) // access each polygon point\n",
-          "   print(polygon.points[i])",
+          "<p>This function clears drawing screen. You can experience that on the link_to(playground) page. This code below first clear the screen, then draw polygon points.</p>",
+          "<pre class='code' start='1'>\n",
+          "polygon = createPolygon('square'); // create a square shape polygon\n",
+          "polygon.draw(); \n\n",
+          "clearScreen(); // clears all objects drawed before\n",
+          "polygon = createRandomPolygon();\n",
           "</pre>"
       ]
     },
+    {
+      "name": "clearLog",
+      "text": [
+          "<p>This function clears log screen which located upper-right part of the coding screen. It is on the link_to(playground) page. This code below first clear the screen, then traverses and prints the polygon points.</p>",
+          "<pre class='code' start='1'>\nclearLog();\n",
+          "for(var i=0; i < polygon.points.length; i++) // access each polygon point\n",
+          "    print(polygon.points[i])\n",
+          "</pre>"
+      ]
+    },
+    {
+      "name": "draw",
+      "text": [
+          "<p>They are variety of drawing functions available in WebCgal. Let's review them with examples:</p>",
+          "<h3>Points.drawLine(p1, p2)</h3>",
+          "<p>Result is like this: put_code(0)</p>",
+          "<h3>Points.drawLines(points)</h3>",
+          "<div class='panel warning'>",
+          "<b>Warning:</b> Drawing lines between random points is meaningless unless it is not Convex Hull points. As you can see we use this function in <a href= '/algorithms/convexHull'>convexHull</a> and it yields perfect.",
+          "</div> ",
+          "<p>Result is like that with multiple points: put_code(1)</p>",
+          "<h3>drawCircle({center, radius})</h3>",
+          "<p>Result is like this: put_code(2)</p>"
+      ],
+        "code":[
+         [
+            "var points = Points.createRandom(2);\n",
+            "Points.drawLine(points[0], points[1]);\n"
+         ],
+         [
+            "var points = Points.createRandom(10);\n",
+            "Points.drawLines(points);\n"
+         ],
+         [
+            "var p = Points.createRandom(1);\n",
+            "drawCircle({center:p[0].pos, radius: getRandomInt(10, 100)});\n"
+         ]
+      ]
+    }
+    ],
+
+
+    "polygon_functions":[
     {
       "name": "createPolygon",
       "text": [
@@ -197,7 +245,7 @@
           "<h2>Points.animateRandom(points, function)</h2>",
           "<p>Now, we will call <strong> convexHull( )</strong> function with initially random 5 points. Then as we animate through points we will call that function repetitively.</p>",
             "put_code(1)",
-          "<p>Here another function <strong> miniDisc( )</strong> which finds smallest Enclosing Disk.</p>",
+          "<br><p>Here another function <strong> miniDisc( )</strong> which finds smallest Enclosing Disk.</p>",
             "put_code(2)",
           "<h2>Points.animateVibrate(points, function)</h2>",
           "<p>Now, we will call <strong> convexHull( )</strong> function with another type of animation.</p>",
@@ -271,7 +319,7 @@
          ],
          [
             "var points = Points.createRandom(7);\n",
-            "drawLines(convexHull(points));\n\n",
+            "Points.drawLines(convexHull(points));\n\n",
 
             "function mouseDown(point){\n",
             "   points.push(point); // store point in other 7\n\n",
@@ -298,35 +346,6 @@
             "var ps = Points.createRandom(3);\n\n",
             "var result = getCenterAndRadius3(ps[0].pos, ps[1].pos, ps[2].pos);\n",
             "drawCircle(result);\n"
-         ]
-      ]
-    },
-    {
-      "name": "draw",
-      "text": [
-          "<p>They are variety of drawing functions available in WebCgal. Let's review them with examples:</p>",
-          "<h3>Points.drawLine(p1, p2)</h3>",
-          "<p>Result is like this: put_code(0)</p>",
-          "<h3>Points.drawLines(points)</h3>",
-          "<div class='panel warning'>",
-          "<b>Warning:</b> Drawing lines between random points is meaningless unless it is not Convex Hull points. As you can see we use this function in <a href= '/algorithms/convexHull'>convexHull</a> and it yields perfect.",
-          "</div> ",
-          "<p>Result is like that with multiple points: put_code(1)</p>",
-          "<h3>drawCircle({center, radius})</h3>",
-          "<p>Result is like this: put_code(2)</p>"
-      ],
-        "code":[
-         [
-            "var points = Points.createRandom(2);\n",
-            "Points.drawLine(points[0], points[1]);\n"
-         ],
-         [
-            "var points = Points.createRandom(10);\n",
-            "Points.drawLines(points);\n"
-         ],
-         [
-            "var p = Points.createRandom(1);\n",
-            "drawCircle({center:p[0].pos, radius: getRandomInt(10, 100)});\n"
          ]
       ]
     }

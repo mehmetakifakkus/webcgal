@@ -3,9 +3,6 @@ polygon = createPolygon('square'); // create a square shape polygon, then modify
 
 polygon.draw();
 
-clear();
+clearLog();
 for(var i=0; i < polygon.points.length; i++) // access each polygon point
-    print(polygon.points[i])
-
-    
-// end of script
+    printLog(polygon.points[i])

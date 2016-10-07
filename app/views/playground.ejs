@@ -1,20 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
+
+
+
     <% include partials/templates/head.ejs %>
     <% include partials/templates/headpaper.ejs %>
     <link rel="stylesheet" href="/static/css/playground.css">
-    <% include partials/templates/jsdefaults.ejs %> 
 
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
-      ga('create', 'UA-85079944-1', 'auto');
-      ga('send', 'pageview');
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/w3.css">
 
+    <% include partials/templates/jsdefaults.ejs %>
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85079944-1', 'auto');
+  ga('send', 'pageview');
 </script>
 </head>
     
@@ -54,12 +62,133 @@
 <% include partials/paperjs/sampleCodes/code1.js %>
 
 var dd = new Vector(10,10);
-console.log(dd.getDistance())
+printLog(dd.getLength())
 
 
 </script>
 
 </div>
+ <br>
+<h1>Example Codes</h1>
+
+     <p>
+        Don't worry! There is a guide here consists of example codes for warming you up. You can just copy (Ctrl+C) and paste (Ctrl+V) to run, then modify it.
+    </p>
+    <br>
+
+<nav class="w3-sidenav w3-white" style="width:200px; border-right:0px">
+  <div class="w3-container">
+  </div>
+
+  <a href="#" class="tablink w3-theme-l2" style="border-right:4px solid #464f84" onclick="openCity(event, 'code1')">
+    Create random points
+    </a>
+        <a href="#" class="tablink" onclick="openCity(event, 'code2')">
+    Create random points around a circle center
+    </a>
+  <a href="#" class="tablink" onclick="openCity(event, 'code3')">
+      Detect direction
+    </a>
+
+</nav>
+
+<div class = "w3-white" style="margin-left:200px; border-left:0px ">
+<!--  <div class="w3-padding">Use any of the w3-animate-classes to fade, zoom or slide in tab content. Click on the links.</div>-->
+
+  <div id="code1" class="w3-container city w3-animate-opacity" style="position:absolute">
+      <p>
+      Create random points.
+      </p>
+    <pre class="code">
+var count = 6;
+
+for (var i = 0; i < count; i++) {
+    var x = getRandomInt(100, view.size.width - 100); //random int between 100 and width-100
+    var y = getRandomInt(100, view.size.height - 100);
+
+    printLog('x:'+x+', y:'+y)      // log the result in log window
+    var tmpP = new TextPoint(x,y); // it creates a visual point with a text
+}
+</pre>
+ </div>
+
+  <div id="code2" class="w3-container city w3-animate-opacity" style="position:absolute">
+
+      <p>
+      By accepting view center as origin this code puts 6 TextPoint's with different radius.
+      </p>
+    <pre class="code">
+var count = 6;
+var origin = view.size/2;            // scene center
+
+for (var i = 0; i < count;i++) {
+    var vector = new Point({         // a Point not visual
+        angle: 360/count * i,        // change angle as from 0 to 300
+        length: getRandomInt(50,200) // random int between 50 and 200
+    });
+
+    var location = origin+vector;
+	printLog(location)               // log the result in log window
+	new TextPoint(location)          // a visual point
+}
+</pre>
+
+</div>
+
+  <div id="code3" class="w3-container city w3-animate-opacity" style=" position:absolute">
+<p>
+Using point subtraction, create two vectors and determine the direction points create
+</p>
+<pre class="code">
+    var p0 = new TextPoint(100,100);  // create a visual point with text at 100,100
+    var p1 = new TextPoint(200,200);
+    var p2 = new TextPoint(100,300);
+
+    var v1 = subtract(p1, p0);        // create a vector p0 -> p1
+    var v2 = subtract(p2, p1);
+
+    var dir = v1.cross(v2) > 0 ? 'left' : 'right'; // cross product
+    printLog(dir)
+</pre>
+  </div>
+
+</div>
+
+<div style="margin:250px"></div>
+
+<script>
+function openCity(evt, cityName) {
+  var i, x, tablinks;
+  x = document.getElementsByClassName("city");
+  for (i = 0; i < x.length; i++) {
+     x[i].style.visibility = "hidden";
+      x[i].style.position = "absolute";
+  }
+  tablinks = document.getElementsByClassName("tablink");
+  for (i = 0; i < x.length; i++) {
+     tablinks[i].className = tablinks[i].className.replace(" w3-theme-l2", "");
+     tablinks[i].style.border = "0px";
+  }
+  document.getElementById(cityName).style.visibility = "visible";
+
+  evt.currentTarget.style.borderRight = "4px solid #464f84";
+
+  evt.currentTarget.className += " w3-theme-l2";
+
+  evt.preventDefault();
+  return false;
+}
+
+      x = document.getElementsByClassName("city");
+  for (i = 0; i < x.length; i++) {
+     x[i].style.visibility = "hidden";
+  }
+
+    x[0].style.visibility = "visible";
+
+</script>
+
+
         
 </article>    
 
@@ -68,3 +197,5 @@ console.log(dd.getDistance())
 </html>
 
 <script src="/reload/reload.js"></script>
+
+

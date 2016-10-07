@@ -58,9 +58,9 @@
         </div>
 
         <div class = "column">
-           <p class="big"> General Functions: </p>
+           <p class="big"> Polygon Functions: </p>
             <ul>
-            <% docsData.general_functions.forEach(function(item){ %>
+            <% docsData.polygon_functions.forEach(function(item){ %>
                 <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
             <% }); %>
             </ul>
@@ -75,6 +75,15 @@
             </ul>
         </div>
 
+      <div class = "column">
+           <p class="big"> Drawing Functions: </p>
+            <ul>
+            <% docsData.drawing_functions.forEach(function(item){ %>
+                <li><a href="/documentation/<%= item.name %>"><%= item.name %></a></li>
+            <% }); %>
+            </ul>
+        </div>
+
         <div class = "column">
             <p class="big"> Misc. Functions: </p>
             <ul>
@@ -83,6 +92,7 @@
             <% }); %>
             </ul>
         </div>
+
 
 
         

@@ -6,7 +6,7 @@ polygon.draw();
 polygon.mouseDragEvent = function(){ // event triggering to polygon, when its dragged
     clear();
 	for (var i in polygon.points) // access each polygon point
-		print(polygon.points[i])
+		printLog(polygon.points[i])
 }
 
 

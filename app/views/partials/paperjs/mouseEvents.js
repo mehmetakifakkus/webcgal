@@ -13,7 +13,7 @@ function onMouseDown(event) {
 	var hitResult = project.hitTest(event.point, hitOptions);
     if (hitResult){                       //console.log(event.item.name)
 
-        print('Clicked: '+ event.item.name)
+        printLog('Clicked: '+ event.item.name)
 
         if(event.item.name.startsWith('path_polygon'))
             path = hitResult.item;

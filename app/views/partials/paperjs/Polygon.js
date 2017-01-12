@@ -65,5 +65,10 @@ var Vector = Point.extend({
 	_class: 'Vector',
 	_readIndex: true,
 
-	deneme: function(){return 'hey'}
+	deneme: function(){return 'hey'},
+
+    draw: function(){
+        new Path.Circle({center:[100,100], radius:10, strokeColor:'red'})
+        new PointText({ matrix: new Matrix(1,0,0,-1, this.x+3, this.y+5), fontSize: '16px', fillColor: 'black', content: ' '+ 1})
+    }
 });

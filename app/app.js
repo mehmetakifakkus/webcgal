@@ -4,8 +4,9 @@ var reload = require('reload');
 var app = express();
 
 app.set('port', process.env.PORT || 3000 );
+//app.set('views',  'app/views');
+app.set('views',  __dirname+'/views');
 app.set('view engine', 'ejs');
-app.set('views', 'app/views');
 
 app.locals.siteTitle = "WebCgal";
 
@@ -15,7 +16,7 @@ app.set('linkData', app.locals.linkData);
 app.locals.docsData = require('./data/documentationData.json')
 app.set('docsData', app.locals.docsData);
 
-app.use('/static', express.static('app/public'));
+app.use('/static', express.static(__dirname+'/public'));
 
 
 app.get('/', function(req, res) {

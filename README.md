@@ -1,5 +1,5 @@
 # [Web Of <u>C</u>omputational Geometry Algorithms](http://webcgal.org)
-WebCgal is a web tool and abreviation of Web of Computer Geometry Algorithms. It is specialized to ease understanding computer geometry algorithms. 
+WebCgal is a web tool and abbreviation of Web of Computer Geometry Algorithms. It is specialized to ease understanding computer geometry algorithms. 
 
 Main features of the website are:
 

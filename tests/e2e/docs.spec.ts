@@ -109,3 +109,17 @@ test('on a narrow screen the sidebar is a select', async ({ page }) => {
   await expect(page).toHaveURL(/\/documentation\/sort$/);
   await expect(page.getByRole('heading', { level: 1, name: 'sort' })).toBeVisible();
 });
+
+test('internal MDX links navigate in the app; external ones open a new tab', async ({ page }) => {
+  await page.goto('/documentation/Points');
+  await page.evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true));
+  await page.locator('.prose').getByRole('link', { name: 'createRandom' }).first().click();
+  await expect(page).toHaveURL(/\/documentation\/createRandom$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'createRandom' })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload)).toBe(true);
+
+  await page.goto('/algorithms/L-monoton');
+  const external = page.locator('.prose').getByRole('link', { name: 'wiki/Monotone_polygon' });
+  await expect(external).toHaveAttribute('target', '_blank');
+  await expect(external).toHaveAttribute('rel', 'noopener noreferrer');
+});

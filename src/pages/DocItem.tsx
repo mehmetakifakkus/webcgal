@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import CodeRunner from '../components/CodeRunner'
+import { mdxComponents } from '../components/MdxLink'
 import DocsNav from '../components/DocsNav'
 import { categories, findDoc, type DocEntry } from '../content/docs'
 import NotFound from './NotFound'
@@ -74,7 +75,7 @@ function DocPage({ entry }: { entry: DocEntry }) {
         {ready ? (
           <>
             <div className="prose docs-prose">
-              <ready.Content />
+              <ready.Content components={mdxComponents} />
             </div>
             {entry.example !== undefined && (
               <section className="docs-preview surface" aria-label="Live preview">

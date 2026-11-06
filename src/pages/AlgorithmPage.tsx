@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ComponentType, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import CodeRunner from '../components/CodeRunner';
+import { mdxComponents } from '../components/MdxLink';
 import StepPlayer from '../components/StepPlayer';
 import type { PlayerModule } from '../players/types';
 import { groups, type AlgorithmEntry } from '../registry';
@@ -98,7 +99,7 @@ export default function AlgorithmPage({ entry }: { entry: AlgorithmEntry }) {
       {ready ? (
         <>
           <div className="algorithm-text prose">
-            <ready.Content />
+            <ready.Content components={mdxComponents} />
           </div>
           <section className="algorithm-workspace surface" aria-label="Interactive demo">
             <div role="tablist" aria-label="Views" className="tabs" onKeyDown={onTabKey}>

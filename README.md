@@ -25,9 +25,15 @@ Requires Node 22.
 npm install
 npm run dev      # dev server
 npm test         # unit tests (Vitest, node + browser projects)
-npm run e2e      # end-to-end tests (Playwright)
-npm run build    # type-check and production build into dist/
+npm run e2e      # end-to-end tests (Playwright; builds into dist-e2e/)
+npm run build    # type-check and production build into dist/, then check:bundle
 ```
+
+`npm run check:bundle` (run automatically after `npm run build`, or as
+`node scripts/check-bundle.mjs <dir>`) fails if `dist/index.html` loads the
+CodeMirror or paper.js chunks (they belong to the pages with a code runner
+only) or if the build contains the `__webcgalDebug` test hook. The e2e tests
+build with that hook into `dist-e2e/`, so `dist/` is never affected.
 
 ## Project structure
 
@@ -58,7 +64,9 @@ npm run build    # type-check and production build into dist/
 
 The site is deployed on Netlify (`netlify.toml`): build command
 `npm run build`, publish directory `dist`. Old URLs are kept, and unknown
-paths fall back to `index.html` for client-side routing.
+paths fall back to `index.html` for client-side routing; missing files under
+`/assets/` answer 404 instead (a stale chunk after a redeploy makes the page
+reload once).
 
 ## License
 

@@ -34,6 +34,11 @@
 .state-row-new { background: var(--success); color: var(--accent-contrast); }
 .state-empty { margin: 0; padding: 0.15rem 0.5rem; color: var(--text-muted); font-size: var(--fs-sm); font-style: italic; }
 
+@media (min-width: 600px) {
+  .state-panel-rows.many { columns: 2; column-gap: var(--space-3); }
+  .state-panel-rows.many .state-row { break-inside: avoid; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .state-row { transition: none; }
 }

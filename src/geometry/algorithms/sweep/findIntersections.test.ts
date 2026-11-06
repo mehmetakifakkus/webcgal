@@ -3,6 +3,7 @@ import type { IntersectionResult, Segment } from '../../types'
 import { findIntersections, runSweep } from './findIntersections'
 import { bruteForceIntersections } from './bruteForceIntersections'
 import { sameResult } from './sameResult'
+import { findIntersectionsSteps } from './findIntersectionsSteps'
 
 const seg = (ax: number, ay: number, bx: number, by: number): Segment => ({
   a: { x: ax, y: ay },
@@ -154,6 +155,15 @@ describe('findIntersections', () => {
     expect(r.points[0].p).toEqual({ x: 1, y: 1 })
     expect(r.points[0].segments).toEqual([0, 1])
     expect(findIntersections([seg(1, 1, 1, 1)])).toEqual({ points: [], overlaps: [] })
+  })
+
+  it('nearly horizontal segment (ends differ in y by less than GEOM_TOL) is removed', () => {
+    // regression: upperEndpoint/isHorizontal used a tighter tolerance than the event queue
+    const segs = [seg(300, 100 + 5e-8, 10, 100), seg(150, 200, 160, 0), seg(160, 200, 150, 0)]
+    const r = check(segs)
+    expect(r.points.map((x) => x.segments)).toEqual([[0, 1, 2]])
+    const steps = findIntersectionsSteps(segs)
+    expect(steps[steps.length - 1].state.status).toEqual([])
   })
 
   it('random inputs equal brute force', () => {

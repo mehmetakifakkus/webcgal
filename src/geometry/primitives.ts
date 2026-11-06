@@ -33,6 +33,11 @@ export function orientation(o: Pt, a: Pt, b: Pt): -1 | 0 | 1 {
 /**
  * The single absolute distance tolerance for all segment code (canvas coordinates
  * are 0-800). EPS stays for the existing hull/orientation code.
+ *
+ * Known asymmetry: segmentIntersection applies GEOM_TOL as a parameter slack along
+ * each segment, while onSegment measures perpendicular distance. At shallow angles a
+ * crossing accepted by the slack can lie ~5e-8 to 1e-6 off the other segment, so the
+ * two tests can disagree in that band. It is unreachable with mouse input.
  */
 export const GEOM_TOL = 1e-7
 
@@ -40,10 +45,13 @@ export function samePt(p: Pt, q: Pt): boolean {
   return Math.abs(p.x - q.x) <= GEOM_TOL && Math.abs(p.y - q.y) <= GEOM_TOL
 }
 
-/** Upper end of a segment: larger y; on a tie the smaller x. */
+/**
+ * Upper end of a segment: larger y; on a tie (y within GEOM_TOL, as in the event
+ * queue) the smaller x.
+ */
 export function upperEndpoint(s: Segment): Pt {
   const { a, b } = s
-  if (Math.abs(a.y - b.y) <= EPS) return a.x <= b.x ? a : b
+  if (Math.abs(a.y - b.y) <= GEOM_TOL) return a.x <= b.x ? a : b
   return a.y > b.y ? a : b
 }
 
@@ -51,8 +59,9 @@ export function lowerEndpoint(s: Segment): Pt {
   return upperEndpoint(s) === s.a ? s.b : s.a
 }
 
+/** y of the ends equal within GEOM_TOL (the event queue's tie tolerance). */
 export function isHorizontal(s: Segment): boolean {
-  return Math.abs(s.a.y - s.b.y) <= EPS
+  return Math.abs(s.a.y - s.b.y) <= GEOM_TOL
 }
 
 /** x where the segment's line meets height y. For a horizontal segment returns `s.a.x`. */

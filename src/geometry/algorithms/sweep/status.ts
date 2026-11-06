@@ -13,6 +13,8 @@ import { GEOM_TOL, isHorizontal, onSegment, xAtY } from '../../primitives'
  *    after the non-horizontal ones.
  * 3. Then x at y = p.y - 1 (zero-length segment: p.x).
  * 4. Then the segment index.
+ * The GEOM_TOL ties make this comparator not strictly transitive (a ~ b and b ~ c
+ * do not imply a ~ c); that is accepted at teaching scale.
  */
 export function compareAt(segments: Segment[], p: Pt): (i: number, j: number) => number {
   const x0 = (s: Segment) => (isHorizontal(s) ? p.x : xAtY(s, p.y))
@@ -66,7 +68,7 @@ export class StatusStructure {
     return this.order.filter((i) => onSegment(p, this.segments[i]))
   }
 
-  /** Re-sorts only the block of segments through p; other positions stay. */
+  /** Re-sorts the segments through p within the slots they occupy; other positions stay. */
   reorderAt(p: Pt): void {
     const through = this.findThrough(p)
     if (through.length < 2) return

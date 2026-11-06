@@ -9,13 +9,8 @@ import './CodeRunner.css';
 
 export type CodeRunnerProps = {
   initialCode: string;
-  /** localStorage key under which edits are kept. */
+  /** localStorage key under which edits are kept; Reset clears it. */
   storageKey?: string;
-  /**
-   * Start from `initialCode` even if edits are saved under `storageKey`. The saved code is left
-   * untouched until the user edits, resets or picks a template.
-   */
-  ignoreSaved?: boolean;
   /** Main canvas: inner size (default 775x360), optional element id and caption. */
   canvas?: { width: number; height: number; id?: string; label?: string };
   /** Plain canvases reachable from user code by id (not paper scenes). */
@@ -52,15 +47,13 @@ function saveCode(key: string, code: string | null) {
 export default function CodeRunner({
   initialCode,
   storageKey,
-  ignoreSaved = false,
   canvas = { width: 775, height: 360 },
   extraCanvases,
   autoRun = true,
   templates,
   onReady,
 }: CodeRunnerProps) {
-  const [code, setCode] = useState(() => (ignoreSaved ? null : loadCode(storageKey)) ?? initialCode);
-  const touchedRef = useRef(!ignoreSaved);
+  const [code, setCode] = useState(() => loadCode(storageKey) ?? initialCode);
   const [lines, setLines] = useState<OutputLine[]>([]);
   const [template, setTemplate] = useState('');
   const sceneRef = useRef<Scene | null>(null);
@@ -105,18 +98,14 @@ export default function CodeRunner({
   }, []);
 
   useEffect(() => {
-    if (!storageKey || !touchedRef.current) return;
+    if (!storageKey) return;
     const timer = setTimeout(() => saveCode(storageKey, code === initialCode ? null : code), SAVE_DELAY_MS);
     return () => clearTimeout(timer);
   }, [code, initialCode, storageKey]);
 
-  const edit = (next: string) => {
-    touchedRef.current = true;
-    setCode(next);
-  };
+  const edit = (next: string) => setCode(next);
 
   const reset = () => {
-    touchedRef.current = true;
     if (storageKey) saveCode(storageKey, null);
     setTemplate('');
     setCode(initialCode);

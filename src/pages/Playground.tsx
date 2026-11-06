@@ -20,6 +20,8 @@ export default function Playground() {
   const [params] = useSearchParams();
   const exampleName = params.get('example');
   const example = findDoc(exampleName)?.example;
+  // an example keeps its edits under its own key: visiting it never changes the saved sandbox code
+  const storageKey = example === undefined ? 'webcgal:playground' : `webcgal:playground:example:${exampleName}`;
   return (
     <ErrorBoundary>
       <div className="playground">
@@ -29,10 +31,9 @@ export default function Playground() {
         </header>
         <div className="surface playground-workspace">
           <CodeRunner
-            key={example === undefined ? 'saved' : `example:${exampleName}`}
+            key={storageKey}
             initialCode={example ?? templates[0].code}
-            ignoreSaved={example !== undefined}
-            storageKey="webcgal:playground"
+            storageKey={storageKey}
             templates={templates}
           />
         </div>

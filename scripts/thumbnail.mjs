@@ -6,6 +6,8 @@
 //   --slug <slug>       page /algorithms/<slug>, written to public/images/<slug>_tn.png
 //   --preset <name>     preset to select
 //   --step <n>          step to show, 1-based (clamped to the last step); default: the middle step
+//   --pad <f>           scale factor (0 < f ≤ 1) on top of the cover scale, leaving a margin around the
+//                       drawing; default 0.94 when --slug is given, else 1 (the old segmentIntersection image)
 import { chromium } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -13,16 +15,19 @@ import { parseArgs } from 'node:util';
 
 const { values: args } = parseArgs({
   options: {
-    slug: { type: 'string', default: 'segmentIntersection' },
+    slug: { type: 'string' },
     preset: { type: 'string', default: 'Vertical and horizontal segments' },
     step: { type: 'string' },
+    pad: { type: 'string' },
   },
 });
-const SLUG = args.slug;
+const SLUG = args.slug ?? 'segmentIntersection';
+const PAD = args.pad === undefined ? (args.slug === undefined ? 1 : 0.94) : Number(args.pad);
 const PRESET = args.preset;
 const STEP = args.step === undefined ? undefined : Number(args.step);
 if (!/^[\w-]+$/.test(SLUG)) throw new Error(`thumbnail: bad --slug '${SLUG}'`);
 if (STEP !== undefined && !(Number.isInteger(STEP) && STEP >= 1)) throw new Error(`thumbnail: --step must be a step number (1, 2, …), got '${args.step}'`);
+if (!(PAD > 0 && PAD <= 1)) throw new Error(`thumbnail: --pad must be a number in (0, 1], got '${args.pad}'`);
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4173';
 const OUT = fileURLToPath(new URL(`../public/images/${SLUG}_tn.png`, import.meta.url));
@@ -42,9 +47,9 @@ try {
   const target = Math.min(total, STEP ?? Math.round(total / 2));
   for (let i = 1; i < target; i++) await next.click();
   await page.waitForTimeout(300);
-  // scale the canvas to cover the thumbnail (full height, sides cropped evenly) in the page itself
+  // scale the canvas to cover the thumbnail (full height, sides cropped evenly), times the pad, in the page itself
   const dataUrl = await page.evaluate(
-    ({ w, h }) => {
+    ({ w, h, pad }) => {
       const src = document.querySelector('canvas[aria-label="Drawing canvas"]');
       const out = document.createElement('canvas');
       out.width = w;
@@ -52,14 +57,14 @@ try {
       const g = out.getContext('2d');
       g.fillStyle = '#fff';
       g.fillRect(0, 0, w, h);
-      const scale = Math.max(w / src.width, h / src.height);
+      const scale = Math.max(w / src.width, h / src.height) * pad;
       const dw = src.width * scale;
       const dh = src.height * scale;
       g.imageSmoothingQuality = 'high';
       g.drawImage(src, (w - dw) / 2, (h - dh) / 2, dw, dh);
       return out.toDataURL('image/png');
     },
-    { w: WIDTH, h: HEIGHT },
+    { w: WIDTH, h: HEIGHT, pad: PAD },
   );
   writeFileSync(OUT, Buffer.from(dataUrl.split(',')[1], 'base64'));
   console.log(`thumbnail: wrote ${OUT}`);

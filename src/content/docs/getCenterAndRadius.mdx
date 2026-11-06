@@ -1,0 +1,19 @@
+It is a useful function that returns center and radius. drawCircle function can visualise this.
+
+Two points version usage is like this:
+
+```js
+var points = Points.createRandom(2);
+
+var result = getCenterAndRadius2(points[0].pos, points[1].pos);
+drawCircle(result);
+```
+
+Another function with 3 points is like this:
+
+```js
+var ps = Points.createRandom(3);
+
+var result = getCenterAndRadius3(ps[0].pos, ps[1].pos, ps[2].pos);
+drawCircle(result);
+```

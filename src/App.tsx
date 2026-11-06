@@ -8,6 +8,8 @@ import { algorithms, groups } from './registry';
 const AlgorithmsIndex = lazy(() => import('./pages/AlgorithmsIndex'));
 const AlgorithmPage = lazy(() => import('./pages/AlgorithmPage'));
 const DualityIndex = lazy(() => import('./pages/DualityIndex'));
+const Docs = lazy(() => import('./pages/Docs'));
+const DocItem = lazy(() => import('./pages/DocItem'));
 const Playground = lazy(() => import('./pages/Playground'));
 
 
@@ -22,6 +24,8 @@ export default function App() {
           {algorithms.map((a) => (
             <Route key={a.slug} path={a.path} caseSensitive element={<AlgorithmPage key={a.slug} entry={a} />} />
           ))}
+          <Route path="/documentation" element={<Docs />} />
+          <Route path="/documentation/:item" element={<DocItem />} />
           <Route path="/playground" element={<Playground />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

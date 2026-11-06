@@ -1,0 +1,36 @@
+Polygon can be created by several ways. This function takes predefined strings to run properly. Otherwise it returns an error. Here you will see some examples:
+
+```js
+var polygon = createPolygon('square');
+var polygon = createPolygon('star');
+var polygon = createPolygon('triangle_set');
+```
+
+> **Note:** In createPolygon, 'star', 'square', 'triangle_set' are predefined strings.
+
+> **Warning:** It does not support polygon types other than those.
+
+## Live Demo
+
+```js
+var polygon = createPolygon('star');
+polygon.draw();
+```
+
+## Customize polygon creation
+
+It is also possible to determine the location and size of a polygon while creating it.
+
+### createPolygon(type, location);
+
+```js
+var polygon = createPolygon('square', [125, 125]);
+polygon.draw();
+```
+
+### createPolygon(type, location, scale);
+
+```js
+var polygon = createPolygon('square', [200, 200], 0.5);
+polygon.draw();
+```

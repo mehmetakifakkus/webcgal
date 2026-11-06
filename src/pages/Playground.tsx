@@ -1,5 +1,7 @@
+import { useSearchParams } from 'react-router-dom';
 import CodeRunner from '../components/CodeRunner';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { findDoc } from '../content/docs';
 import './Playground.css';
 import polygonSquare from '../content/playground/polygonSquare.js?raw';
 import polygonRandom from '../content/playground/polygonRandom.js?raw';
@@ -14,6 +16,10 @@ const templates = [
 ];
 
 export default function Playground() {
+  // ?example=<doc item> opens that item's example; unknown values are ignored
+  const [params] = useSearchParams();
+  const exampleName = params.get('example');
+  const example = findDoc(exampleName)?.example;
   return (
     <ErrorBoundary>
       <div className="playground">
@@ -22,7 +28,13 @@ export default function Playground() {
           <p className="page-lead">Write PaperScript and run it on the canvas.</p>
         </header>
         <div className="surface playground-workspace">
-          <CodeRunner initialCode={templates[0].code} storageKey="webcgal:playground" templates={templates} />
+          <CodeRunner
+            key={example === undefined ? 'saved' : `example:${exampleName}`}
+            initialCode={example ?? templates[0].code}
+            ignoreSaved={example !== undefined}
+            storageKey="webcgal:playground"
+            templates={templates}
+          />
         </div>
       </div>
     </ErrorBoundary>

@@ -10,6 +10,9 @@ const pages = [
   { path: '/algorithms', name: 'algorithms', heading: 'Algorithms' },
   { path: '/algorithms/convexHull', name: 'convexHull', heading: 'Convex Hull' },
   { path: '/algorithms/L-monoton', name: 'L-monoton', heading: 'L-monotone Polygon' },
+  { path: '/documentation', name: 'documentation', heading: 'Documentation' },
+  { path: '/documentation/TextPoint', name: 'doc-TextPoint', heading: 'TextPoint' },
+  { path: '/documentation/createPolygon', name: 'doc-createPolygon', heading: 'createPolygon' },
   { path: '/playground', name: 'playground', heading: 'Playground' },
   { path: '/bu-yok', name: '404', heading: 'Page not found' },
 ]

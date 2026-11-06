@@ -10,7 +10,7 @@ const LEGACY_PATHS = [
 ]
 
 /** Pages added after the migration (not on the legacy site). */
-const NEW_PATHS = ['/algorithms/segmentIntersection']
+const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation']
 
 describe('registry', () => {
   test('paths are legacy paths', () => {
@@ -19,6 +19,14 @@ describe('registry', () => {
 
   test('Line Segment Intersection follows Convex Hull in the menu', () => {
     expect(algorithms.map((a) => a.path).slice(0, 2)).toEqual(['/algorithms/convexHull', '/algorithms/segmentIntersection'])
+  })
+
+  test('Polygon Triangulation follows Line Segment Intersection in the menu', () => {
+    expect(algorithms.map((a) => a.path).slice(1, 4)).toEqual([
+      '/algorithms/segmentIntersection',
+      '/algorithms/triangulation',
+      '/algorithms/smallestEnclosingDisk',
+    ])
   })
 
   test('slugs unique', () => {

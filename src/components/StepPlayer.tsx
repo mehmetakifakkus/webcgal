@@ -190,7 +190,8 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       <div className="step-player-main">
         <div className="step-player-stage">
           {invalid !== null ? (
-            <div role="alert" className="step-player-alert">
+            // as wide as the canvas frame (not the column), so it covers no more of the drawing than needed
+            <div role="alert" className="step-player-alert" style={{ maxWidth: width }}>
               {invalid}
             </div>
           ) : null}

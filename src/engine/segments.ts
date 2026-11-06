@@ -20,7 +20,7 @@ export type PaperIntersectionResult = {
 const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v)
 
 /** Point, TextPoint, `{x, y}` or `[x, y]` with finite numbers. */
-function isPointInput(p: unknown): p is PointInput {
+export function isPointInput(p: unknown): p is PointInput {
   if (p instanceof paper.Point || hasPos(p)) return true
   if (Array.isArray(p)) return p.length === 2 && p.every(isNum)
   return typeof p === 'object' && p !== null && isNum((p as { x?: unknown }).x) && isNum((p as { y?: unknown }).y)

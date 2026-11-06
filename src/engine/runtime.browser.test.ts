@@ -6,6 +6,7 @@ import { API_NAMES } from './api'
 import convexHullEjs from './__fixtures__/legacy/convexHull.ejs?raw'
 import legacyConvexHullJs from './__fixtures__/legacy/convexHull.js?raw'
 import segmentIntersectionDemo from '../content/algorithms/segmentIntersection/demo.js?raw'
+import triangulationDemo from '../content/algorithms/triangulation/demo.js?raw'
 
 const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
@@ -547,5 +548,111 @@ describe('segments api', () => {
     expect(exec(segmentIntersectionDemo)).toEqual({ ok: true })
     expect(lines).toHaveLength(1)
     expect(lines[0].text).toMatch(/^\d+ intersection point\(s\), \d+ overlap\(s\)$/)
+  })
+})
+
+describe('triangulation api', () => {
+  test('triangulate a square given as {x, y} points', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var r = triangulate([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }]);
+      console.log(r.triangles.length, r.triangulationDiagonals.length + r.partitionDiagonals.length, r.types.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '2 1 4' }])
+  })
+
+  test('triangulate an engine Polygon', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var p = createPolygon('square');
+      var r = triangulate(p);
+      console.log(r.triangles.length === p.points.length - 2, r.triangles.length > 0);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: 'true true' }])
+  })
+
+  test('accepts TextPoints, paper Points and [x, y] pairs', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var a = triangulate([new TextPoint(0, 0), new TextPoint(100, 0), new TextPoint(50, 80)]);
+      var b = triangulate([new Point(0, 0), new Point(100, 0), new Point(100, 100), new Point(0, 100)]);
+      var c = triangulate([[0, 0], [100, 0], [100, 100], [50, 150], [0, 100]]);
+      console.log(a.triangles.length, b.triangles.length, c.triangles.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1 2 3' }])
+  })
+
+  test('api accepts clockwise polygon', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var ccw = [[0, 0], [200, 0], [200, 100], [100, 40], [0, 100]];
+      var cw = ccw.slice().reverse();
+      var a = triangulate(ccw);
+      var b = triangulate(cw);
+      var inRange = b.triangles.every(function (t) { return t.every(function (i) { return i >= 0 && i < 5; }); });
+      console.log(a.triangles.length, b.triangles.length, b.types.length, inRange);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '3 3 5 true' }])
+  })
+
+  test('makeMonotone returns types, diagonals and pieces', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      // a split vertex at (100, 40): one partition diagonal, two pieces
+      var m = makeMonotone([[0, 0], [200, 0], [200, 100], [100, 40], [0, 100]].map(function (q) { return [q[0], 100 - q[1]]; }));
+      console.log(Object.keys(m).sort().join(','), m.types.length, m.diagonals.length, m.pieces.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: 'diagonals,pieces,types 5 1 2' }])
+  })
+
+  test('a non-simple polygon is rejected', () => {
+    const { exec, lines } = setup()
+    const res = exec(`triangulate([[0, 0], [100, 100], [100, 0], [0, 100]])`)
+    expect(res.ok).toBe(false)
+    const errors = [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+    expect(errors.some((l) => l.text.includes('triangulate: the polygon must be simple (no crossing edges)'))).toBe(true)
+  })
+
+  test('bad input is rejected with a clear message', () => {
+    for (const [code, msg] of [
+      ['triangulate([1, 2, 3])', 'triangulate: expected a Polygon or an array of points (item 1 is not a point)'],
+      ['triangulate(5)', 'triangulate: expected a Polygon or an array of points'],
+      ["makeMonotone([[0, 0], [1, 0], 'x'])", 'makeMonotone: expected a Polygon or an array of points (item 3 is not a point)'],
+      ['triangulate([[0, 0], [1, 0]])', 'triangulate: the polygon needs at least 3 vertices'],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok).toBe(false)
+      const errors = [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+      expect(errors.some((l) => l.text.includes(msg)), code).toBe(true)
+    }
+  })
+
+  test('drawDiagonals and drawTriangles add to drawables', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var p = [[0, 0], [100, 0], [100, 100], [0, 100]];
+      var r = triangulate(p);
+      var n = drawables.length;
+      drawDiagonals(p, r.triangulationDiagonals);
+      var d = drawables.length - n;
+      drawTriangles(p, r.triangles);
+      var last = drawables[drawables.length - 1];
+      console.log(d, drawables.length - n - d, last.fillColor.alpha, last.strokeWidth, drawables[n].strokeWidth);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1 2 0.12 1 2' }])
+  })
+
+  test('the demo runs', () => {
+    const { exec, lines } = setup()
+    expect(exec(triangulationDemo)).toEqual({ ok: true })
+    expect(lines).toHaveLength(1)
+    expect(lines[0].text).toMatch(/^\d+ triangle\(s\), \d+ partition diagonal\(s\)$/)
   })
 })

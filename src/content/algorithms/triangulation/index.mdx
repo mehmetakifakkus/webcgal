@@ -1,0 +1,19 @@
+A *triangulation* of a simple polygon splits it into triangles with *diagonals*: non-crossing segments between two vertices that lie inside the polygon. Every simple polygon with *n* vertices has one, with exactly *n* − 3 diagonals and *n* − 2 triangles.
+
+The classic motivation is the *art gallery problem*: how many cameras are needed to watch every point of a gallery whose floor plan is a simple polygon? Triangulating the polygon and 3-colouring its vertices proves the art gallery theorem: ⌊*n*/3⌋ cameras are always sufficient and sometimes necessary. The 3-colouring is not shown on this page.
+
+This page follows chapter 3, *Polygon Triangulation*, of Computational Geometry: Algorithms and Applications, 3rd ed., by de Berg et al.
+
+Triangulating is easy for a polygon that is *y-monotone*: every horizontal line meets it in at most one interval (see [L-monotone Polygon](/algorithms/L-monoton) for what monotone means). The algorithm therefore works in two phases.
+
+**1. Partition into monotone pieces, O(n log n).** A sweep line moves down over the vertices, from top to bottom. Each vertex is one of five types:
+
+- **start** and **end** vertices, where both neighbours lie below or above and the interior angle is less than π;
+- **split** and **merge** vertices, the same with an angle greater than π: they keep a polygon from being monotone;
+- **regular** vertices, all the others.
+
+The status structure holds the edges that cross the sweep line with the interior to their right; each keeps a *helper*, the lowest vertex above the sweep line that sees the edge horizontally. A split vertex gets a diagonal to the helper of the edge to its left; a merge vertex becomes a helper and gets its diagonal from the vertex that replaces it. These diagonals cut the polygon into y-monotone pieces.
+
+**2. Triangulate each piece, O(n).** The vertices of a piece are taken from top to bottom; a stack holds those that may still need diagonals. A vertex on the other chain sees the whole stack; one on the same chain adds diagonals while they stay inside the piece.
+
+Pick a **mode** to follow both phases (*Full*), only the partition (*Partition only*) or only the triangulation of the pieces (*Triangulation only*); the other phase's pseudocode is dimmed. Presets show typical polygons and vertices with equal y. Drag the vertices to change the polygon: it must stay simple, so a drag across an edge turns the outline red with a warning and jumps back on release. The **Code** tab runs the same algorithm through `triangulate`; see the [documentation](/documentation) for the rest of the library.

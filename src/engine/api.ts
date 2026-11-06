@@ -22,6 +22,7 @@ import { createPolygonClass } from './Polygon'
 import { createPoints, getRandomInt, shuffle } from './Points'
 import { createPolygon, createRandomPolygon } from './polygons'
 import { bruteForceIntersections, createSegments, findIntersections } from './segments'
+import { createTriangulationDrawing, makeMonotone, triangulate } from './triangulation'
 import type { Scene } from './scene'
 import { createTextPointClass, type TextPoint } from './TextPoint'
 import { Vector } from './Vector'
@@ -50,6 +51,8 @@ export const API_NAMES = [
   'convexHullPts',
   // line segment intersection (segments are {a, b} or [a, b]; result points are paper Points)
   'Segments', 'findIntersections', 'bruteForceIntersections', 'drawIntersections',
+  // polygon triangulation (polygons are a Polygon or an array of points; indices refer to the input)
+  'triangulate', 'makeMonotone', 'drawDiagonals', 'drawTriangles',
   // environment
   'console', 'document',
   // paper.js
@@ -133,6 +136,7 @@ export function buildApi(
   const Polygon = createPolygonClass(ctx, TextPoint)
   const Points = createPoints(ctx, TextPoint)
   const { Segments, drawIntersections } = createSegments(ctx)
+  const { drawDiagonals, drawTriangles } = createTriangulationDrawing(ctx)
   const pts = (points: PointInput[]) => points.map(toPt)
 
   const getCenterAndRadius2 = (p1: PointInput, p2: PointInput) => legacyCircle(circleFrom2(toPt(p1), toPt(p2)))
@@ -220,6 +224,10 @@ export function buildApi(
     findIntersections,
     bruteForceIntersections,
     drawIntersections,
+    triangulate,
+    makeMonotone,
+    drawDiagonals,
+    drawTriangles,
     console: createConsole(output, clearOutput),
     document: options.extraCanvases ? scopedDocument(options.extraCanvases) : document,
     ...(Object.fromEntries(PAPER_CLASSES.map((n) => [n, scope[n as keyof paper.PaperScope]])) as Record<

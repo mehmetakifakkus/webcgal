@@ -54,19 +54,21 @@
 }
 .step-player-preset .select { min-width: 0; max-width: 100%; min-height: 2rem; font-size: var(--fs-sm); }
 
-/* invalid input: an overlay at the top of the canvas, so that it never shifts the canvas mid-drag */
+/* invalid input: an overlay at the top of the canvas, so that it never shifts the canvas mid-drag;
+   translucent, so that the vertex being dragged stays visible under it */
 .step-player-stage { position: relative; }
 .step-player-alert {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
+  box-sizing: border-box;
   z-index: 1;
   pointer-events: none;
   margin: 0;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
   color: var(--text);
-  background: color-mix(in srgb, var(--error) 8%, var(--surface));
+  background: color-mix(in srgb, color-mix(in srgb, var(--error) 8%, var(--surface)) 85%, transparent);
   border: 1px solid color-mix(in srgb, var(--error) 45%, transparent);
   border-left: 3px solid var(--error);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;

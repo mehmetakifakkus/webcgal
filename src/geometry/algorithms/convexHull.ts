@@ -1,4 +1,4 @@
-import { cross } from '../primitives'
+import { orientation } from '../primitives'
 import type { Pt } from '../types'
 
 /**
@@ -14,7 +14,7 @@ export function convexHull(points: Pt[]): Pt[] {
   const chain = (seq: Pt[]): Pt[] => {
     const out: Pt[] = []
     for (const p of seq) {
-      while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], p) >= 0) out.pop()
+      while (out.length >= 2 && orientation(out[out.length - 2], out[out.length - 1], p) >= 0) out.pop()
       out.push(p)
     }
     return out

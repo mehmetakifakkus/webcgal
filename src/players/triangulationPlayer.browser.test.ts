@@ -2,7 +2,7 @@ import { afterEach, expect, test } from 'vitest'
 import paper from 'paper'
 import { createScene, type Scene } from '../engine/scene'
 import { TRIANGULATION_PRESETS } from '../geometry/algorithms/triangulation/presets'
-import { isSimple, signedArea } from '../geometry/algorithms/triangulation/polygon'
+import { isSimple, signedArea, vertexTypes } from '../geometry/algorithms/triangulation/polygon'
 import triangulationPlayer from './triangulationPlayer'
 
 const scenes: Scene[] = []
@@ -39,7 +39,31 @@ test('validate rejects a bowtie, accepts a square', () => {
   expect(triangulationPlayer.validate!(square)).toBeNull()
   expect(triangulationPlayer.validate!(bowtie)).toBe('The polygon must be simple (no crossing edges)')
   // a fully reversed (clockwise) polygon is rejected too, so that steps always see a CCW polygon
-  expect(triangulationPlayer.validate!([...square].reverse())).toBe('The polygon must be simple (no crossing edges)')
+  expect(triangulationPlayer.validate!([...square].reverse())).toBe(ORIENTATION)
+})
+
+const ORIENTATION = 'The vertices must stay in counter-clockwise order (the polygon was turned inside out)'
+
+test('validate: a turned-over triangle gets the orientation message, a bowtie the simplicity one', () => {
+  const triangle = [{ x: 100, y: 100 }, { x: 300, y: 100 }, { x: 200, y: 250 }]
+  // v3 dragged past edge v1–v2: still simple, now clockwise
+  const turned = triangulationPlayer.moveHandle(triangle, 2, { x: 200, y: 20 })
+  expect(isSimple(turned)).toBe(true)
+  expect(triangulationPlayer.validate!(triangle)).toBeNull()
+  expect(triangulationPlayer.validate!(turned)).toBe(ORIENTATION)
+  const bowtie = [{ x: 0, y: 0 }, { x: 10, y: 10 }, { x: 10, y: 0 }, { x: 0, y: 10 }]
+  expect(triangulationPlayer.validate!(bowtie)).toBe('The polygon must be simple (no crossing edges)')
+})
+
+test('random inputs mostly have a split or merge vertex', () => {
+  let interesting = 0
+  for (let k = 0; k < 50; k++) {
+    const poly = triangulationPlayer.randomInput()
+    expect(isSimple(poly)).toBe(true)
+    expect(signedArea(poly)).toBeGreaterThan(0)
+    if (vertexTypes(poly).some((t) => t === 'split' || t === 'merge')) interesting++
+  }
+  expect(interesting).toBeGreaterThanOrEqual(40)
 })
 
 test('modes and dimmedLines', () => {
@@ -110,6 +134,19 @@ test('panels by phase', () => {
   expect(q[0].empty).toBe('Queue is empty')
   expect(q[1].empty).toBe('Status is empty')
   expect(triangulationPlayer.panels!(steps[tri], input)[1].empty).toBe('Stack is empty')
+})
+
+test('event queue shows the current vertex as the active first row', () => {
+  const input = TRIANGULATION_PRESETS[0].polygon
+  const steps = triangulationPlayer.computeSteps(input, 'full')
+  const line4 = steps.filter((s) => s.line === 4)
+  expect(line4.length).toBeGreaterThan(0)
+  for (const step of line4) {
+    const queue = triangulationPlayer.panels!(step, input)[0]
+    const cur = step.state.current!
+    expect(queue.rows[0]).toEqual({ text: `v${cur + 1} (${step.state.types[cur]})`, highlight: 'active' })
+    expect(queue.rows.filter((r) => r.highlight === 'active')).toHaveLength(1)
+  }
 })
 
 test('presets expose five names', () => {

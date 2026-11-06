@@ -1,6 +1,6 @@
 import { TRIANGULATION_PRESETS } from '../geometry/algorithms/triangulation/presets'
 import { TRIANGULATION_PSEUDOCODE } from '../geometry/algorithms/triangulation/pseudocode'
-import { ensureCCW, isSimple, signedArea } from '../geometry/algorithms/triangulation/polygon'
+import { ensureCCW, isSimple, signedArea, vertexTypes } from '../geometry/algorithms/triangulation/polygon'
 import { triangulationSteps } from '../geometry/algorithms/triangulation/triangulationSteps'
 import type { TriangulationState } from '../geometry/algorithms/triangulation/triangulationState'
 import { randomStarPolygon } from '../geometry/algorithms/triangulation/verify'
@@ -11,6 +11,7 @@ import type { Panel, PlayerModule } from './types'
 const WIDTH = 775
 const HEIGHT = 360
 const INVALID_MESSAGE = 'The polygon must be simple (no crossing edges)'
+const ORIENTATION_MESSAGE = 'The vertices must stay in counter-clockwise order (the polygon was turned inside out)'
 
 const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
 const vname = (i: number) => `v${i + 1}`
@@ -18,10 +19,25 @@ const vname = (i: number) => `v${i + 1}`
 /**
  * Valid = simple and counter-clockwise. A drag keeps the vertex order, so the orientation can only
  * flip through a self-intersection (rejected by isSimple) or by turning the whole polygon inside out
- * without crossing, which isSimple still accepts: signedArea < 0 gives the same message so the
- * player reverts and the steps always see a CCW polygon. O(n²), cheap enough for every mouse move.
+ * without crossing (e.g. a triangle vertex dragged past the opposite edge), which isSimple still
+ * accepts: signedArea < 0 gets its own message, so the player reverts and the steps always see a
+ * CCW polygon. O(n²), cheap enough for every mouse move.
  */
-const validate = (poly: Polygon) => (isSimple(poly) && signedArea(poly) >= 0 ? null : INVALID_MESSAGE)
+const validate = (poly: Polygon) =>
+  !isSimple(poly) ? INVALID_MESSAGE : signedArea(poly) < 0 ? ORIENTATION_MESSAGE : null
+
+/**
+ * A random star polygon with at least one split or merge vertex, so that the partition phase has
+ * something to do (about 63% of plain star samples have none); gives up after 20 tries.
+ */
+function randomInput(): Polygon {
+  let poly: Polygon = []
+  for (let k = 0; k < 20; k++) {
+    poly = randomStarPolygon(Math.random, 8 + Math.floor(Math.random() * 5), 387, 180, 40, 150)
+    if (vertexTypes(poly).some((t) => t === 'split' || t === 'merge')) break
+  }
+  return poly
+}
 
 /** Triangles of a triangulated polygon: mutually adjacent vertex triples (outerplanar, so all are faces). */
 function trianglesOf(n: number, diagonals: Diagonal[]): [number, number, number][] {
@@ -55,7 +71,7 @@ const triangulationPlayer: PlayerModule<TriangulationState, Polygon> = {
   validate,
   pseudocode: TRIANGULATION_PSEUDOCODE,
   hint: 'Drag the vertices to change the polygon (it must stay simple). Keys: ← → to step, Space to play or pause.',
-  randomInput: () => randomStarPolygon(Math.random, 8 + Math.floor(Math.random() * 5), 387, 180, 60, 150),
+  randomInput,
   presets: TRIANGULATION_PRESETS.map(({ name, polygon }) => ({ name, input: polygon })),
   handles: (poly) => poly.map((p) => ({ x: p.x, y: p.y })),
   moveHandle: (poly, k, p) => poly.map((q, i) => (i === k ? { x: p.x, y: p.y } : { x: q.x, y: q.y })),
@@ -200,7 +216,11 @@ const triangulationPlayer: PlayerModule<TriangulationState, Polygon> = {
         {
           title: 'Event queue',
           empty: 'Queue is empty',
-          rows: s.queue.map((v) => ({ text: `${vname(v)} (${s.types[v]})`, highlight: v === s.current ? 'active' : undefined })),
+          // the current vertex is already popped from the queue: show it as the active first row
+          rows: [
+            ...(s.current !== undefined ? [{ text: `${vname(s.current)} (${s.types[s.current]})`, highlight: 'active' as const }] : []),
+            ...s.queue.filter((v) => v !== s.current).map((v) => ({ text: `${vname(v)} (${s.types[v]})` })),
+          ],
         },
         {
           title: 'Status structure',

@@ -13,7 +13,7 @@ type Loaded = {
   Content: ComponentType<Record<string, unknown>>;
   code: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  player?: PlayerModule<any>;
+  player?: PlayerModule<any, any>;
 };
 
 type TabId = 'steps' | 'code';

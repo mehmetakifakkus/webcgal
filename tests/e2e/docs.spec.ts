@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 const items = [
   'Polygon', 'TextPoint', 'Points', 'clearScreen', 'clearLog', 'draw', 'createPolygon', 'createRandomPolygon',
-  'createRandom', 'sort', 'shuffle', 'animate', 'loop', 'mouseDown', 'getCenterAndRadius',
+  'createRandom', 'sort', 'shuffle', 'animate', 'findIntersections', 'loop', 'mouseDown', 'getCenterAndRadius',
 ];
 
 function collectErrors(page: Page) {
@@ -122,4 +122,15 @@ test('internal MDX links navigate in the app; external ones open a new tab', asy
   const external = page.locator('.prose').getByRole('link', { name: 'wiki/Monotone_polygon' });
   await expect(external).toHaveAttribute('target', '_blank');
   await expect(external).toHaveAttribute('rel', 'noopener noreferrer');
+});
+
+test('16 pages, "Try it" on exactly 10 of them', async ({ page }) => {
+  expect(items).toHaveLength(16);
+  let withExample = 0;
+  for (const item of items) {
+    await page.goto(`/documentation/${item}`);
+    await expect(page.getByRole('heading', { level: 1, name: item, exact: true })).toBeVisible();
+    withExample += await page.getByRole('link', { name: 'Try it' }).count();
+  }
+  expect(withExample).toBe(10);
 });

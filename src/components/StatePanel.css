@@ -1,0 +1,39 @@
+/* a state panel: the same code card as the pseudocode panel, with a title */
+.state-panel {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--code-fg);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.state-panel:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.state-panel h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 650;
+}
+.state-panel ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+.state-row {
+  padding: 0.15rem 0.5rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+}
+.state-row-active { background: var(--accent); color: var(--accent-contrast); box-shadow: var(--shadow-sm); }
+.state-row-testing { background: var(--hull-testing); color: #ffffff; }
+.state-row-new { background: var(--success); color: var(--accent-contrast); }
+.state-empty { margin: 0; padding: 0.15rem 0.5rem; color: var(--text-muted); font-size: var(--fs-sm); font-style: italic; }
+
+@media (prefers-reduced-motion: reduce) {
+  .state-row { transition: none; }
+}

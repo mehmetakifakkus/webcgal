@@ -6,6 +6,7 @@ import createPolygonExample from './examples/createPolygon.js?raw'
 import createRandomExample from './examples/createRandom.js?raw'
 import createRandomPolygonExample from './examples/createRandomPolygon.js?raw'
 import drawExample from './examples/draw.js?raw'
+import findIntersectionsExample from './examples/findIntersections.js?raw'
 import getCenterAndRadiusExample from './examples/getCenterAndRadius.js?raw'
 import mouseDownExample from './examples/mouseDown.js?raw'
 
@@ -57,6 +58,12 @@ export const docs: DocEntry[] = [
   { name: 'sort', category: 'points_functions', content: () => import('./sort.mdx') },
   { name: 'shuffle', category: 'points_functions', content: () => import('./shuffle.mdx') },
   { name: 'animate', category: 'points_functions', content: () => import('./animate.mdx'), example: animateExample },
+  {
+    name: 'findIntersections',
+    category: 'misc_functions',
+    content: () => import('./findIntersections.mdx'),
+    example: findIntersectionsExample,
+  },
   { name: 'loop', category: 'misc_functions', content: () => import('./loop.mdx') },
   { name: 'mouseDown', category: 'misc_functions', content: () => import('./mouseDown.mdx'), example: mouseDownExample },
   {

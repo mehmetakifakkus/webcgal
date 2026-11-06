@@ -1,6 +1,6 @@
 .step-player {
   display: grid;
-  grid-template-columns: minmax(0, 775px) minmax(240px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 36%);
   gap: var(--space-5);
   align-items: start;
   border-radius: var(--radius-md);
@@ -43,6 +43,28 @@
   font-weight: 500;
 }
 .step-player-speed input { width: 7rem; accent-color: var(--accent); }
+.step-player-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.step-player-preset .select { min-width: 0; max-width: 100%; min-height: 2rem; font-size: var(--fs-sm); }
+
+/* right column: the pseudocode; below the canvas on narrow screens */
+.step-player-side { min-width: 0; }
+
+/* the module's state panels, under the description: two columns on desktop, one on narrow screens */
+.step-player-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.step-player-panels .state-panel { max-height: 16rem; overflow: auto; }
 
 /* status: counter + progress bar */
 .step-player-status { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-2) 0; }
@@ -75,8 +97,8 @@
   line-height: 1.55;
 }
 .pseudocode li {
-  /* hanging indent: wrapped parts of a line start 2ch right of the line's own indentation */
-  padding: 0.15rem 0.5rem 0.15rem calc(0.5rem + var(--indent, 0) * 1ch + 2ch);
+  /* hanging indent: 0.5ch per leading space (2ch per 4-space level); wrapped parts start 2ch further right */
+  padding: 0.15rem 0.5rem 0.15rem calc(0.5rem + var(--indent, 0) * 0.5ch + 2ch);
   text-indent: -2ch;
   border-radius: var(--radius-sm);
   transition: background-color 0.15s;
@@ -91,6 +113,7 @@
 }
 @media (max-width: 800px) {
   .step-player { grid-template-columns: minmax(0, 1fr); }
+  .step-player-panels { grid-template-columns: minmax(0, 1fr); }
 }
 /* narrow phones: icon-only transport buttons (accessible names are kept by aria-label) */
 @media (max-width: 480px) {

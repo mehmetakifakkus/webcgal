@@ -32,7 +32,7 @@ test('home lists every algorithm', async ({ page }) => {
   await page.goto('/')
   const cards = page.locator('main .card')
   await expect(cards).toHaveCount(algorithms.length)
-  expect(algorithms.length).toBe(5)
+  expect(algorithms.length).toBe(6)
   for (const [i, a] of algorithms.entries()) {
     const card = cards.nth(i)
     await expect(card.getByRole('link', { name: a.name })).toHaveAttribute('href', a.path)

@@ -1,0 +1,26 @@
+Finds every intersection among a set of line segments with the sweep-line algorithm (Bentley-Ottmann). The algorithm is explained step by step on the [Line Segment Intersection](/algorithms/segmentIntersection) page.
+
+```js
+findIntersections(segments)
+```
+
+`segments` is an array of objects `{ a, b }` (a pair `[a, b]` works too) whose endpoints are `Point` objects, plain `{ x, y }` objects or `[x, y]` arrays; other input throws an error. The result is an object with two lists. Segments are referred to by their 0-based index in the input array.
+
+- `points`: `[{ p, segments }]`. Each entry is a single intersection point `p` (a `Point`) and the indices of all segments passing through it.
+- `overlaps`: `[{ a, b, segments }]`. Each entry is a collinear stretch shared by two segments, from point `a` to point `b`, with their two indices `[i, j]`.
+
+`bruteForceIntersections(segments)` returns the same result by checking every pair of segments in O(n²) time. It is slower, but handy for checking `findIntersections`.
+
+Three helpers make experiments easy:
+
+- `Segments.createRandom(n, minLen)` creates `n` random segments, each at least `minLen` long.
+- `Segments.draw(segments)` draws the segments on the canvas.
+- `drawIntersections(result)` marks the intersection points and overlaps of a result.
+
+```js
+var segments = Segments.createRandom(7);
+Segments.draw(segments);
+var result = findIntersections(segments);   // try bruteForceIntersections(segments) too
+drawIntersections(result);
+console.log(result.points.length + ' intersection point(s), ' + result.overlaps.length + ' overlap(s)');
+```

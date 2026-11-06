@@ -6,7 +6,7 @@ export type MDXModule = { default: ComponentType<Record<string, unknown>> };
 
 /** Step-by-step player of an algorithm (added by the algorithms that have one). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PlayerImport = { default: PlayerModule<any> };
+export type PlayerImport = { default: PlayerModule<any, any> };
 
 export type CanvasSpec = { id: string; width: number; height: number; label: string };
 
@@ -41,6 +41,17 @@ export const algorithms: AlgorithmEntry[] = [
     content: () => import('./content/algorithms/convexHull/index.mdx'),
     demoCode: () => import('./content/algorithms/convexHull/demo.js?raw').then(raw),
     player: () => import('./players/convexHullPlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+  },
+  {
+    slug: 'segmentIntersection',
+    path: '/algorithms/segmentIntersection',
+    name: 'Line Segment Intersection',
+    thumbnail: '/images/segmentIntersection_tn.png',
+    summary: 'Find all intersections of n line segments with a sweep line in O((n + k) log n) time.',
+    content: () => import('./content/algorithms/segmentIntersection/index.mdx'),
+    demoCode: () => import('./content/algorithms/segmentIntersection/demo.js?raw').then(raw),
+    player: () => import('./players/sweepLinePlayer'),
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {

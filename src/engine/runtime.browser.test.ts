@@ -1,10 +1,11 @@
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 import paper from 'paper'
 import { createScene, type Scene } from './scene'
 import { run, type OutputLine } from './runtime'
 import { API_NAMES } from './api'
 import convexHullEjs from './__fixtures__/legacy/convexHull.ejs?raw'
 import legacyConvexHullJs from './__fixtures__/legacy/convexHull.js?raw'
+import segmentIntersectionDemo from '../content/algorithms/segmentIntersection/demo.js?raw'
 
 const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
@@ -455,4 +456,96 @@ test('repeated handler scopes on one canvas keep at most one alive, and it still
   extra.dispatchEvent(new MouseEvent('mousedown', { clientX: r.left + 5, clientY: r.top + 5, bubbles: true }))
   document.dispatchEvent(new MouseEvent('mouseup', { clientX: r.left + 5, clientY: r.top + 5, bubbles: true }))
   expect(downs).toBe(1)
+})
+
+describe('segments api', () => {
+  test('findIntersections returns paper Points', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var r = findIntersections([{ a: new Point(0, 0), b: new Point(100, 100) }, { a: { x: 0, y: 100 }, b: { x: 100, y: 0 } }]);
+      var p = r.points[0];
+      console.log(r.points.length, r.overlaps.length, p.p instanceof Point, Math.round(p.p.x), Math.round(p.p.y), p.segments.join(','));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1 0 true 50 50 0,1' }])
+  })
+
+  test('bruteForceIntersections reports overlaps with paper Points', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var r = bruteForceIntersections([{ a: new Point(0, 0), b: new Point(100, 0) }, { a: new Point(50, 0), b: new Point(150, 0) }]);
+      var o = r.overlaps[0];
+      console.log(r.overlaps.length, o.a instanceof Point, o.b instanceof Point, o.segments.join(','));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1 true true 0,1' }])
+  })
+
+  test('Segments.createRandom makes n segments inside the canvas, at least minLen long', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var s = Segments.createRandom(5);
+      var ok = s.every(function (g) {
+        var inside = [g.a, g.b].every(function (q) { return q instanceof Point && q.x >= 77.5 && q.x <= 697.5 && q.y >= 36 && q.y <= 324; });
+        return inside && g.a.getDistance(g.b) >= 40;
+      });
+      console.log(s.length, ok);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '5 true' }])
+  })
+
+  test('Segments.draw and drawIntersections add to drawables', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var s = [{ a: new Point(0, 0), b: new Point(100, 100) }, { a: new Point(0, 100), b: new Point(100, 0) }];
+      Segments.draw(s);
+      var n = drawables.length;
+      drawIntersections(findIntersections(s));
+      console.log(n, drawables.length - n);
+      clear();
+      console.log(drawables.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([
+      { kind: 'log', text: '4 1' },
+      { kind: 'log', text: '0' },
+    ])
+  })
+
+  test('bad segment input is rejected with a clear message', () => {
+    for (const [code, fn] of [
+      ['findIntersections(5)', 'findIntersections'],
+      ['findIntersections([{ b: new Point(1, 1) }])', 'findIntersections'],
+      ['bruteForceIntersections([{ a: new Point(0, 0), b: undefined }])', 'bruteForceIntersections'],
+      ['findIntersections([[new Point(0, 0)]])', 'findIntersections'],
+      ["Segments.draw([{ a: 'x', b: [1, 2] }])", 'Segments.draw'],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok).toBe(false)
+      const errors = [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+      expect(errors.some((l) => l.text.includes(fn + ': segments must be an array of {a, b}'))).toBe(true)
+    }
+  })
+
+  test('segments may also be given as [p, q] pairs', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var s = [[new Point(0, 0), new Point(100, 100)], [{ x: 0, y: 100 }, [100, 0]]];
+      Segments.draw(s);
+      var r = findIntersections(s);
+      var b = bruteForceIntersections(s);
+      console.log(r.points.length, Math.round(r.points[0].p.x), Math.round(r.points[0].p.y), r.points[0].segments.join(','), b.points.length, drawables.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1 50 50 0,1 1 4' }])
+  })
+
+  test('the demo runs', () => {
+    const { exec, lines } = setup()
+    expect(exec(segmentIntersectionDemo)).toEqual({ ok: true })
+    expect(lines).toHaveLength(1)
+    expect(lines[0].text).toMatch(/^\d+ intersection point\(s\), \d+ overlap\(s\)$/)
+  })
 })

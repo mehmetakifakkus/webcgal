@@ -15,8 +15,16 @@ export type Panel = {
  * `S` is the state recorded in each step, `I` the input (points, segments, …).
  */
 export type PlayerModule<S, I> = {
-  /** Records every step for the given input. */
-  computeSteps(input: I): Step<S>[]
+  /** Records every step for the given input, in `mode` (one of `modes`' ids) when the module has modes. */
+  computeSteps(input: I, mode?: string): Step<S>[]
+  /** Variants of the algorithm offered in the "Mode" menu; the first one is selected initially. */
+  modes?: { id: string; label: string }[]
+  /** Pseudocode lines (0-based) shown dimmed in `mode`, e.g. the parts that mode skips. */
+  dimmedLines?(mode?: string): number[]
+  /** A message when `input` cannot be run (shown as an alert; no steps are computed), else null. */
+  validate?(input: I): string | null
+  /** Draws an invalid input (default: the handles only) after clearing the scene. */
+  renderInvalid?(scene: Scene, input: I): void
   /** Draws step `step` after clearing the scene. Pure with respect to `step` and `input`. */
   render(scene: Scene, step: Step<S>, input: I): void
   pseudocode: string[]

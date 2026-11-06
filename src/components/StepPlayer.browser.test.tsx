@@ -223,3 +223,172 @@ test('moveHandle onto another endpoint', async () => {
     window.removeEventListener('error', onError)
   }
 })
+
+// modes: the step count depends on the mode (3 in "a", 5 in "b")
+const MODE_POINTS: Pt[] = [
+  { x: 100, y: 100 },
+  { x: 300, y: 250 },
+  { x: 500, y: 120 },
+]
+const MODE_PRESET: Pt[] = [
+  { x: 150, y: 80 },
+  { x: 350, y: 300 },
+  { x: 600, y: 200 },
+]
+function makeModesModule() {
+  const computeSteps = vi.fn((_input: Pt[], mode?: string) =>
+    Array.from({ length: mode === 'b' ? 5 : 3 }, (_, k): Step<{ k: number }> => ({
+      description: `mode ${mode} step ${k}`,
+      line: k,
+      state: { k },
+    })),
+  )
+  const fakeWithModes: PlayerModule<{ k: number }, Pt[]> = {
+    modes: [
+      { id: 'a', label: 'Mode A' },
+      { id: 'b', label: 'Mode B' },
+    ],
+    computeSteps,
+    render: () => {},
+    pseudocode: LINES,
+    randomInput: () => MODE_POINTS,
+    presets: [{ name: 'Preset one', input: MODE_PRESET }],
+    handles: (pts) => pts,
+    moveHandle: (pts, k, p) => pts.map((q, i) => (i === k ? p : q)),
+  }
+  return { fakeWithModes, computeSteps }
+}
+
+test('mode select recomputes and resets', async () => {
+  const { fakeWithModes, computeSteps } = makeModesModule()
+  const screen = await render(<StepPlayer module={fakeWithModes} />)
+  expect(computeSteps).toHaveBeenLastCalledWith(MODE_POINTS, 'a')
+  await screen.getByRole('button', { name: 'Next' }).click()
+  await expect.element(screen.getByText('Step 2 / 3')).toBeVisible()
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), 'Mode B')
+  await expect.element(screen.getByText('Step 1 / 5')).toBeVisible()
+  expect(computeSteps).toHaveBeenLastCalledWith(MODE_POINTS, 'b')
+})
+
+test('mode change during playback stops playback', async () => {
+  const { fakeWithModes } = makeModesModule()
+  const screen = await render(<StepPlayer module={fakeWithModes} />)
+  await screen.getByLabelText('Speed').fill('1')
+  await screen.getByRole('button', { name: 'Play' }).click()
+  await expect.element(screen.getByRole('button', { name: 'Pause' })).toBeVisible()
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), 'Mode B')
+  await expect.element(screen.getByRole('button', { name: 'Play' })).toBeVisible()
+  await expect.element(screen.getByText('Step 1 / 5')).toBeVisible()
+})
+
+test('drag and preset keep the mode', async () => {
+  const { fakeWithModes, computeSteps } = makeModesModule()
+  const screen = await render(<StepPlayer module={fakeWithModes} />)
+  const mode = screen.getByLabelText('Mode')
+  await userEvent.selectOptions(mode, 'Mode B')
+  await expect.element(screen.getByText('Step 1 / 5')).toBeVisible()
+  await userEvent.selectOptions(screen.getByLabelText('Preset'), 'Preset one')
+  expect(computeSteps).toHaveBeenLastCalledWith(MODE_PRESET, 'b')
+  await expect.element(screen.getByText('Step 1 / 5')).toBeVisible()
+  const canvas = screen.getByLabelText('Drawing canvas')
+  const r = (canvas.element() as HTMLCanvasElement).getBoundingClientRect()
+  const at = (p: Pt) => ({ x: (p.x * r.width) / 775, y: ((360 - p.y) * r.height) / 360 })
+  const from = MODE_PRESET[0]
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: from.x + 40, y: from.y + 40 }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(() => computeSteps.mock.lastCall![0][0].x).toBeCloseTo(from.x + 40, 0)
+  expect(computeSteps.mock.lastCall![1]).toBe('b')
+  await expect.element(screen.getByText(/^Step 1 \/ 5$/)).toBeVisible()
+  expect((mode.element() as HTMLSelectElement).value).toBe('b')
+})
+
+// validation: the input is invalid while its first point has x < 50
+const VALID_POINTS: Pt[] = [
+  { x: 100, y: 180 },
+  { x: 300, y: 250 },
+  { x: 500, y: 120 },
+]
+function makeValidateModule() {
+  const computeSteps = vi.fn((_input: Pt[], mode?: string) =>
+    [0, 1, 2].map((k): Step<{ k: number }> => ({ description: `valid step ${k} ${mode}`, line: k, state: { k } })),
+  )
+  const render = vi.fn((_scene: unknown, _step: Step<{ k: number }>, _input: Pt[]) => {})
+  const renderInvalid = vi.fn((_scene: unknown, _input: Pt[]) => {})
+  const fakeWithValidate: PlayerModule<{ k: number }, Pt[]> = {
+    modes: [
+      { id: 'a', label: 'Mode A' },
+      { id: 'b', label: 'Mode B' },
+    ],
+    computeSteps,
+    render,
+    renderInvalid,
+    validate: (pts) => (pts[0].x < 50 ? 'Invalid input' : null),
+    pseudocode: ['first', 'second', 'third'],
+    randomInput: () => VALID_POINTS,
+    presets: [{ name: 'Preset one', input: VALID_POINTS }],
+    handles: (pts) => pts,
+    moveHandle: (pts, k, p) => pts.map((q, i) => (i === k ? p : q)),
+  }
+  return { fakeWithValidate, computeSteps, render, renderInvalid }
+}
+
+async function dragFirstPointOut(screen: Awaited<ReturnType<typeof render>>, release: boolean) {
+  const canvas = screen.getByLabelText('Drawing canvas')
+  const r = (canvas.element() as HTMLCanvasElement).getBoundingClientRect()
+  const at = (p: Pt) => ({ x: (p.x * r.width) / 775, y: ((360 - p.y) * r.height) / 360 })
+  const from = VALID_POINTS[0]
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: 20, y: from.y }) },
+    ...(release ? [{ keys: '[/MouseLeft]' }] : []),
+  ])
+}
+
+test('validate shows alert and disables controls', async () => {
+  const { fakeWithValidate, computeSteps, renderInvalid } = makeValidateModule()
+  const screen = await render(<StepPlayer module={fakeWithValidate} />)
+  await screen.getByRole('button', { name: 'Next' }).click()
+  await expect.element(screen.getByText('Step 2 / 3')).toBeVisible()
+  try {
+    await dragFirstPointOut(screen, false)
+    await expect.element(screen.getByRole('alert')).toHaveTextContent('Invalid input')
+    for (const name of ['First', 'Previous', 'Play', 'Next', 'Last'])
+      await expect.element(screen.getByRole('button', { name })).toBeDisabled()
+    await expect.element(screen.getByLabelText('Mode')).toBeDisabled()
+    await expect.element(screen.getByLabelText('Preset')).toBeDisabled()
+    await expect.element(screen.getByRole('button', { name: 'New random input' })).toBeEnabled()
+    await expect.element(screen.getByText('Step – / –')).toBeVisible()
+    expect(renderInvalid).toHaveBeenCalled()
+    expect(renderInvalid.mock.lastCall![1][0].x).toBeLessThan(50)
+    // no steps are computed for an invalid input
+    expect(computeSteps.mock.calls.every(([pts]) => pts[0].x >= 50)).toBe(true)
+  } finally {
+    await userEvent.pointer([{ keys: '[/MouseLeft]' }])
+  }
+})
+
+test('validate reverts on release', async () => {
+  const { fakeWithValidate, computeSteps, render: renderStep } = makeValidateModule()
+  const screen = await render(<StepPlayer module={fakeWithValidate} />)
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), 'Mode B')
+  await dragFirstPointOut(screen, true)
+  await expect.element(screen.getByText(/^Step 1 \//)).toBeVisible()
+  expect(screen.getByRole('alert').query()).toBeNull()
+  const input = computeSteps.mock.lastCall![0]
+  expect(fakeWithValidate.handles(input)[0]).toEqual(VALID_POINTS[0])
+  expect(computeSteps.mock.lastCall![1]).toBe('b')
+  expect(renderStep.mock.lastCall![2][0]).toEqual(VALID_POINTS[0])
+  await expect.element(screen.getByRole('button', { name: 'Next' })).toBeEnabled()
+})
+
+test('no alert for modules without validate', async () => {
+  const screen = await render(<StepPlayer module={fake} />)
+  await expect.element(screen.getByText(`Step 1 / ${n}`)).toBeVisible()
+  expect(screen.getByRole('alert').query()).toBeNull()
+  expect(screen.getByLabelText('Mode').query()).toBeNull()
+})

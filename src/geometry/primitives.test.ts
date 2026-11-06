@@ -99,6 +99,7 @@ describe('segments', () => {
       near(r.b, 1, 1)
     }
     const h = segmentIntersection(seg(0, 0, 3, 0), seg(1, 0, 5, 0))
+    expect(h?.kind).toBe('overlap')
     if (h?.kind === 'overlap') {
       near(h.a, 1, 0)
       near(h.b, 3, 0)
@@ -132,5 +133,31 @@ describe('segments', () => {
     expect(onSegment({ x: 2, y: 3 }, seg(0, 0, 4, 4))).toBe(false)
     expect(onSegment({ x: 1, y: 1 }, seg(1, 1, 1, 1))).toBe(true)
     expect(onSegment({ x: 1, y: 2 }, seg(1, 1, 1, 1))).toBe(false)
+  })
+  it('uses one tolerance: crossing agrees with onSegment', () => {
+    // (a) 5e-7 beyond the end of s: not touching
+    const s = seg(0, 0, 800, 0)
+    const t = seg(800.0000005, -1, 800.0000005, 1)
+    expect(segmentIntersection(s, t)).toBeNull()
+    expect(segmentIntersection(t, s)).toBeNull()
+    // (b) t starts 5e-8 past the end of s: touching at t.a
+    const s2 = seg(0, 0, 1, 0)
+    const t2 = seg(1 + 5e-8, 0, 2, 5)
+    expect(onSegment(t2.a, s2)).toBe(true)
+    expectPoint(segmentIntersection(s2, t2), 1 + 5e-8, 0)
+    expectPoint(segmentIntersection(t2, s2), 1 + 5e-8, 0)
+  })
+  it('canvas scale: endpoint on interior near u = 1 agrees with onSegment', () => {
+    const s = seg(0, 400, 800, 400)
+    for (const dx of [-1e-6, -1e-9, 0, 1e-9, 1e-6]) {
+      const t = seg(800 + dx, 300, 800 + dx, 400)
+      const r = segmentIntersection(s, t)
+      expect(r !== null).toBe(onSegment({ x: 800 + dx, y: 400 }, s))
+      expect(segmentIntersection(t, s) !== null).toBe(r !== null)
+    }
+  })
+  it('samePt uses the geometric tolerance', () => {
+    expect(samePt({ x: 1, y: 1 }, { x: 1 + 5e-8, y: 1 })).toBe(true)
+    expect(samePt({ x: 1, y: 1 }, { x: 1 + 5e-7, y: 1 })).toBe(false)
   })
 })

@@ -40,20 +40,13 @@ app.get('/playground', function(req, res) {
   });
 });
 
+// Legacy URLs: these pages live under /algorithms now.
 app.get('/duality', function(req, res) {
-        
- res.render('dualityPage', {
-    pageTitle: 'Duality',
-    pageID: 'duality'  
-  });
+  res.redirect(301, '/algorithms/duality');
 });
 
 app.get('/smallestEnclosingDisk', function(req, res) {
-
-  res.render('smallestEnclosingDisk', {
-    pageTitle: 'Smallest Enclosing Disk',
-    pageID: 'smallestEnclosingDisk'  
-  });
+  res.redirect(301, '/algorithms/smallestEnclosingDisk');
 });
 
 //app.get('/', function(req, res) {

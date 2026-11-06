@@ -84,11 +84,11 @@
             "sublinks":[
             {
                 "name":"Dual Line",
-                "link":"duality/dualLine",
+                "link":"algorithms/duality/dualLine",
                 "type":"start"
             },{
                 "name":"Check Stabber",
-                "link":"duality/checkStabber",
+                "link":"algorithms/duality/checkStabber",
                 "type":"end"
             }
             ]

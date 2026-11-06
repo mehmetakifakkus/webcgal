@@ -22,10 +22,13 @@ export function randomPoints(count = POINT_COUNT, width = WIDTH, height = HEIGHT
   }))
 }
 
-const convexHullPlayer: PlayerModule<HullState> = {
+const convexHullPlayer: PlayerModule<HullState, Pt[]> = {
   computeSteps: convexHullSteps,
   pseudocode: CONVEX_HULL_PSEUDOCODE,
-  initialPoints: () => randomPoints(),
+  randomInput: () => randomPoints(),
+  handles: (points) => points,
+  moveHandle: (points, k, p) => points.map((q, i) => (i === k ? p : q)),
+  canvas: { width: WIDTH, height: HEIGHT },
   render(scene, step, points) {
     const P = scene.paper
     P.activate()

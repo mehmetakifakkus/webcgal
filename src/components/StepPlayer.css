@@ -43,6 +43,19 @@
   font-weight: 500;
 }
 .step-player-speed input { width: 7rem; accent-color: var(--accent); }
+.step-player-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.step-player-preset .select { min-width: 0; max-width: 100%; min-height: 2rem; font-size: var(--fs-sm); }
+
+/* right column: pseudocode, then the module's state panels; below the canvas on narrow screens */
+.step-player-side { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
 
 /* status: counter + progress bar */
 .step-player-status { display: flex; align-items: center; gap: var(--space-3); margin: var(--space-2) 0; }

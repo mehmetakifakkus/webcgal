@@ -6,7 +6,7 @@ export type MDXModule = { default: ComponentType<Record<string, unknown>> };
 
 /** Step-by-step player of an algorithm (added by the algorithms that have one). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PlayerImport = { default: PlayerModule<any> };
+export type PlayerImport = { default: PlayerModule<any, any> };
 
 export type CanvasSpec = { id: string; width: number; height: number; label: string };
 

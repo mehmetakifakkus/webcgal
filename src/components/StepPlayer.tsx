@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type paper from 'paper'
 import GeometryCanvas from './GeometryCanvas'
 import PseudocodePanel from './PseudocodePanel'
+import StatePanel from './StatePanel'
 import type { Scene } from '../engine/scene'
 import type { Pt } from '../geometry/types'
 import type { PlayerModule } from '../players/types'
 import './StepPlayer.css'
 
-const WIDTH = 775
-const HEIGHT = 360
+/** Canvas size in scene units when the module does not set one. */
+const DEFAULT_CANVAS = { width: 775, height: 360 }
 /** Grab radius in CSS pixels (and at least this many scene units). */
 const GRAB = 12
 
@@ -19,29 +20,33 @@ function isTypingTarget(t: EventTarget | null) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
-  const [points, setPoints] = useState<Pt[]>(() => module.initialPoints())
+export default function StepPlayer({ module }: { module: PlayerModule<any, any> }) {
+  // the input's type is only known to the module: the player reaches it through handles/moveHandle
+  const [input, setInput] = useState<unknown>(() => module.randomInput())
   const [index, setIndex] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(5)
   const [scene, setScene] = useState<Scene | null>(null)
-  const pointsRef = useRef(points)
+  const inputRef = useRef(input)
+  const presetId = useId()
+  const { width, height } = module.canvas ?? DEFAULT_CANVAS
 
-  const steps = useMemo(() => module.computeSteps(points), [module, points])
+  const steps = useMemo(() => module.computeSteps(input), [module, input])
   const last = steps.length - 1
   const step = steps[Math.min(index, last)]
+  const panels = useMemo(() => (step ? (module.panels?.(step, input) ?? []) : []), [module, step, input])
 
-  const replacePoints = useCallback((next: Pt[]) => {
-    pointsRef.current = next
-    setPoints(next)
+  const replaceInput = useCallback((next: unknown) => {
+    inputRef.current = next
+    setInput(next)
     setIndex(0)
     setPlaying(false)
   }, [])
 
   // draw the current step
   useEffect(() => {
-    if (scene && step) module.render(scene, step, points)
-  }, [scene, module, step, points])
+    if (scene && step) module.render(scene, step, input)
+  }, [scene, module, step, input])
 
   // playback
   useEffect(() => {
@@ -90,7 +95,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
     return () => document.removeEventListener('keydown', h)
   }, [])
 
-  // dragging points: view-level handlers survive the redraws that follow every move
+  // dragging handles: view-level handlers survive the redraws that follow every move
   useEffect(() => {
     if (!scene) return
     const view = scene.paper.view
@@ -103,7 +108,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
       const shown = (view.element as HTMLCanvasElement).clientWidth
       let best = -1
       let bestD = GRAB * Math.max(1, shown > 0 ? view.viewSize.width / shown : 1)
-      pointsRef.current.forEach((p, i) => {
+      module.handles(inputRef.current).forEach((p, i) => {
         const d = Math.hypot(p.x - q.x, p.y - q.y)
         if (d <= bestD) {
           best = i
@@ -115,13 +120,12 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
     view.onMouseDrag = (e: paper.MouseEvent) => {
       if (dragging < 0) return
       const q = toPt(e.point)
-      const next = pointsRef.current.slice()
-      next[dragging] = { x: Math.max(0, Math.min(WIDTH, q.x)), y: Math.max(0, Math.min(HEIGHT, q.y)) }
-      pointsRef.current = next
+      const clamped = { x: Math.max(0, Math.min(width, q.x)), y: Math.max(0, Math.min(height, q.y)) }
+      inputRef.current = module.moveHandle(inputRef.current, dragging, clamped)
       if (!raf)
         raf = requestAnimationFrame(() => {
           raf = 0
-          setPoints(pointsRef.current)
+          setInput(inputRef.current)
           setIndex(0)
           setPlaying(false)
         })
@@ -135,12 +139,12 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
       view.onMouseDrag = null
       view.onMouseUp = null
     }
-  }, [scene])
+  }, [scene, module, width, height])
 
   return (
     <div ref={containerRef} className="step-player" tabIndex={0} aria-label="Step by step player">
       <div className="step-player-main">
-        <GeometryCanvas width={WIDTH} height={HEIGHT} onReady={setScene} />
+        <GeometryCanvas width={width} height={height} onReady={setScene} />
         <div className="step-player-controls" role="group" aria-label="Player controls">
           <div className="step-player-transport">
             <button type="button" className="btn btn-ghost" onClick={() => go(0)} aria-label="First" title="First">
@@ -170,10 +174,32 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
             Speed
             <input type="range" min={1} max={10} step={1} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} />
           </label>
-          <button type="button" className="btn" onClick={() => replacePoints(module.initialPoints())}>
+          <button type="button" className="btn" onClick={() => replaceInput(module.randomInput())}>
             <Icon d="M4 12a8 8 0 0 1 14-5.3M20 4v5h-5M20 12a8 8 0 0 1-14 5.3M4 20v-5h5" stroke />
-            New random points
+            New random input
           </button>
+          {module.presets?.length ? (
+            <div className="step-player-preset">
+              {/* a separate label: inside it, the select's own text would join its accessible name */}
+              <label htmlFor={presetId}>Preset</label>
+              <select
+                id={presetId}
+                className="select"
+                value=""
+                onChange={(e) => {
+                  const preset = module.presets?.[Number(e.target.value)]
+                  if (preset) replaceInput(preset.input)
+                }}
+              >
+                <option value="">Choose a preset…</option>
+                {module.presets.map((p, i) => (
+                  <option key={i} value={i}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
         </div>
         <div className="step-player-status">
           <p className="step-player-counter">Step {index + 1} / {steps.length}</p>
@@ -182,9 +208,14 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
           </div>
         </div>
         <p className="step-player-description" aria-live="polite">{step?.description}</p>
-        <p className="step-player-hint">Drag the points to change the input. Keys: ← → to step, Space to play or pause.</p>
+        <p className="step-player-hint">Drag the handles to change the input. Keys: ← → to step, Space to play or pause.</p>
       </div>
-      <PseudocodePanel lines={module.pseudocode} active={step?.line ?? -1} />
+      <div className="step-player-side">
+        <PseudocodePanel lines={module.pseudocode} active={step?.line ?? -1} />
+        {panels.map((panel, i) => (
+          <StatePanel key={i} panel={panel} />
+        ))}
+      </div>
     </div>
   )
 }

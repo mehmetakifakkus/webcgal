@@ -20,7 +20,7 @@ test('new random points restart the player', async ({ page }) => {
   await page.goto('/algorithms/convexHull')
   await page.getByRole('button', { name: 'Last' }).click()
   await expect(page.getByText(/^Step 1 \/ /)).toHaveCount(0)
-  await page.getByRole('button', { name: 'New random points' }).click()
+  await page.getByRole('button', { name: 'New random input' }).click()
   await expect(page.getByText(/^Step 1 \/ /)).toBeVisible()
 })
 

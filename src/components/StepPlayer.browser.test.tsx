@@ -143,6 +143,10 @@ test('preset select replaces input and resets', async () => {
   // the placeholder is selected again, so the same preset can be applied once more
   expect((select.element() as HTMLSelectElement).value).toBe('')
   expect(screen.getByRole('option', { name: 'Choose a preset…' }).query()).not.toBeNull()
+  // choosing the placeholder does not apply preset 0
+  const calls = computeSteps.mock.calls.length
+  await userEvent.selectOptions(select, '')
+  expect(computeSteps.mock.calls.length).toBe(calls)
 })
 
 test('panels are rendered', async () => {

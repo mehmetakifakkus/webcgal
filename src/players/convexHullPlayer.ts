@@ -1,16 +1,12 @@
 import { CONVEX_HULL_PSEUDOCODE, convexHullSteps, type HullState } from '../geometry/algorithms/convexHullSteps'
 import type { Pt } from '../geometry/types'
+import { cssColor } from './cssColor'
 import type { PlayerModule } from './types'
 
 export const WIDTH = 775
 export const HEIGHT = 360
 const POINT_COUNT = 10
 const RADIUS = 6
-
-const cssColor = (name: string, fallback: string) => {
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-  return v || fallback
-}
 
 /** `count` random points inside the canvas, keeping a 10% margin. */
 export function randomPoints(count = POINT_COUNT, width = WIDTH, height = HEIGHT): Pt[] {

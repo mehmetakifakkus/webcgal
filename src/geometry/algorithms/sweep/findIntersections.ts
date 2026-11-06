@@ -134,7 +134,7 @@ export function runSweep(segments: Segment[], record?: Recorder): IntersectionRe
     const UC = asc(new Set([...U, ...C])).filter((i) => !zeroLength[i])
     for (const i of UC) status.insert(i, p)
     status.reorderAt(p)
-    rec(12, 'Insert U ∪ C into T', { current: p })
+    rec(12, 'Insert U ∪ C into T', { current: p, U, C })
 
     /*
      * Overlap extension (Ruling R5). FindNewEvent alone cannot find overlaps: the

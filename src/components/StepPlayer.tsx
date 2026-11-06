@@ -187,6 +187,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
                 className="select"
                 value=""
                 onChange={(e) => {
+                  if (e.target.value === '') return
                   const preset = module.presets?.[Number(e.target.value)]
                   if (preset) replaceInput(preset.input)
                 }}

@@ -3,10 +3,10 @@ import paper from 'paper'
 import { createScene, type Scene } from './scene'
 import { run, type OutputLine } from './runtime'
 import { API_NAMES } from './api'
-import convexHullEjs from '../../legacy/app/views/algorithms/convexHull.ejs?raw'
-import legacyConvexHullJs from '../../legacy/app/views/partials/paperjs/convexHull.js?raw'
+import convexHullEjs from './__fixtures__/legacy/convexHull.ejs?raw'
+import legacyConvexHullJs from './__fixtures__/legacy/convexHull.js?raw'
 
-const samples = import.meta.glob('../../legacy/app/views/partials/paperjs/sampleCodes/*.js', {
+const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
   import: 'default',
   eager: true,

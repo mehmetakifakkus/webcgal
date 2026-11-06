@@ -9,3 +9,18 @@ export type IntersectionPoint = { p: Pt; segments: number[] }
 /** A collinear stretch shared by two segments; `a` is the upper end. */
 export type Overlap = { a: Pt; b: Pt; segments: [number, number] }
 export type IntersectionResult = { points: IntersectionPoint[]; overlaps: Overlap[] }
+
+/** Vertices in order; normalised to CCW before processing. */
+export type Polygon = Pt[]
+/** Vertex indices, smaller index first. */
+export type Diagonal = [number, number]
+export type Triangle = [number, number, number]
+export type VertexType = 'start' | 'end' | 'split' | 'merge' | 'regular'
+export type TriangulationResult = {
+  types: VertexType[]
+  partitionDiagonals: Diagonal[]
+  /** y-monotone pieces as vertex indices (CCW). */
+  pieces: number[][]
+  triangulationDiagonals: Diagonal[]
+  triangles: Triangle[]
+}

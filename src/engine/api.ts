@@ -48,7 +48,7 @@ export const API_NAMES = [
   // geometry versions (take {x, y} or TextPoint)
   'dualLine', 'dualPoint', 'findStabber', 'isMonotone', 'monotoneDirections', 'smallestEnclosingDisk',
   'convexHullPts',
-  // line segment intersection (segments are {a, b}; result points are paper Points)
+  // line segment intersection (segments are {a, b} or [a, b]; result points are paper Points)
   'Segments', 'findIntersections', 'bruteForceIntersections', 'drawIntersections',
   // environment
   'console', 'document',

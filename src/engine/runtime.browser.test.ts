@@ -513,6 +513,35 @@ describe('segments api', () => {
     ])
   })
 
+  test('bad segment input is rejected with a clear message', () => {
+    for (const [code, fn] of [
+      ['findIntersections(5)', 'findIntersections'],
+      ['findIntersections([{ b: new Point(1, 1) }])', 'findIntersections'],
+      ['bruteForceIntersections([{ a: new Point(0, 0), b: undefined }])', 'bruteForceIntersections'],
+      ['findIntersections([[new Point(0, 0)]])', 'findIntersections'],
+      ["Segments.draw([{ a: 'x', b: [1, 2] }])", 'Segments.draw'],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok).toBe(false)
+      const errors = [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+      expect(errors.some((l) => l.text.includes(fn + ': segments must be an array of {a, b}'))).toBe(true)
+    }
+  })
+
+  test('segments may also be given as [p, q] pairs', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var s = [[new Point(0, 0), new Point(100, 100)], [{ x: 0, y: 100 }, [100, 0]]];
+      Segments.draw(s);
+      var r = findIntersections(s);
+      var b = bruteForceIntersections(s);
+      console.log(r.points.length, Math.round(r.points[0].p.x), Math.round(r.points[0].p.y), r.points[0].segments.join(','), b.points.length, drawables.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1 50 50 0,1 1 4' }])
+  })
+
   test('the demo runs', () => {
     const { exec, lines } = setup()
     expect(exec(segmentIntersectionDemo)).toEqual({ ok: true })

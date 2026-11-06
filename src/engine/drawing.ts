@@ -17,7 +17,7 @@ export type EngineContext = {
   guard<A extends unknown[]>(fn: (...args: A) => unknown): (...args: A) => void
 }
 
-const hasPos = (p: unknown): p is { pos: paper.Point } =>
+export const hasPos = (p: unknown): p is { pos: paper.Point } =>
   typeof p === 'object' && p !== null && (p as { pos?: unknown }).pos instanceof paper.Point
 
 export function toPoint(p: PointInput): paper.Point {

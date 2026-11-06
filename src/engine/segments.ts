@@ -3,10 +3,13 @@ import { bruteForceIntersections as bruteForce } from '../geometry/algorithms/sw
 import { findIntersections as sweep } from '../geometry/algorithms/sweep/findIntersections'
 import { upperEndpoint } from '../geometry/primitives'
 import type { IntersectionResult, Segment } from '../geometry/types'
-import { toPoint, toPt, type EngineContext, type PointInput } from './drawing'
+import { hasPos, toPoint, toPt, type EngineContext, type PointInput } from './drawing'
 
-/** A segment as user code passes it: endpoints are paper Points or `{x, y}`. */
-export type SegmentInput = { a: PointInput; b: PointInput }
+/**
+ * A segment as user code passes it: `{a, b}` or a pair `[a, b]`; endpoints are
+ * paper Points, `{x, y}` or `[x, y]`.
+ */
+export type SegmentInput = { a: PointInput; b: PointInput } | [PointInput, PointInput]
 
 /** IntersectionResult with paper Points, as user code gets it. */
 export type PaperIntersectionResult = {
@@ -14,7 +17,37 @@ export type PaperIntersectionResult = {
   overlaps: { a: paper.Point; b: paper.Point; segments: [number, number] }[]
 }
 
-const toSegments = (segments: SegmentInput[]): Segment[] => segments.map((s) => ({ a: toPt(s.a), b: toPt(s.b) }))
+const isNum = (v: unknown) => typeof v === 'number' && Number.isFinite(v)
+
+/** Point, TextPoint, `{x, y}` or `[x, y]` with finite numbers. */
+function isPointInput(p: unknown): p is PointInput {
+  if (p instanceof paper.Point || hasPos(p)) return true
+  if (Array.isArray(p)) return p.length === 2 && p.every(isNum)
+  return typeof p === 'object' && p !== null && isNum((p as { x?: unknown }).x) && isNum((p as { y?: unknown }).y)
+}
+
+/** Validates user input (`fn` names the API function in the message) and converts it. */
+function toSegments(segments: unknown, fn: string): Segment[] {
+  const fail = (why: string): never => {
+    throw new Error(`${fn}: segments must be an array of {a, b} objects (${why})`)
+  }
+  if (!Array.isArray(segments)) return fail(`got ${segments === null ? 'null' : typeof segments}`)
+  return segments.map((s: unknown, i) => {
+    let a: unknown
+    let b: unknown
+    if (Array.isArray(s)) {
+      if (s.length !== 2) fail(`segment ${i} is an array of length ${s.length}, not a pair [p, q]`)
+      ;[a, b] = s
+    } else if (typeof s === 'object' && s !== null) {
+      ;({ a, b } = s as { a?: unknown; b?: unknown })
+    } else fail(`segment ${i} is ${s === null ? 'null' : typeof s}`)
+    if (a === undefined) fail(`segment ${i} has no 'a'`)
+    if (b === undefined) fail(`segment ${i} has no 'b'`)
+    if (!isPointInput(a)) fail(`segment ${i}: 'a' is not a point`)
+    if (!isPointInput(b)) fail(`segment ${i}: 'b' is not a point`)
+    return { a: toPt(a as PointInput), b: toPt(b as PointInput) }
+  })
+}
 
 function toPaper(r: IntersectionResult): PaperIntersectionResult {
   const P = (q: { x: number; y: number }) => new paper.Point(q.x, q.y)
@@ -24,8 +57,9 @@ function toPaper(r: IntersectionResult): PaperIntersectionResult {
   }
 }
 
-export const findIntersections = (segments: SegmentInput[]) => toPaper(sweep(toSegments(segments)))
-export const bruteForceIntersections = (segments: SegmentInput[]) => toPaper(bruteForce(toSegments(segments)))
+export const findIntersections = (segments: SegmentInput[]) => toPaper(sweep(toSegments(segments, 'findIntersections')))
+export const bruteForceIntersections = (segments: SegmentInput[]) =>
+  toPaper(bruteForce(toSegments(segments, 'bruteForceIntersections')))
 
 /** The `Segments` helper object and `drawIntersections` for one run. */
 export function createSegments(ctx: EngineContext) {
@@ -49,11 +83,11 @@ export function createSegments(ctx: EngineContext) {
       }
       return out
     },
-    /** Draws the segments as 2px black lines labelled s1, s2, … at their upper endpoints. */
+    /** Draws the segments (validated like findIntersections) as 2px black lines labelled s1, s2, … at their upper endpoints. */
     draw(segments: SegmentInput[]) {
-      segments.forEach((s, i) => {
+      toSegments(segments, 'Segments.draw').forEach((s, i) => {
         const line = new scope.Path.Line({ from: toPoint(s.a), to: toPoint(s.b), strokeColor: 'black', strokeWidth: 2 })
-        const u = upperEndpoint({ a: toPt(s.a), b: toPt(s.b) })
+        const u = upperEndpoint(s)
         // the layer is y-flipped: flip the label back so that it reads upright
         const label = new scope.PointText({
           matrix: new scope.Matrix(1, 0, 0, -1, u.x + 6, u.y + 6),

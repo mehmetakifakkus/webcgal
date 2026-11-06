@@ -8,6 +8,7 @@ import createRandomPolygonExample from './examples/createRandomPolygon.js?raw'
 import drawExample from './examples/draw.js?raw'
 import findIntersectionsExample from './examples/findIntersections.js?raw'
 import getCenterAndRadiusExample from './examples/getCenterAndRadius.js?raw'
+import triangulateExample from './examples/triangulate.js?raw'
 import mouseDownExample from './examples/mouseDown.js?raw'
 
 export type DocCategory = 'objects' | 'drawing_functions' | 'polygon_functions' | 'points_functions' | 'misc_functions'
@@ -63,6 +64,12 @@ export const docs: DocEntry[] = [
     category: 'misc_functions',
     content: () => import('./findIntersections.mdx'),
     example: findIntersectionsExample,
+  },
+  {
+    name: 'triangulate',
+    category: 'misc_functions',
+    content: () => import('./triangulate.mdx'),
+    example: triangulateExample,
   },
   { name: 'loop', category: 'misc_functions', content: () => import('./loop.mdx') },
   { name: 'mouseDown', category: 'misc_functions', content: () => import('./mouseDown.mdx'), example: mouseDownExample },

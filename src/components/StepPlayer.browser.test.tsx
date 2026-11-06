@@ -363,6 +363,9 @@ test('validate shows alert and disables controls', async () => {
     await expect.element(screen.getByLabelText('Preset')).toBeDisabled()
     await expect.element(screen.getByRole('button', { name: 'New random input' })).toBeEnabled()
     await expect.element(screen.getByText('Step – / –')).toBeVisible()
+    await expect
+      .element(screen.getByText('Release the mouse to return to the last valid polygon'))
+      .toHaveClass('step-player-description')
     expect(renderInvalid).toHaveBeenCalled()
     expect(renderInvalid.mock.lastCall![1][0].x).toBeLessThan(50)
     // no steps are computed for an invalid input

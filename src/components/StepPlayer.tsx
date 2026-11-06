@@ -287,7 +287,9 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
             <span style={{ width: `${invalid !== null ? 0 : steps.length > 1 ? (Math.min(index, last) / last) * 100 : 100}%` }} />
           </div>
         </div>
-        <p className="step-player-description" aria-live="polite">{step?.description}</p>
+        <p className="step-player-description" aria-live="polite">
+          {invalid !== null ? 'Release the mouse to return to the last valid polygon' : step?.description}
+        </p>
         <p className="step-player-hint">{module.hint ?? DEFAULT_HINT}</p>
         {panels.length ? (
           // state panels stay under the canvas, so they can be watched while stepping

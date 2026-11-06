@@ -1,7 +1,8 @@
 # WebCgal
 
 WebCgal is a small teaching site for computational geometry. Each algorithm
-(convex hull, smallest enclosing disk, monotone polygons, point-line duality)
+(convex hull, line segment intersection, smallest enclosing disk, monotone
+polygons, point-line duality)
 has a page with an explanation, a runnable demo and, for some, a step-by-step
 player. The demos are written in PaperScript, so you can edit them and see the
 result immediately.
@@ -10,8 +11,11 @@ Live site: https://webcgal.netlify.app
 
 ## Features
 
-- Step-by-step player: play, step through and reset an algorithm, with the
-  pseudocode line that is running highlighted. Points can be dragged.
+- Step-by-step players for Convex Hull and Line Segment Intersection (sweep
+  line, de Berg ch. 2.1): play, step through and reset an algorithm, with the
+  pseudocode line that is running highlighted. Points can be dragged. The
+  segment player also has presets for degenerate cases and event-queue and
+  sweep-status panels.
 - Live PaperScript editor on every algorithm page: edit the demo and run it.
 - Playground: a free canvas with templates; the code is saved in the browser.
 - API documentation of the helper objects and functions (`Polygon`,
@@ -38,6 +42,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 ## Project structure
 
 - `src/geometry/` - pure geometry (no DOM, no paper.js) with unit tests
+- `src/geometry/algorithms/sweep/` - sweep-line segment intersection (event queue, status, step recorder, presets)
 - `src/engine/` - PaperScript runtime and the API exposed to user code (`api.ts`)
 - `src/engine/__fixtures__/legacy/` - code of the old site, kept to prove it still runs
 - `src/components/` - shared React components (editor, runner, player, layout)
@@ -45,6 +50,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 - `src/players/` - step players of the algorithms
 - `src/content/` - MDX content: algorithms, API docs, playground templates
 - `src/registry.ts` - the list of algorithms; menu, cards and routes derive from it
+- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`npm run thumbnail:segmentIntersection` regenerates that algorithm's thumbnail)
 - `tests/e2e/` - Playwright tests
 
 ## Adding a new algorithm
@@ -57,8 +63,12 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
    `group?`, `thumbnail` (an image in `public/images`), `summary`, `content`,
    `demoCode` and, for demos with two canvases, `canvases?`.
 4. Optional: a step player. Create `src/players/<name>Player.ts` implementing
-   `PlayerModule` from `src/players/types.ts` and wire it with the `player`
-   field of the registry entry.
+   `PlayerModule<S, I>` from `src/players/types.ts` and wire it with the
+   `player` field of the registry entry. A module provides `computeSteps`,
+   `render`, `pseudocode`, `randomInput`, `handles` and `moveHandle`, and
+   optionally `presets`, `panels` and `canvas`. See
+   `src/players/convexHullPlayer.ts` for a minimal example and
+   `src/players/sweepLinePlayer.ts` for one with panels and presets.
 
 ## Deployment
 

@@ -4,7 +4,7 @@ Splits a simple polygon into triangles: first into y-monotone pieces, then each 
 triangulate(polygon)
 ```
 
-`polygon` is a `Polygon` object, an array of `TextPoint` objects, or an array of `Point` objects, `{ x, y }` objects or `[x, y]` arrays. The polygon must be simple (no crossing edges); otherwise an error is thrown ("triangulate: the polygon must be simple (no crossing edges)"). Other input throws "expected a Polygon or an array of points (item N is not a point)". Vertices are referred to by their 0-based index in the input order, whichever way the polygon is oriented. The result has these fields:
+`polygon` is a `Polygon` object, an array of `TextPoint` objects, or an array of `Point` objects, `{ x, y }` objects or `[x, y]` arrays. Errors are thrown for a polygon that is not simple ("triangulate: the polygon must be simple (no crossing edges)"), for fewer than three vertices ("triangulate: the polygon needs at least 3 vertices") and for other input ("expected a Polygon or an array of points (item N is not a point)"). Vertices are referred to by their 0-based index in the input order, whichever way the polygon is oriented. The result has these fields:
 
 - `types`: the type of each vertex (`start`, `end`, `split`, `merge` or `regular`).
 - `partitionDiagonals`: `[[i, j], ...]`, the diagonals that split the polygon into monotone pieces.
@@ -12,12 +12,14 @@ triangulate(polygon)
 - `triangulationDiagonals`: `[[i, j], ...]`, the diagonals that split the pieces into triangles.
 - `triangles`: the triangles, each a list of three vertex indices.
 
-`makeMonotone(polygon)` runs only the first phase and returns `types`, `partitionDiagonals` and `pieces`.
+`makeMonotone(polygon)` runs only the first phase and returns `types`, `diagonals` (the same diagonals `triangulate` reports as `partitionDiagonals`) and `pieces`.
 
 Two helpers draw a result:
 
 - `drawDiagonals(polygon, diagonals, color)` draws diagonals as lines; `color` defaults to `'red'`.
-- `drawTriangles(polygon, triangles)` draws the triangles.
+- `drawTriangles(polygon, triangles, color)` draws the triangles; `color` defaults to `'blue'`.
+
+`diagonals` must be an array of `[i, j]` pairs and `triangles` an array of `[i, j, k]` triples of 0-based vertex indices; an out-of-range index throws an error.
 
 ```js
 drawCoordinateSystem();

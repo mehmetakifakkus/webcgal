@@ -9,6 +9,7 @@ import './StepPlayer.css'
 
 const WIDTH = 775
 const HEIGHT = 360
+/** Grab radius in CSS pixels (and at least this many scene units). */
 const GRAB = 12
 
 /** Keys are ignored while typing in a form control or the code editor. */
@@ -61,16 +62,24 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
     }
   }, [playing, index, last])
 
-  // keyboard: the player region (focusable) and anywhere else on the page except text inputs
+  // keyboard: inside the player region (focusable), or with nothing focused while the player is in view;
+  // never on tabs, links or text inputs, and Space never on a button (it activates the button itself)
+  const containerRef = useRef<HTMLDivElement>(null)
   const keyHandler = useRef<(e: KeyboardEvent) => void>(() => {})
   keyHandler.current = (e) => {
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return
-    if (isTypingTarget(e.target)) return
-    const onControl = e.target instanceof Element && e.target.closest('button, a, [role="tab"]')
+    const container = containerRef.current
+    const t = e.target
+    if (!container || !(t instanceof Element)) return
+    if (t === document.body || t === document.documentElement) {
+      const r = container.getBoundingClientRect()
+      if (r.bottom <= 0 || r.top >= window.innerHeight) return
+    } else if (!container.contains(t)) return
+    if (isTypingTarget(t) || t.closest('a, [role="tab"]')) return
     if (e.key === 'ArrowRight') go(index + 1)
     else if (e.key === 'ArrowLeft') go(index - 1)
     else if (e.key === ' ' || e.code === 'Space') {
-      if (onControl) return // Space activates the focused button itself
+      if (t.closest('button')) return
       togglePlay()
     } else return
     e.preventDefault()
@@ -90,8 +99,10 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
     const toPt = (p: paper.Point): Pt => ({ x: p.x, y: scene.height - p.y }) // the layer is y-flipped
     view.onMouseDown = (e: paper.MouseEvent) => {
       const q = toPt(e.point)
+      // the canvas is scaled down on narrow screens: convert the radius to scene units
+      const shown = (view.element as HTMLCanvasElement).clientWidth
       let best = -1
-      let bestD = GRAB
+      let bestD = GRAB * Math.max(1, shown > 0 ? view.viewSize.width / shown : 1)
       pointsRef.current.forEach((p, i) => {
         const d = Math.hypot(p.x - q.x, p.y - q.y)
         if (d <= bestD) {
@@ -127,7 +138,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any> }) {
   }, [scene])
 
   return (
-    <div className="step-player" tabIndex={0} aria-label="Step by step player">
+    <div ref={containerRef} className="step-player" tabIndex={0} aria-label="Step by step player">
       <div className="step-player-main">
         <GeometryCanvas width={WIDTH} height={HEIGHT} onReady={setScene} />
         <div className="step-player-controls" role="group" aria-label="Player controls">

@@ -60,3 +60,41 @@ test('keyboard', async () => {
   await userEvent.keyboard('{ArrowRight}')
   await expect.element(screen.getByText(`Step 2 / ${n}`)).toBeVisible()
 })
+
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+test('Space on the page does not play while the player is out of view', async () => {
+  const screen = await render(
+    <>
+      <div style={{ height: 4000 }} />
+      <StepPlayer module={fake} />
+    </>,
+  )
+  window.scrollTo(0, 0)
+  ;(document.activeElement as HTMLElement | null)?.blur()
+  expect(document.activeElement).toBe(document.body)
+  await userEvent.keyboard(' ')
+  await userEvent.keyboard('{ArrowRight}')
+  await pause(600)
+  expect(screen.getByRole('button', { name: 'Play' }).query()).not.toBeNull()
+  expect(screen.getByText(`Step 1 / ${n}`).query()).not.toBeNull()
+})
+
+test('arrow keys on a focused tab do not step', async () => {
+  const screen = await render(
+    <>
+      <div role="tablist" aria-label="Views">
+        <button type="button" role="tab" aria-selected="true">
+          Step by step
+        </button>
+      </div>
+      <StepPlayer module={fake} />
+    </>,
+  )
+  ;(screen.getByRole('tab').element() as HTMLElement).focus()
+  await userEvent.keyboard('{ArrowRight}')
+  await userEvent.keyboard(' ')
+  await pause(400)
+  await expect.element(screen.getByText(`Step 1 / ${n}`)).toBeVisible()
+  await expect.element(screen.getByRole('button', { name: 'Play' })).toBeVisible()
+})

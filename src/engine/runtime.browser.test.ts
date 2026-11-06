@@ -1,4 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest'
+import paper from 'paper'
 import { createScene, type Scene } from './scene'
 import { run, type OutputLine } from './runtime'
 import { API_NAMES } from './api'
@@ -328,15 +329,14 @@ test('an onFrame error is reported once and stops the animation', async () => {
 
 test('extraCanvases are reachable through document.getElementById', () => {
   const { scene, lines } = setup()
-  const extra = document.createElement('canvas')
-  const res = run("console.log(document.getElementById('canvas-2') === window.__extra, typeof document.createElement)", {
-    scene,
-    output: (l) => lines.push(l),
-    extraCanvases: { 'canvas-2': extra },
-  })
+  const extra = document.createElement('canvas') // not in the DOM
   ;(window as unknown as { __extra: HTMLCanvasElement }).__extra = extra
+  const res = run(
+    "var c = document.getElementById('canvas-2'); console.log(c === window.__extra, c !== null, document.getElementById('nope'), typeof document.createElement)",
+    { scene, output: (l) => lines.push(l), extraCanvases: { 'canvas-2': extra } },
+  )
   expect(res).toEqual({ ok: true })
-  expect(lines[0].text).toBe('false function')
+  expect(lines).toEqual([{ kind: 'log', text: 'true true null function' }])
 })
 
 test('let/const may redeclare API names', () => {
@@ -350,4 +350,75 @@ test('every API name is defined for user code', () => {
   const names = API_NAMES.filter((n) => n !== 'polygon')
   exec(`console.log([${names.map((n) => `typeof ${n} === 'undefined' ? '${n}' : ''`).join(', ')}].filter(Boolean).join(','))`)
   expect(lines).toEqual([{ kind: 'log', text: '' }])
+})
+
+type Registry = { _scopes: Record<string, paper.PaperScope> }
+const registry = () => (paper.PaperScope as unknown as Registry)._scopes
+const scopesOn = (canvas: HTMLCanvasElement) => Object.values(registry()).filter((s) => s.view?.element === canvas)
+
+/** Legacy duality demos set up a fresh scope on a second canvas inside mouse handlers. */
+const HANDLER_SCOPE_CODE = `
+  function onMouseDown(event) {
+    var s = new paper.PaperScope();
+    s.setup(document.getElementById('canvas-2'));
+    new s.Path.Circle({ center: [10, 10], radius: 5, fillColor: 'red' });
+    s.view.onFrame = function () { window.__handlerFrames++ };
+    window.__lastScope = s;
+  }
+`
+
+function handlerScopeSetup() {
+  const t = setup()
+  const extra = document.createElement('canvas')
+  extra.width = 200
+  extra.height = 100
+  extra.id = 'canvas-2'
+  document.body.appendChild(extra)
+  const w = window as unknown as { __handlerFrames: number; __lastScope?: paper.PaperScope }
+  w.__handlerFrames = 0
+  w.__lastScope = undefined
+  expect(t.exec(HANDLER_SCOPE_CODE)).toEqual({ ok: true })
+  const press = () => t.scene.paper.tool.emit('mousedown', { point: new t.scene.paper.Point(5, 5) })
+  return { ...t, extra, w, press }
+}
+
+for (const end of ['re-run', 'dispose'] as const) {
+  test(`scopes created in handlers are released on ${end}`, async () => {
+    const { exec, scene, extra, w, press, lines } = handlerScopeSetup()
+    press()
+    expect(lines).toEqual([])
+    const created = w.__lastScope!
+    expect(created).toBeTruthy()
+    expect(Object.values(registry())).toContain(created)
+    // the handler's scope must not stay active: scene items still go to the scene
+    const probe = new paper.Path()
+    expect(probe.project).toBe(scene.paper.project)
+    probe.remove()
+    await frames(3)
+    expect(w.__handlerFrames).toBeGreaterThan(0)
+    if (end === 're-run') exec('')
+    else scene.dispose()
+    expect(Object.values(registry())).not.toContain(created)
+    expect(scopesOn(extra)).toEqual([])
+    const after = w.__handlerFrames
+    await frames(3)
+    expect(w.__handlerFrames).toBe(after)
+  })
+}
+
+test('repeated handler scopes on one canvas keep at most one alive, and it still works', async () => {
+  const { extra, w, press } = handlerScopeSetup()
+  for (let i = 0; i < 5; i++) press()
+  expect(scopesOn(extra)).toEqual([w.__lastScope])
+  const latest = w.__lastScope!
+  expect(latest.project.activeLayer.children.length).toBe(1)
+  // the surviving view still gets frames and DOM mouse events
+  await frames(3)
+  expect(w.__handlerFrames).toBeGreaterThan(0)
+  let downs = 0
+  latest.view.onMouseDown = () => void downs++
+  const r = extra.getBoundingClientRect()
+  extra.dispatchEvent(new MouseEvent('mousedown', { clientX: r.left + 5, clientY: r.top + 5, bubbles: true }))
+  document.dispatchEvent(new MouseEvent('mouseup', { clientX: r.left + 5, clientY: r.top + 5, bubbles: true }))
+  expect(downs).toBe(1)
 })

@@ -66,6 +66,8 @@ export type ApiOptions = {
   onHandlerError?: (e: unknown) => void
   /** Lines before the user's first line in the compiled function (for handler error lines). */
   lineOffset?: number
+  /** Runs a handler call; the runtime uses it to collect paper scopes the handler creates. */
+  trackScopes?: (call: () => void) => void
 }
 
 /** Circle with a paper.Point centre (the legacy circle shape). */
@@ -89,17 +91,21 @@ function scopedDocument(extra: Record<string, HTMLCanvasElement>): Document {
 export function createGuard(
   scope: paper.PaperScope,
   output: (l: OutputLine) => void,
-  options: Pick<ApiOptions, 'lineOffset' | 'onHandlerError'> = {},
+  options: Pick<ApiOptions, 'lineOffset' | 'onHandlerError' | 'trackScopes'> = {},
 ): EngineContext['guard'] {
+  const track = options.trackScopes ?? ((call: () => void) => call())
   return (fn) =>
     function (this: unknown, ...args) {
       scope.activate()
       try {
-        fn.apply(this, args)
+        track(() => void fn.apply(this, args))
       } catch (e) {
         const line = stackLine(e, options.lineOffset ?? 0)
         output({ kind: 'error', text: errorText(e) + (line ? ` (line ${line})` : '') })
         options.onHandlerError?.(e)
+      } finally {
+        // the handler may have activated a scope of its own
+        scope.activate()
       }
     }
 }

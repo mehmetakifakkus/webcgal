@@ -118,6 +118,27 @@ type ScopeRegistry = { _scopes: Record<string, paper.PaperScope> }
 const scopeIds = () => Object.keys((paper.PaperScope as unknown as ScopeRegistry)._scopes)
 const scopeById = (id: string) => (paper.PaperScope as unknown as ScopeRegistry)._scopes[id]
 
+type ViewInternals = paper.View & {
+  _id: string
+  _viewEvents: Record<string, EventListener>
+  _setElementSize(width: number, height: number): void
+}
+/**
+ * paper.js views of one canvas share its id, its DOM listeners and its 2D
+ * context, so removing an older view unregisters the newer one too. Put the
+ * newer view back: its id entry, its (shared, deduplicated) listeners and the
+ * context's save/scale state.
+ */
+function rebindView(v: paper.View) {
+  const view = v as ViewInternals
+  const element = view.element
+  ;(paper.View as unknown as { _viewsById: Record<string, paper.View> })._viewsById[view._id] = view
+  for (const [types, fn] of Object.entries(view._viewEvents))
+    for (const type of types.split(/[\s,]+/g)) element.addEventListener(type, fn, false)
+  view._setElementSize(view.viewSize.width, view.viewSize.height)
+  view.requestUpdate()
+}
+
 function fail(e: unknown, line: number | undefined): RunResult {
   const error: OutputLine & { line?: number } = { kind: 'error', text: errorText(e) }
   if (line !== undefined) error.line = line
@@ -148,8 +169,42 @@ export function run(code: string, opts: RunOptions): RunResult {
   const tool = new scope.Tool()
   tool.activate()
   const lineOffset = getBodyOffset()
-  const scopesBefore = new Set(scopeIds())
-  const userScopes: paper.PaperScope[] = []
+  /** Paper scopes this run's code created (top level and handlers), still alive. */
+  let userScopes: paper.PaperScope[] = []
+  const release = (s: paper.PaperScope) => {
+    if (s.view) {
+      s.view.onFrame = null
+      offAll(s.view, 'frame')
+    }
+    s.remove()
+  }
+  /**
+   * Runs `call` and adopts the paper scopes it created. A new scope set up on a
+   * canvas replaces (releases) the older user scope on that canvas, so demos that
+   * set up a scope on every drag event do not pile up scopes and DOM listeners.
+   */
+  const trackScopes = (call: () => void) => {
+    const before = new Set(scopeIds())
+    try {
+      call()
+    } finally {
+      for (const id of scopeIds()) {
+        if (before.has(id)) continue
+        const created = scopeById(id)
+        const element = created.view?.element
+        if (element) {
+          const stale = userScopes.filter((old) => old.view?.element === element)
+          if (stale.length) {
+            stale.forEach(release)
+            userScopes = userScopes.filter((old) => !stale.includes(old))
+            rebindView(created.view)
+          }
+        }
+        userScopes.push(created)
+      }
+      scope.activate()
+    }
+  }
 
   setSceneTeardown(scene, () => {
     active = false
@@ -157,16 +212,17 @@ export function run(code: string, opts: RunOptions): RunResult {
     view.onResize = null
     offAll(view, 'frame')
     for (const t of scope.tools.slice()) t.remove()
-    for (const s of userScopes) {
-      if (s.view) {
-        s.view.onFrame = null
-        offAll(s.view, 'frame')
-      }
-      s.remove()
-    }
+    for (const s of userScopes) release(s)
+    userScopes = []
   })
 
-  const api = buildApi(scene, output, { tool, clearOutput, extraCanvases: opts.extraCanvases, lineOffset })
+  const api = buildApi(scene, output, {
+    tool,
+    clearOutput,
+    extraCanvases: opts.extraCanvases,
+    lineOffset,
+    trackScopes,
+  })
 
   let compiled: string
   try {
@@ -180,15 +236,17 @@ export function run(code: string, opts: RunOptions): RunResult {
     const names = [...Object.keys(api), ...Object.keys(OPERATORS)]
     const values = [...Object.values(api), ...Object.values(OPERATORS)]
     const body = 'var module = { exports: {} }; ' + compiled + RETURN_HANDLERS
-    handlers = makeFunction(names, body)(...values).call(scope)
+    const main = makeFunction(names, body)(...values)
+    let result: Handlers = {}
+    trackScopes(() => {
+      result = main.call(scope)
+    })
+    handlers = result
   } catch (e) {
     return fail(e, e instanceof SyntaxError ? undefined : stackLine(e, lineOffset))
-  } finally {
-    for (const id of scopeIds()) if (!scopesBefore.has(id)) userScopes.push(scopeById(id))
-    scope.activate()
   }
 
-  const guard = createGuard(scope, output, { lineOffset })
+  const guard = createGuard(scope, output, { lineOffset, trackScopes })
   for (const name of TOOL_HANDLERS) {
     const fn = handlers[name]
     if (fn) tool[name] = guard(fn)
@@ -205,6 +263,7 @@ export function run(code: string, opts: RunOptions): RunResult {
 
   const frameGuard = createGuard(scope, output, {
     lineOffset,
+    trackScopes,
     onHandlerError: () => (view.onFrame = null), // one error line, not one per frame
   })
   const loop = handlers.loop !== api.loop ? handlers.loop : undefined

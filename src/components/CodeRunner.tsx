@@ -121,16 +121,19 @@ export default function CodeRunner({
     <div className="code-runner">
       <section className="code-runner-editor" aria-label="Editor">
         <div className="code-runner-toolbar">
-          <button type="button" className="primary" onClick={() => runCode(code)}>
+          <button type="button" className="btn btn-primary" onClick={() => runCode(code)}>
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4.5 2.5l9 5.5-9 5.5z" />
+            </svg>
             Run
           </button>
-          <button type="button" onClick={reset}>
+          <button type="button" className="btn" onClick={reset}>
             Reset
           </button>
           {templates && (
             <label className="template-select">
               <span>Template</span>
-              <select value={template} onChange={(e) => chooseTemplate(e.target.value)}>
+              <select className="select" value={template} onChange={(e) => chooseTemplate(e.target.value)}>
                 <option value="" disabled>
                   Choose a template
                 </option>
@@ -170,6 +173,9 @@ export default function CodeRunner({
         ))}
       </section>
       <section className="code-runner-output" aria-label="Output panel">
+        <div className="output-header" aria-hidden="true">
+          Output
+        </div>
         <OutputPanel lines={lines} />
       </section>
     </div>

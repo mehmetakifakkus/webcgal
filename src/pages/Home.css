@@ -1,0 +1,209 @@
+/* Home page: hero with the hull background, feature row, algorithms showcase, code teaser. */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-top: calc(-1 * var(--space-2));
+  padding: clamp(2.5rem, 7vw, 5.5rem) clamp(1.25rem, 5vw, 4rem);
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* on wide screens the drawing sits beside the text; keep the text side clear */
+@media (min-width: 900px) {
+  .hero-bg {
+    left: 50%;
+    width: 50%;
+  }
+}
+
+.hero-content {
+  max-width: 36rem;
+}
+
+.hero h1 {
+  margin: 0 0 var(--space-4);
+  font-size: var(--fs-display);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.hero-lead {
+  max-width: 34rem;
+  margin: 0 0 var(--space-6);
+  color: var(--text-muted);
+  font-size: clamp(1.05rem, 1rem + 0.4vw, 1.25rem);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+@media (max-width: 899.98px) {
+  /* the text is on top of the drawing: give it a soft backdrop */
+  .hero-content {
+    position: relative;
+  }
+  .hero-bg {
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-actions .btn {
+    flex: 1 1 100%;
+  }
+}
+
+.features ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feature {
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.feature h3 {
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.feature p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.feature-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: var(--radius-md);
+}
+
+.feature-icon svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-section h2 {
+  margin-top: 0;
+}
+
+.home-section .cards {
+  margin-bottom: 0;
+}
+
+.teaser {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--space-6);
+  align-items: center;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.teaser-text p {
+  margin: 0 0 var(--space-5);
+  color: var(--text-muted);
+}
+
+@media (max-width: 800px) {
+  .teaser {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.code-teaser {
+  margin: 0;
+  overflow: hidden;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.code-teaser-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-teaser-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.code-teaser-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.code-teaser pre {
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  overflow-x: auto;
+  color: var(--code-fg);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+  /* room for the snippet before it has loaded */
+  min-height: 8.5rem;
+}
+
+.code-teaser code {
+  font-size: inherit;
+}
+
+.tok-keyword { color: var(--syn-keyword); font-weight: 600; }
+.tok-function { color: var(--syn-function); }
+.tok-number { color: var(--syn-number); }
+.tok-string { color: var(--syn-string); }
+.tok-comment { color: var(--syn-comment); font-style: italic; }

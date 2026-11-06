@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
+import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import { algorithms, groups } from './registry';
 
@@ -9,14 +10,6 @@ const AlgorithmPage = lazy(() => import('./pages/AlgorithmPage'));
 const DualityIndex = lazy(() => import('./pages/DualityIndex'));
 const Playground = lazy(() => import('./pages/Playground'));
 
-function Home() {
-  return (
-    <>
-      <h1>WebCgal</h1>
-      <p>Interactive computational geometry algorithms.</p>
-    </>
-  );
-}
 
 export default function App() {
   return (

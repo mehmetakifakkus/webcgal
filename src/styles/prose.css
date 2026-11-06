@@ -1,0 +1,60 @@
+/* Long-form text (MDX content of the algorithm pages). */
+
+.prose {
+  max-width: 70ch;
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 0 0 var(--space-4);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+
+.prose li + li {
+  margin-top: var(--space-1);
+}
+
+.prose h2 {
+  margin-top: var(--space-6);
+}
+
+.prose em {
+  color: var(--accent);
+}
+
+.prose strong {
+  font-weight: 650;
+}
+
+.prose code {
+  padding: 0.1em 0.35em;
+  color: var(--code-fg);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.prose img {
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.prose blockquote {
+  margin: 0 0 var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  color: var(--text-muted);
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}

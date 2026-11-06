@@ -7,6 +7,6 @@ test('home loads without console errors', async ({ page }) => {
   });
   page.on('pageerror', (err) => errors.push(err.message));
   await page.goto('/');
-  await expect(page.getByRole('link', { name: 'Algorithms' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Algorithms', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });

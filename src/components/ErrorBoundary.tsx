@@ -18,7 +18,7 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
     return (
       <div role="alert" className="error-boundary">
         <p>Something went wrong.</p>
-        <button type="button" onClick={() => window.location.reload()}>
+        <button type="button" className="btn" onClick={() => window.location.reload()}>
           Reload
         </button>
       </div>

@@ -1,0 +1,56 @@
+/*
+ * Algorithm page: header with breadcrumb, prose, and the interactive workspace (tabs + player / code runner).
+ * Kept compact vertically so the canvas starts within the first screen on a laptop.
+ */
+
+.algorithm-page {
+  margin-top: calc(-1 * var(--space-1));
+}
+
+.algorithm-header {
+  margin-bottom: var(--space-3);
+}
+
+.algorithm-header .breadcrumb ol {
+  margin-bottom: 2px;
+  line-height: 1.4;
+}
+
+.algorithm-header h1 {
+  margin: 0;
+  line-height: 1.15;
+}
+
+.algorithm-text.prose {
+  font-size: var(--fs-base);
+  line-height: 1.6;
+}
+
+.algorithm-text.prose p {
+  margin-bottom: var(--space-3);
+}
+
+.algorithm-text.prose > :last-child {
+  margin-bottom: 0;
+}
+
+.algorithm-workspace {
+  margin-top: var(--space-4);
+  padding-top: 0;
+}
+
+.algorithm-workspace .tabs {
+  margin: 0 calc(-1 * var(--space-4)) var(--space-3);
+  padding: 0 var(--space-3);
+}
+
+.algorithm-workspace .tabs [role='tab'] {
+  padding-block: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .algorithm-workspace .tabs {
+    margin: 0 calc(-1 * var(--space-3)) var(--space-3);
+    padding: 0 var(--space-2);
+  }
+}

@@ -37,7 +37,7 @@ const convexHullPlayer: PlayerModule<HullState> = {
       upper: cssColor('--hull-upper', '#1a5fb4'),
       lower: cssColor('--hull-lower', '#26a269'),
       removed: cssColor('--hull-removed', '#c01c28'),
-      point: cssColor('--fg', '#1c1e21'),
+      point: cssColor('--canvas-ink', '#1c1e21'),
     }
     const pt = (q: Pt) => new P.Point(q.x, q.y)
     const chain = (list: Pt[], color: string, width: number, closed = false) => {

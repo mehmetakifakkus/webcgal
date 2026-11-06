@@ -1,0 +1,23 @@
+/* algorithms index: group heading */
+.group-title {
+  margin-bottom: var(--space-1);
+}
+
+.group-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.group-title a::after {
+  content: ' ›';
+  color: var(--accent);
+}
+
+.group-title a:hover {
+  color: var(--accent);
+}
+
+.group-lead {
+  margin: 0 0 var(--space-5);
+  color: var(--text-muted);
+}

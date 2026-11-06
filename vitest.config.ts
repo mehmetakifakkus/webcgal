@@ -27,6 +27,8 @@ export default defineConfig({
             enabled: true,
             headless: true,
             provider: playwright(),
+            // desktop width: below 720px the main nav collapses into a menu button
+            viewport: { width: 1280, height: 800 },
             instances: [{ browser: 'chromium' }],
           },
         },

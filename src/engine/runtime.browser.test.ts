@@ -3,10 +3,10 @@ import paper from 'paper'
 import { createScene, type Scene } from './scene'
 import { run, type OutputLine } from './runtime'
 import { API_NAMES } from './api'
-import convexHullEjs from '../../legacy/app/views/algorithms/convexHull.ejs?raw'
-import legacyConvexHullJs from '../../legacy/app/views/partials/paperjs/convexHull.js?raw'
+import convexHullEjs from './__fixtures__/legacy/convexHull.ejs?raw'
+import legacyConvexHullJs from './__fixtures__/legacy/convexHull.js?raw'
 
-const samples = import.meta.glob('../../legacy/app/views/partials/paperjs/sampleCodes/*.js', {
+const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -153,6 +153,40 @@ test('user mouse handlers are wired to a tool and replaced on the next run', () 
   expect(scene.paper.tools.length).toBe(1)
   scene.paper.tool.emit('mousedown', { point: new scene.paper.Point(5, 5) })
   expect(lines).toHaveLength(1)
+})
+
+const VIEW_EVENTS = [
+  'mousedown', 'mouseup', 'mousemove', 'mousedrag', 'click', 'doubleclick', 'mouseenter', 'mouseleave', 'keydown',
+  'keyup', 'resize',
+]
+
+test('view handlers set by user code do not survive the next run', () => {
+  const { exec, scene } = setup()
+  const w = window as unknown as { __viewEvents: string[] }
+  w.__viewEvents = []
+  exec(`
+    view.onMouseDown = function () { window.__viewEvents.push('prop:mousedown') };
+    view.onClick = function () { window.__viewEvents.push('prop:click') };
+    view.onMouseMove = function () { window.__viewEvents.push('prop:mousemove') };
+    view.onResize = function () { window.__viewEvents.push('prop:resize') };
+    ${JSON.stringify(VIEW_EVENTS)}.forEach(function (type) {
+      view.on(type, function () { window.__viewEvents.push('on:' + type) })
+    });
+  `)
+  const view = scene.paper.view as unknown as { emit(type: string, event: unknown): void }
+  const emitAll = () => VIEW_EVENTS.forEach((type) => view.emit(type, { point: new scene.paper.Point(5, 5) }))
+  emitAll()
+  expect(w.__viewEvents).toContain('prop:mousedown')
+  expect(w.__viewEvents).toContain('prop:click')
+  expect(w.__viewEvents).toContain('on:click')
+  expect(w.__viewEvents).toContain('on:keyup')
+
+  w.__viewEvents = []
+  expect(exec('var nothing = 1;')).toEqual({ ok: true })
+  emitAll()
+  expect(w.__viewEvents).toEqual([])
+  expect(scene.paper.view.onMouseDown).toBeNull()
+  expect(scene.paper.view.onClick).toBeNull()
 })
 
 test('handler errors go to output', () => {

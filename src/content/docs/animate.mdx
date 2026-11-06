@@ -1,0 +1,54 @@
+Sometimes we may want to animate our points. Main reason for that is to try algorithms with different 2D point combinations. We can have a chance to see if there is a weakness in our algorithm.
+
+Here, you will introduce with a new function named **loop( )** which we use for creating an animation.
+
+**animate( )** function has two alternatives. Let's have a look at them:
+
+## Points.animateRandom(points)
+
+In this example we will not use any function. Here is the live example:
+
+```js
+var points = Points.createRandom(5);
+
+function loop(){
+    Points.animateRandom(points); // function name and variables as parameter
+}
+```
+
+## Points.animateRandom(points, function)
+
+Now, we will call **convexHull( )** function with initially random 5 points. Then as we animate through points we will call that function repetitively.
+
+```js
+var points = Points.createRandom(5);
+
+function loop(){
+    chPoints = Points.animateRandom(points, convexHull); // function name and variables as parameter
+    Points.drawLines(chPoints);
+}
+```
+
+Here another function **miniDisc( )** which finds smallest Enclosing Disk.
+
+```js
+var points = Points.createRandom(5);
+
+function loop(){
+    var circlePoints = Points.animateRandom(points, miniDisc); // function name and variables as parameter
+    drawCircle(circlePoints);
+}
+```
+
+## Points.animateVibrate(points, function)
+
+Now, we will call **convexHull( )** function with another type of animation.
+
+```js
+var points = Points.createRandom(5);
+
+function loop(){
+    var circlePoints = Points.animateVibrate(points, miniDisc); // function name and variables as parameter
+    drawCircle(circlePoints);
+}
+```

@@ -8,7 +8,8 @@ export default defineConfig({
   webServer: process.env.BASE_URL
     ? undefined
     : {
-        command: 'VITE_E2E=1 npm run build && npm run preview -- --port 4173 --strictPort',
+        // own outDir: the e2e build contains the debug hook and must never end up in dist/
+        command: 'VITE_E2E=1 vite build --outDir dist-e2e && vite preview --outDir dist-e2e --port 4173 --strictPort',
         url: baseURL,
         reuseExistingServer: false,
         timeout: 120_000,

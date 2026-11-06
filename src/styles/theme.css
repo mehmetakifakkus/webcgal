@@ -1,0 +1,127 @@
+/*
+ * Design tokens. Imported once from main.tsx, before global.css.
+ * Light values on :root; the dark set follows the OS setting (prefers-color-scheme).
+ */
+:root {
+  color-scheme: light dark;
+
+  /* surfaces */
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef0f5;
+  --border: #e1e4eb;
+  --border-strong: #c9ced9;
+
+  /* text */
+  --text: #161a23;
+  --text-muted: #5a6273;
+
+  /* accent (indigo) */
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eef0ff;
+  --accent-contrast: #ffffff;
+
+  /* status */
+  --success: #15803d;
+  --warn: #8a5a00;
+  --error: #c01c28;
+
+  /* code */
+  --code-bg: #f3f4f8;
+  --code-fg: #1f2433;
+  --syn-keyword: #7c3aed;
+  --syn-function: #1d4ed8;
+  --syn-number: #b45309;
+  --syn-string: #047857;
+  --syn-comment: #6b7280;
+
+  /* the drawing canvases assume a white background in both themes (demo code draws dark ink) */
+  --canvas-bg: #ffffff;
+  --canvas-ink: #1c1e21;
+
+  --focus-ring: 0 0 0 3px rgb(79 70 229 / 0.45);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.08);
+  --shadow-md: 0 4px 8px -2px rgb(16 24 40 / 0.08), 0 12px 24px -6px rgb(16 24 40 / 0.12);
+
+  /* spacing scale (rem) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-h1: clamp(1.75rem, 1.3rem + 2vw, 2.5rem);
+  --fs-h2: clamp(1.35rem, 1.15rem + 0.9vw, 1.75rem);
+  --fs-h3: 1.15rem;
+  --fs-display: clamp(2.1rem, 1.4rem + 3.4vw, 3.75rem);
+
+  --container: 75rem;
+  /* side padding of page content: 16px on phones */
+  --gutter: clamp(16px, 4vw, 32px);
+  --header-h: 3.5rem;
+
+  /* step player colors: drawn on the white canvas, so the same in both themes */
+  --hull-current: #c64600;
+  --hull-testing: #8a2be2;
+  --hull-upper: #1a5fb4;
+  --hull-lower: #1b8553;
+  --hull-removed: #c01c28;
+
+  /* names used before the token set (kept for existing component styles) */
+  --fg: var(--text);
+  --muted: var(--text-muted);
+  --header-bg: var(--surface-sunken);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1017;
+    --surface: #151922;
+    --surface-raised: #1b202b;
+    --surface-sunken: #11141c;
+    --border: #2a303d;
+    --border-strong: #3a4252;
+
+    --text: #e7e9ee;
+    --text-muted: #9ba3b4;
+
+    --accent: #818cf8;
+    --accent-hover: #a5b4fc;
+    --accent-soft: #1e2140;
+    --accent-contrast: #0b0d17;
+
+    --success: #4ade80;
+    --warn: #e3b341;
+    --error: #ff7b72;
+
+    --code-bg: #10131a;
+    --code-fg: #d9dce4;
+    --syn-keyword: #c4b5fd;
+    --syn-function: #93c5fd;
+    --syn-number: #fbbf24;
+    --syn-string: #6ee7b7;
+    --syn-comment: #8590a3;
+
+    --focus-ring: 0 0 0 3px rgb(129 140 248 / 0.55);
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 6px 20px -4px rgb(0 0 0 / 0.55);
+  }
+}

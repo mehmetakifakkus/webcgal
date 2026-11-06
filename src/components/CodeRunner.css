@@ -4,12 +4,12 @@
   grid-template-areas:
     'editor canvases'
     'output output';
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: start;
 }
 
 .code-runner-editor { grid-area: editor; min-width: 0; }
-.code-runner-canvases { grid-area: canvases; min-width: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.code-runner-canvases { grid-area: canvases; min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .code-runner-output { grid-area: output; min-width: 0; }
 
 @media (max-width: 800px) {
@@ -26,64 +26,102 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
-.code-runner-toolbar button,
-.code-runner-toolbar select,
-.error-boundary button {
-  font: inherit;
-  padding: 0.25rem 0.8rem;
-  color: var(--fg);
-  background: var(--header-bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  cursor: pointer;
+.template-select {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
 }
 
-.code-runner-toolbar button.primary {
-  color: var(--accent-contrast);
-  background: var(--accent);
-  border-color: var(--accent);
-}
+.template-select .select { color: var(--text); }
+.hint { margin-left: auto; color: var(--text-muted); font-size: var(--fs-xs); }
 
-.template-select { display: inline-flex; align-items: center; gap: 0.4rem; }
-.hint { color: var(--muted); font-size: 0.85rem; }
+@media (max-width: 600px) {
+  .hint { margin-left: 0; flex-basis: 100%; }
+}
 
 .code-editor {
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   font-size: 0.9rem;
+  box-shadow: var(--shadow-sm);
 }
 
+.code-editor .cm-editor { font-family: var(--font-mono); }
+.code-editor .cm-scroller { font-family: inherit; line-height: 1.6; }
+.code-editor .cm-editor.cm-focused { outline: none; }
+.code-editor:focus-within { border-color: var(--accent); box-shadow: var(--focus-ring); }
+
+/* drawings assume a white background, so the frame keeps --canvas-bg (white) in both themes */
 .canvas-frame {
   width: 100%;
   margin: 0;
+  overflow: hidden;
   border: 1px solid var(--border);
-  background: #fff;
+  border-radius: var(--radius-md);
+  background: var(--canvas-bg);
   line-height: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 /* paper.js may set an inline pixel size on HiDPI screens; keep the aspect ratio when scaled down */
 .canvas-frame canvas { display: block; max-width: 100%; height: auto !important; }
-.canvas-frame figcaption { padding: 0.25rem 0.5rem; line-height: 1.4; font-size: 0.85rem; color: var(--muted); background: var(--bg); }
+.canvas-frame figcaption {
+  padding: var(--space-2) var(--space-3);
+  line-height: 1.4;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+/* output: a console */
+.output-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.output-header::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+}
 
 .output-panel {
   min-height: 5rem;
   max-height: 14rem;
   overflow: auto;
-  padding: 0.5rem 0.75rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
   font-size: 0.85rem;
-  background: var(--header-bg);
+  line-height: 1.55;
+  color: var(--code-fg);
+  background: var(--code-bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
 .output-line { white-space: pre-wrap; overflow-wrap: anywhere; }
+.output-line + .output-line { border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent); }
 .output-line.warn { color: var(--warn); }
 .output-line.error { color: var(--error); }
-
-.error-boundary { padding: 1rem; border: 1px solid var(--error); border-radius: 4px; color: var(--error); }

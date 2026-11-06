@@ -1,0 +1,63 @@
+/* Documentation sidebar: category headings with item links; a select on narrow screens. */
+
+.docs-nav-select {
+  display: none;
+}
+
+.docs-nav-list h2 {
+  margin: var(--space-5) 0 var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.docs-nav-list section:first-child h2 {
+  margin-top: 0;
+}
+
+.docs-nav-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.docs-nav-list a {
+  display: block;
+  padding: 0.25rem var(--space-3);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.docs-nav-list a:hover {
+  color: var(--text);
+  background: var(--surface-sunken);
+}
+
+.docs-nav-list a.active {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
+@media (max-width: 800px) {
+  .docs-nav-list {
+    display: none;
+  }
+
+  .docs-nav-select {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+  }
+
+  .docs-nav-select .select {
+    width: 100%;
+  }
+}

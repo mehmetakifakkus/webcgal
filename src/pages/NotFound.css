@@ -1,0 +1,29 @@
+/* 404 */
+.not-found {
+  max-width: 40rem;
+  margin: var(--space-6) auto;
+  text-align: center;
+}
+
+.not-found-code {
+  display: block;
+  font-size: clamp(4rem, 3rem + 6vw, 7rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: transparent;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 35%, var(--text-muted)));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.not-found .page-lead {
+  margin: 0 auto var(--space-6);
+}
+
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}

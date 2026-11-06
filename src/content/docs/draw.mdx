@@ -1,0 +1,30 @@
+They are variety of drawing functions available in WebCgal. Let's review them with examples:
+
+### Points.drawLine(p1, p2)
+
+Result is like this:
+
+```js
+var points = Points.createRandom(2);
+Points.drawLine(points[0], points[1]);
+```
+
+### Points.drawLines(points)
+
+> **Warning:** Drawing lines between random points is meaningless unless it is not Convex Hull points. As you can see we use this function in [convexHull](/algorithms/convexHull) and it yields perfect.
+
+Result is like that with multiple points:
+
+```js
+var points = Points.createRandom(10);
+Points.drawLines(points);
+```
+
+### drawCircle(\{center, radius\})
+
+Result is like this:
+
+```js
+var p = Points.createRandom(1);
+drawCircle({center:p[0].pos, radius: getRandomInt(10, 100)});
+```

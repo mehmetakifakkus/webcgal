@@ -1,0 +1,19 @@
+This function has two alternatives. Let's have a look at them:
+
+## Points.createRandom(n)
+
+**n** is the number of point. This function can produce random points inside the canvas.
+
+Here is the live example:
+
+```js
+var points = Points.createRandom(5);
+```
+
+## Points.createRandom(n, minX, maxX, minY, maxY)
+
+Using this function we can use limit the bounds. Our canvas has the size of 600x380. So we can select bounds like this:
+
+```js
+var points = Points.createRandom(10, 0, 600, 200, 250);
+```

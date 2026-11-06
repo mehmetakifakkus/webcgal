@@ -1,0 +1,8 @@
+This function can shuffle points. When you access a certain index after shuffle operation, a different point will be returned.
+
+```js
+var points = Points.createRandom(5);
+var shuffled = Points.shuffle(points);
+```
+
+> **Warning:** This function does not shuffle visually, after shuffle operation points[0] is likely to change.

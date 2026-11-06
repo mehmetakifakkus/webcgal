@@ -1,0 +1,18 @@
+/* Playground: wide two-column workspace (editor | canvas + output), stacked on narrow screens. */
+
+.playground-header {
+  margin-bottom: var(--space-5);
+}
+
+@media (min-width: 801px) {
+  .playground .code-runner {
+    grid-template-areas:
+      'editor canvases'
+      'editor output';
+    grid-template-rows: auto 1fr;
+  }
+
+  .playground .code-editor .cm-editor {
+    min-height: 28rem;
+  }
+}

@@ -44,3 +44,29 @@ test('dragging a point restarts the player', async ({ page }) => {
   await page.mouse.up()
   await expect(page.getByText(/^Step 1 \/ /)).toBeVisible()
 })
+
+test('points can be grabbed 9 CSS px off-centre on a narrow screen', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 })
+  await page.goto('/algorithms/convexHull')
+  await page.getByRole('button', { name: 'Last' }).click()
+  await expect(page.getByText(/^Step 1 \/ /)).toHaveCount(0)
+  const canvas = page.getByLabel('Drawing canvas')
+  await canvas.scrollIntoViewIfNeeded()
+  const box = (await canvas.boundingBox())!
+  expect(box.width).toBeLessThan(400) // the canvas is scaled down (775 scene units wide)
+  await page.waitForFunction(() => window.__webcgalDebug?.scene.paper.project.activeLayer.children.length)
+  const pos = await page.evaluate(() => {
+    const layer = window.__webcgalDebug!.scene.paper.project.activeLayer
+    const c = layer.children.find((i) => i.className === 'Path' && (i as paper.Path).closed && i.bounds.width === 12)!
+    const view = window.__webcgalDebug!.scene.paper.view
+    return { x: c.position.x / view.viewSize.width, y: 1 - c.position.y / view.viewSize.height }
+  })
+  const sx = box.x + pos.x * box.width
+  const sy = box.y + pos.y * box.height
+  const dx = pos.x > 0.5 ? -9 : 9 // stay inside the canvas
+  await page.mouse.move(sx + dx, sy)
+  await page.mouse.down()
+  await page.mouse.move(sx + dx + 20, sy + 10, { steps: 4 })
+  await page.mouse.up()
+  await expect(page.getByText(/^Step 1 \/ /)).toBeVisible()
+})

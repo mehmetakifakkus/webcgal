@@ -9,7 +9,7 @@ import './CodeRunner.css';
 
 export type CodeRunnerProps = {
   initialCode: string;
-  /** localStorage key under which edits are kept. */
+  /** localStorage key under which edits are kept; Reset clears it. */
   storageKey?: string;
   /** Main canvas: inner size (default 775x360), optional element id and caption. */
   canvas?: { width: number; height: number; id?: string; label?: string };
@@ -103,6 +103,8 @@ export default function CodeRunner({
     return () => clearTimeout(timer);
   }, [code, initialCode, storageKey]);
 
+  const edit = (next: string) => setCode(next);
+
   const reset = () => {
     if (storageKey) saveCode(storageKey, null);
     setTemplate('');
@@ -113,7 +115,7 @@ export default function CodeRunner({
     const t = templates?.find((x) => x.label === label);
     setTemplate(label);
     if (!t) return;
-    setCode(t.code);
+    edit(t.code);
     runCode(t.code);
   };
 
@@ -121,16 +123,19 @@ export default function CodeRunner({
     <div className="code-runner">
       <section className="code-runner-editor" aria-label="Editor">
         <div className="code-runner-toolbar">
-          <button type="button" className="primary" onClick={() => runCode(code)}>
+          <button type="button" className="btn btn-primary" onClick={() => runCode(code)}>
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4.5 2.5l9 5.5-9 5.5z" />
+            </svg>
             Run
           </button>
-          <button type="button" onClick={reset}>
+          <button type="button" className="btn" onClick={reset}>
             Reset
           </button>
           {templates && (
             <label className="template-select">
               <span>Template</span>
-              <select value={template} onChange={(e) => chooseTemplate(e.target.value)}>
+              <select className="select" value={template} onChange={(e) => chooseTemplate(e.target.value)}>
                 <option value="" disabled>
                   Choose a template
                 </option>
@@ -144,7 +149,7 @@ export default function CodeRunner({
           )}
           <span className="hint">Ctrl/Cmd+Enter runs the code</span>
         </div>
-        <CodeEditor value={code} onChange={setCode} onRun={() => runCode(codeRef.current)} />
+        <CodeEditor value={code} onChange={edit} onRun={() => runCode(codeRef.current)} />
       </section>
       <section className="code-runner-canvases" aria-label="Canvas">
         <GeometryCanvas
@@ -170,6 +175,9 @@ export default function CodeRunner({
         ))}
       </section>
       <section className="code-runner-output" aria-label="Output panel">
+        <div className="output-header" aria-hidden="true">
+          Output
+        </div>
         <OutputPanel lines={lines} />
       </section>
     </div>

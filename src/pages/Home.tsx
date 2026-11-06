@@ -4,6 +4,7 @@ import AlgorithmCard from '../components/AlgorithmCard';
 import CodeTeaser from '../components/CodeTeaser';
 import HullBackground from '../components/HullBackground';
 import { algorithms } from '../registry';
+import { reloadOnChunkError } from '../reloadOnChunkError';
 import './Home.css';
 
 const features = [
@@ -32,7 +33,7 @@ function useTeaserCode() {
   const [code, setCode] = useState('');
   useEffect(() => {
     let alive = true;
-    teaserEntry.demoCode().then(
+    reloadOnChunkError(teaserEntry.demoCode).then(
       (c) => alive && setCode(c),
       () => {},
     );

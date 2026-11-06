@@ -23,5 +23,5 @@ test('a missing route chunk (stale page after a redeploy) reloads the page once'
   await expect(page.getByRole('heading', { level: 1, name: 'Algorithms' })).toBeVisible();
   expect(failed).toBe(2);
   expect(await page.evaluate(() => (window as unknown as { __beforeReload?: boolean }).__beforeReload)).toBeUndefined();
-  expect(await page.evaluate(() => sessionStorage.getItem('webcgal:chunk-reload'))).toBeNull();
+  expect(await page.evaluate(() => sessionStorage.getItem('webcgal:chunk-reload-at'))).not.toBeNull(); // kept: no second reload within 10 s
 });

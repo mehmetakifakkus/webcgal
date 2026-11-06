@@ -29,7 +29,7 @@
 }
 .step-player-transport .btn { min-height: 2rem; padding: 0.3rem 0.6rem; font-size: var(--fs-sm); }
 .step-player-transport .btn-ghost { color: var(--text-muted); }
-.step-player-transport .btn-ghost:hover { color: var(--text); background: var(--surface-raised); }
+.step-player-transport .btn-ghost:hover:not(:disabled) { color: var(--text); background: var(--surface-raised); }
 .step-player-play { min-width: 5.25rem; }
 .icon { width: 1em; height: 1em; fill: currentColor; }
 .icon-stroke { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType } from 'react';
+import { useEffect, useRef, useState, type ComponentType, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import CodeRunner from '../components/CodeRunner';
 import StepPlayer from '../components/StepPlayer';
@@ -30,6 +30,22 @@ export default function AlgorithmPage({ entry }: { entry: AlgorithmEntry }) {
   const [, setError] = useState<unknown>(null);
   const tabs = tabsFor(entry);
   const [active, setActive] = useState<TabId>(tabs[0].id);
+  const tabRefs = useRef(new Map<TabId, HTMLButtonElement>());
+
+  // roving focus: Left/Right (wrapping), Home and End select and focus another tab
+  const onTabKey = (e: KeyboardEvent) => {
+    const i = tabs.findIndex((t) => t.id === active);
+    const next =
+      e.key === 'ArrowRight' ? (i + 1) % tabs.length
+      : e.key === 'ArrowLeft' ? (i - 1 + tabs.length) % tabs.length
+      : e.key === 'Home' ? 0
+      : e.key === 'End' ? tabs.length - 1
+      : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    setActive(tabs[next].id);
+    tabRefs.current.get(tabs[next].id)?.focus();
+  };
 
   useEffect(() => {
     let alive = true;
@@ -85,15 +101,21 @@ export default function AlgorithmPage({ entry }: { entry: AlgorithmEntry }) {
             <ready.Content />
           </div>
           <section className="algorithm-workspace surface" aria-label="Interactive demo">
-            <div role="tablist" aria-label="Views" className="tabs">
+            <div role="tablist" aria-label="Views" className="tabs" onKeyDown={onTabKey}>
               {tabs.map((t) => (
                 <button
                   key={t.id}
+                  ref={(el) => {
+                    if (el) tabRefs.current.set(t.id, el);
+                    else tabRefs.current.delete(t.id);
+                  }}
                   type="button"
                   role="tab"
                   id={`tab-${t.id}`}
                   aria-selected={t.id === active}
-                  aria-controls={`panel-${t.id}`}
+                  // only the selected tab's panel is rendered
+                  aria-controls={t.id === active ? `panel-${t.id}` : undefined}
+                  tabIndex={t.id === active ? 0 : -1}
                   onClick={() => setActive(t.id)}
                 >
                   {t.label}

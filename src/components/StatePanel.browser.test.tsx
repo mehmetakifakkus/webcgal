@@ -37,13 +37,13 @@ test('shows empty text', async () => {
   await expect.element(fallback.getByText('Empty', { exact: true })).toBeVisible()
 })
 
-test('more than ten rows get the multi-column layout', async () => {
+test('more than seven rows get the multi-column layout', async () => {
   const rows = (k: number) => Array.from({ length: k }, (_, i) => ({ text: `v${i + 1}   regular` }))
-  const many = await render(<StatePanel panel={{ title: 'Vertex types', rows: rows(14) }} />)
+  const many = await render(<StatePanel panel={{ title: 'Vertex types', rows: rows(8) }} />)
   const list = many.getByRole('region', { name: 'Vertex types' }).element().querySelector('ol')!
   expect(list.className).toBe('state-panel-rows many')
-  // 1280px viewport: two columns, so the 14 rows fit without scrolling
+  // 1280px viewport: two columns, so 8–14 rows fit without scrolling
   expect(getComputedStyle(list).columnCount).toBe('2')
-  const few = await render(<StatePanel panel={{ title: 'Pieces', rows: rows(10) }} />)
+  const few = await render(<StatePanel panel={{ title: 'Pieces', rows: rows(7) }} />)
   expect(few.getByRole('region', { name: 'Pieces' }).element().querySelector('ol')!.className).toBe('state-panel-rows')
 })

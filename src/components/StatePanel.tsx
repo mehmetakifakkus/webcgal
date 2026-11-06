@@ -1,7 +1,8 @@
 import type { Panel } from '../players/types'
 import './StatePanel.css'
 
-const MANY_ROWS = 10
+// about 7 rows fit in the panel's 16rem height; longer lists (8–14 vertex types) use two columns
+const MANY_ROWS = 7
 
 /** A titled list of rows describing part of the algorithm's state; highlighted rows get a colour. */
 export default function StatePanel({ panel }: { panel: Panel }) {

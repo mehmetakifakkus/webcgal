@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const SCREENS = '/home/user/webcgal/.superpowers/sdd/2026-11-06-webcgal-modernization/screens'
+const SCREENS =
+  process.env.SCREENS_DIR ??
+  fileURLToPath(new URL('../../.superpowers/sdd/2026-11-06-webcgal-modernization/screens', import.meta.url))
 const save = process.env.SAVE_SCREENS === '1'
 
 const pages = [

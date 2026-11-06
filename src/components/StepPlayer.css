@@ -74,7 +74,13 @@
   font-size: 0.85rem;
   line-height: 1.55;
 }
-.pseudocode li { padding: 0.15rem 0.5rem; border-radius: var(--radius-sm); transition: background-color 0.15s; }
+.pseudocode li {
+  /* hanging indent: wrapped parts of a line start 2ch right of the line's own indentation */
+  padding: 0.15rem 0.5rem 0.15rem calc(0.5rem + var(--indent, 0) * 1ch + 2ch);
+  text-indent: -2ch;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+}
 .pseudocode li::marker { color: var(--text-muted); font-size: 0.8em; }
 .pseudocode code { white-space: pre-wrap; font-family: inherit; font-size: inherit; }
 .pseudocode li.active { background: var(--accent); color: var(--accent-contrast); box-shadow: var(--shadow-sm); }

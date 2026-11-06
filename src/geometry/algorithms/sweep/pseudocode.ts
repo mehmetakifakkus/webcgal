@@ -21,7 +21,7 @@ export const SEGMENT_INTERSECTION_PSEUDOCODE: string[] = [
   'FindNewEvent(sl, sr, p)',
   '    if sl and sr intersect below the sweep line, or on it to the right of p, and the point is not yet in Q',
   '        Insert the intersection point as an event into Q',
-  '    (extension) After the insertion, for each pair of segments in U(p) ∪ C(p) with one of them in U(p): if they are collinear and overlap',
+  '    (extension, in HandleEventPoint after inserting U(p) ∪ C(p) into T) for each pair of segments in U(p) ∪ C(p) with one of them in U(p): if they are collinear and overlap',
   '        (extension) Report their common part as an overlap, once per pair',
 ]
 

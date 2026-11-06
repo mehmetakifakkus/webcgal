@@ -9,8 +9,8 @@ An imaginary horizontal *sweep line* moves from the top of the plane downwards. 
 - The **event queue** *Q* holds the points where the sweep line has to stop: all segment endpoints, and the intersection points found so far below the sweep line. Events are ordered by decreasing y, and from left to right on equal y.
 - The **status structure** *T* holds the segments that currently cross the sweep line, ordered from left to right. A segment is inserted at its upper endpoint, removed at its lower endpoint, and segments that meet at an intersection swap their order there.
 
-At each event point the algorithm updates *T* and tests only the segments that have just become neighbours, adding any intersection below the sweep line to *Q*. Both structures are balanced search trees, so each event costs O(log n).
+At each event point the algorithm updates *T* and tests only the segments that have just become neighbours, adding any intersection below the sweep line to *Q*. Both structures are balanced search trees (in the book; this demo uses sorted arrays, which is fine at teaching scale), so each event costs O(log n).
 
 The book assumes that no two segments overlap. Beyond the book's assumptions, this page also handles collinear overlapping segments (reported as overlaps).
 
-Drag the endpoints, pick a preset to see the degenerate cases, and follow the two panels next to the pseudocode. The **Code** tab runs the same algorithm through `findIntersections`; see the [documentation](/documentation) for the rest of the library.
+Drag the endpoints, pick a preset to see the degenerate cases, and follow the two panels under the canvas. The **Code** tab runs the same algorithm through `findIntersections`; see the [documentation](/documentation) for the rest of the library.

@@ -2,7 +2,7 @@ import type { Scene } from '../engine/scene'
 import type { Step } from '../geometry/steps'
 import type { Pt } from '../geometry/types'
 
-/** A side panel next to the pseudocode (e.g. an event queue); its content comes entirely from the module. */
+/** A state panel under the canvas (e.g. an event queue); its content comes entirely from the module. */
 export type Panel = {
   title: string
   rows: { text: string; highlight?: 'active' | 'testing' | 'new' }[]
@@ -28,7 +28,7 @@ export type PlayerModule<S, I> = {
   handles(input: I): Pt[]
   /** A copy of `input` with handle `index` moved to `p`; `input` itself is left unchanged. */
   moveHandle(input: I, index: number, p: Pt): I
-  /** Side panels for the given step, shown under the pseudocode. */
+  /** State panels for the given step, shown under the canvas. */
   panels?(step: Step<S>, input: I): Panel[]
   /** Canvas size in scene units (default 775 × 360). */
   canvas?: { width: number; height: number }

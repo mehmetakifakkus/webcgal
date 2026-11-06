@@ -4,10 +4,10 @@ Finds every intersection among a set of line segments with the sweep-line algori
 findIntersections(segments)
 ```
 
-`segments` is an array of objects `{ a, b }` whose endpoints are `Point` objects or plain `{ x, y }` objects. The result is an object with two lists. Segments are referred to by their 0-based index in the input array.
+`segments` is an array of objects `{ a, b }` (a pair `[a, b]` works too) whose endpoints are `Point` objects, plain `{ x, y }` objects or `[x, y]` arrays; other input throws an error. The result is an object with two lists. Segments are referred to by their 0-based index in the input array.
 
 - `points`: `[{ p, segments }]`. Each entry is a single intersection point `p` (a `Point`) and the indices of all segments passing through it.
-- `overlaps`: `[{ a, b, segments }]`. Each entry is a collinear stretch shared by several segments, from point `a` to point `b`, with the indices of the segments that cover it.
+- `overlaps`: `[{ a, b, segments }]`. Each entry is a collinear stretch shared by two segments, from point `a` to point `b`, with their two indices `[i, j]`.
 
 `bruteForceIntersections(segments)` returns the same result by checking every pair of segments in O(n²) time. It is slower, but handy for checking `findIntersections`.
 

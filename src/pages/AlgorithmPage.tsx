@@ -1,0 +1,102 @@
+import { useEffect, useState, type ComponentType } from 'react';
+import CodeRunner from '../components/CodeRunner';
+import StepPlayer from '../components/StepPlayer';
+import type { PlayerModule } from '../players/types';
+import type { AlgorithmEntry } from '../registry';
+
+type Loaded = {
+  slug: string;
+  Content: ComponentType<Record<string, unknown>>;
+  code: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  player?: PlayerModule<any>;
+};
+
+type TabId = 'steps' | 'code';
+type Tab = { id: TabId; label: string };
+
+/** Tabs of an algorithm page. The first one is selected when the page opens. */
+function tabsFor(entry: AlgorithmEntry): Tab[] {
+  const code: Tab = { id: 'code', label: 'Code' };
+  return entry.player ? [{ id: 'steps', label: 'Step by step' }, code] : [code];
+}
+
+const DEFAULT_CANVAS = { id: 'canvas-1', width: 775, height: 360, label: '' };
+
+export default function AlgorithmPage({ entry }: { entry: AlgorithmEntry }) {
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
+  const [, setError] = useState<unknown>(null);
+  const tabs = tabsFor(entry);
+  const [active, setActive] = useState<TabId>(tabs[0].id);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([entry.content(), entry.demoCode(), entry.player?.()]).then(
+      ([mdx, code, player]) => {
+        if (alive) setLoaded({ slug: entry.slug, Content: mdx.default, code, player: player?.default });
+      },
+      (e: unknown) => {
+        // rethrow during render so the page's ErrorBoundary shows it
+        if (alive)
+          setError(() => {
+            throw e;
+          });
+      },
+    );
+    return () => {
+      alive = false;
+    };
+  }, [entry]);
+
+  useEffect(() => {
+    const previous = document.title;
+    document.title = `${entry.name} · WebCgal`;
+    return () => {
+      document.title = previous;
+    };
+  }, [entry.name]);
+
+  const ready = loaded?.slug === entry.slug ? loaded : null;
+  const [main, ...extra] = entry.canvases ?? [DEFAULT_CANVAS];
+
+  return (
+    <article className="algorithm-page">
+      <h1>{entry.name}</h1>
+      {ready ? (
+        <>
+          <div className="algorithm-text">
+            <ready.Content />
+          </div>
+          <div role="tablist" aria-label="Views" className="tabs">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                id={`tab-${t.id}`}
+                aria-selected={t.id === active}
+                aria-controls={`panel-${t.id}`}
+                onClick={() => setActive(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div role="tabpanel" id={`panel-${active}`} aria-labelledby={`tab-${active}`}>
+            {active === 'steps' && ready.player && <StepPlayer key={entry.slug} module={ready.player} />}
+            {active === 'code' && (
+              <CodeRunner
+                key={entry.slug}
+                initialCode={ready.code}
+                canvas={main}
+                extraCanvases={extra.length ? extra : undefined}
+              />
+            )}
+          </div>
+        </>
+      ) : (
+        <p className="loading">Loading…</p>
+      )}
+    </article>
+  );
+}

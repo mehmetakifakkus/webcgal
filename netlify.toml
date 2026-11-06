@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[redirects]]
+  from = "/duality"
+  to = "/algorithms/duality"
+  status = 301
+
+[[redirects]]
+  from = "/smallestEnclosingDisk"
+  to = "/algorithms/smallestEnclosingDisk"
+  status = 301
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

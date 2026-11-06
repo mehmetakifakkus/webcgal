@@ -7,4 +7,10 @@
 **/DS_Store?
 
 #sub-folders# since it has own repository 
-node_modules/**
+
+node_modules
+dist
+test-results
+playwright-report
+*.tsbuildinfo
+.netlify

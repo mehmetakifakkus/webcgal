@@ -1,7 +1,7 @@
 import paper from 'paper'
 import { buildApi, createGuard } from './api'
 import { errorText, stackLine, type OutputLine } from './output'
-import { offAll, setSceneTeardown, takeSceneTeardown, type Scene } from './scene'
+import { offAll, offInputHandlers, setSceneTeardown, takeSceneTeardown, type Scene } from './scene'
 
 export type { OutputLine }
 
@@ -37,6 +37,7 @@ patchArray('clear', function () {
 // PaperScript operator helpers. paper.js keeps its own copies private, so these
 // mirror PaperScript.js: compiled code calls them for + - * / % == != on values
 // that implement __add, __subtract... (Point, Size, Color).
+// Copied from paper.js 0.17.0 src/core/PaperScript.js — MIT License, © Jürg Lehni & Jonathan Puckey. Keep in sync with paper's compile() output.
 
 const binaryOperators: Record<string, string> = {
   '+': '__add', '-': '__subtract', '*': '__multiply', '/': '__divide', '%': '__modulo', '==': '__equals', '!=': '__equals',
@@ -209,8 +210,8 @@ export function run(code: string, opts: RunOptions): RunResult {
   setSceneTeardown(scene, () => {
     active = false
     view.onFrame = null
-    view.onResize = null
     offAll(view, 'frame')
+    offInputHandlers(view) // view.onMouseDown = ..., view.on('click', ...) etc. from user code
     for (const t of scope.tools.slice()) t.remove()
     for (const s of userScopes) release(s)
     userScopes = []

@@ -26,8 +26,32 @@ export function takeSceneTeardown(scene: Scene): (() => void) | undefined {
 }
 
 /** Removes every `type` handler of a view (paper's typings only declare the object form of off()). */
-export function offAll(view: paper.View, type: 'frame' | 'resize') {
+export function offAll(view: paper.View, type: string) {
   ;(view as unknown as { off(type: string): void }).off(type)
+}
+
+/** Mouse, key and resize events user code can attach to a view, as handler property and event type. */
+const VIEW_INPUT_EVENTS = {
+  onMouseDown: 'mousedown',
+  onMouseUp: 'mouseup',
+  onMouseMove: 'mousemove',
+  onMouseDrag: 'mousedrag',
+  onClick: 'click',
+  onDoubleClick: 'doubleclick',
+  onMouseEnter: 'mouseenter',
+  onMouseLeave: 'mouseleave',
+  onKeyDown: 'keydown',
+  onKeyUp: 'keyup',
+  onResize: 'resize',
+} as const
+
+/** Removes every mouse, key and resize handler of a view: the `on*` properties and those added with on(). */
+export function offInputHandlers(view: paper.View) {
+  const props = view as unknown as Record<string, unknown>
+  for (const [prop, type] of Object.entries(VIEW_INPUT_EVENTS)) {
+    props[prop] = null
+    offAll(view, type)
+  }
 }
 
 /** Matrix that makes y point up inside a canvas of the given height. */

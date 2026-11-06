@@ -102,3 +102,7 @@ test('presets expose names', () => {
   expect(sweepLinePlayer.presets).toHaveLength(6)
   expect(sweepLinePlayer.presets!.map((p) => p.name)).toEqual(SWEEP_PRESETS.map((p) => p.name))
 })
+
+test('hint talks about endpoints', () => {
+  expect(sweepLinePlayer.hint).toBe('Drag the endpoints to change the input. Keys: ← → to step, Space to play or pause.')
+})

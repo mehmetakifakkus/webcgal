@@ -10,6 +10,8 @@ import './StepPlayer.css'
 
 /** Canvas size in scene units when the module does not set one. */
 const DEFAULT_CANVAS = { width: 775, height: 360 }
+/** Help line when the module does not set one. */
+const DEFAULT_HINT = 'Drag the points to change the input. Keys: ← → to step, Space to play or pause.'
 /** Grab radius in CSS pixels (and at least this many scene units). */
 const GRAB = 12
 
@@ -27,6 +29,8 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(5)
   const [scene, setScene] = useState<Scene | null>(null)
+  /** Index of the loaded preset as the select's value; "" once the input changes otherwise. */
+  const [preset, setPreset] = useState('')
   const inputRef = useRef(input)
   const presetId = useId()
   const { width, height } = module.canvas ?? DEFAULT_CANVAS
@@ -36,9 +40,10 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   const step = steps[Math.min(index, last)]
   const panels = useMemo(() => (step ? (module.panels?.(step, input) ?? []) : []), [module, step, input])
 
-  const replaceInput = useCallback((next: unknown) => {
+  const replaceInput = useCallback((next: unknown, presetValue = '') => {
     inputRef.current = next
     setInput(next)
+    setPreset(presetValue)
     setIndex(0)
     setPlaying(false)
   }, [])
@@ -126,6 +131,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
         raf = requestAnimationFrame(() => {
           raf = 0
           setInput(inputRef.current)
+          setPreset('')
           setIndex(0)
           setPlaying(false)
         })
@@ -185,11 +191,12 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
               <select
                 id={presetId}
                 className="select"
-                value=""
+                value={preset}
                 onChange={(e) => {
-                  if (e.target.value === '') return
-                  const preset = module.presets?.[Number(e.target.value)]
-                  if (preset) replaceInput(preset.input)
+                  const v = e.target.value
+                  if (v === '') return setPreset('') // the placeholder leaves the input as it is
+                  const chosen = module.presets?.[Number(v)]
+                  if (chosen) replaceInput(chosen.input, v)
                 }}
               >
                 <option value="">Choose a preset…</option>
@@ -209,9 +216,9 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
           </div>
         </div>
         <p className="step-player-description" aria-live="polite">{step?.description}</p>
-        <p className="step-player-hint">Drag the handles to change the input. Keys: ← → to step, Space to play or pause.</p>
+        <p className="step-player-hint">{module.hint ?? DEFAULT_HINT}</p>
         {panels.length ? (
-          // state panels stay next to the canvas, so they can be watched while stepping
+          // state panels stay under the canvas, so they can be watched while stepping
           <div className="step-player-panels">
             {panels.map((panel, i) => (
               <StatePanel key={i} panel={panel} />

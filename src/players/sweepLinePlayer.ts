@@ -32,6 +32,7 @@ const name = (i: number) => `s${i + 1}`
 const sweepLinePlayer: PlayerModule<SweepState, Segment[]> = {
   computeSteps: findIntersectionsSteps,
   pseudocode: SEGMENT_INTERSECTION_PSEUDOCODE,
+  hint: 'Drag the endpoints to change the input. Keys: ← → to step, Space to play or pause.',
   randomInput: () => Array.from({ length: SEGMENT_COUNT }, randomSegment),
   presets: SWEEP_PRESETS.map(({ name, segments }) => ({ name, input: segments })),
   handles: (segs) => segs.flatMap((s) => [s.a, s.b]),

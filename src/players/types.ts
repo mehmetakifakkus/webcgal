@@ -30,6 +30,8 @@ export type PlayerModule<S, I> = {
   moveHandle(input: I, index: number, p: Pt): I
   /** State panels for the given step, shown under the canvas. */
   panels?(step: Step<S>, input: I): Panel[]
+  /** Help line under the step description (default: drag the points, keys). */
+  hint?: string
   /** Canvas size in scene units (default 775 × 360). */
   canvas?: { width: number; height: number }
 }

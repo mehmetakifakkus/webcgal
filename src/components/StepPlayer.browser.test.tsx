@@ -137,16 +137,46 @@ test('preset select replaces input and resets', async () => {
   await screen.getByRole('button', { name: 'Next' }).click()
   await expect.element(screen.getByText('Step 2 / 3')).toBeVisible()
   const select = screen.getByLabelText('Preset')
+  const value = () => (select.element() as HTMLSelectElement).value
   await userEvent.selectOptions(select, 'Two crossing')
   await expect.element(screen.getByText('Step 1 / 3')).toBeVisible()
   expect(computeSteps).toHaveBeenLastCalledWith(PRESET_SEGMENTS)
-  // the placeholder is selected again, so the same preset can be applied once more
-  expect((select.element() as HTMLSelectElement).value).toBe('')
+  // the loaded preset stays shown in the select
+  expect(value()).toBe('0')
   expect(screen.getByRole('option', { name: 'Choose a preset…' }).query()).not.toBeNull()
   // choosing the placeholder does not apply preset 0
   const calls = computeSteps.mock.calls.length
   await userEvent.selectOptions(select, '')
   expect(computeSteps.mock.calls.length).toBe(calls)
+  // "New random input" shows the placeholder again
+  await userEvent.selectOptions(select, 'Two crossing')
+  expect(value()).toBe('0')
+  await screen.getByRole('button', { name: 'New random input' }).click()
+  await expect.poll(value).toBe('')
+  // so does dragging an endpoint
+  await userEvent.selectOptions(select, 'Two crossing')
+  expect(value()).toBe('0')
+  const canvas = screen.getByLabelText('Drawing canvas')
+  const r = (canvas.element() as HTMLCanvasElement).getBoundingClientRect()
+  const at = (p: Pt) => ({ x: (p.x * r.width) / 775, y: ((360 - p.y) * r.height) / 360 })
+  const from = PRESET_SEGMENTS[0].a
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: from.x + 40, y: from.y - 40 }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(value).toBe('')
+})
+
+test('hint text: default, or the module\'s own', async () => {
+  const { fakeSegmentModule } = makeSegmentModule()
+  const screen = await render(<StepPlayer module={fakeSegmentModule} />)
+  await expect
+    .element(screen.getByText('Drag the points to change the input. Keys: ← → to step, Space to play or pause.'))
+    .toBeVisible()
+  const custom = await render(<StepPlayer module={{ ...fakeSegmentModule, hint: 'Custom hint.' }} />)
+  await expect.element(custom.getByText('Custom hint.')).toBeVisible()
 })
 
 test('panels are rendered', async () => {

@@ -4,7 +4,8 @@ import './StatePanel.css'
 /** A titled list of rows describing part of the algorithm's state; highlighted rows get a colour. */
 export default function StatePanel({ panel }: { panel: Panel }) {
   return (
-    <section className="state-panel" aria-label={panel.title}>
+    // focusable: the panel scrolls when long, and keyboard users must be able to scroll it
+    <section className="state-panel" aria-label={panel.title} tabIndex={0}>
       <h3>{panel.title}</h3>
       {panel.rows.length === 0 ? (
         <p className="state-empty">{panel.empty ?? 'Empty'}</p>

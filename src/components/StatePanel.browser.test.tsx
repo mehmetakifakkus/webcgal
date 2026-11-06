@@ -25,6 +25,8 @@ test('renders rows with highlight classes', async () => {
   expect(items[1].className).toBe('state-row state-row-testing')
   expect(items[2].className).toBe('state-row')
   expect(section.element().querySelector('.state-empty')).toBeNull()
+  // scrollable when long, so it must be reachable by keyboard
+  expect(section.element().getAttribute('tabindex')).toBe('0')
 })
 
 test('shows empty text', async () => {

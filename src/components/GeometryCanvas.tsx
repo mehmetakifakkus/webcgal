@@ -7,12 +7,14 @@ type Props = {
   /** Called every time a scene is created (React StrictMode may do so twice). */
   onReady?: (scene: Scene) => void;
   id?: string;
+  /** Caption shown under the canvas. */
+  label?: string;
 };
 
 const debugEnabled = Boolean(import.meta.env.DEV || import.meta.env.VITE_E2E);
 
 /** A canvas with its own paper.js scene; the scene is disposed on unmount. */
-export default function GeometryCanvas({ width, height, onReady, id }: Props) {
+export default function GeometryCanvas({ width, height, onReady, id, label }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
@@ -29,9 +31,17 @@ export default function GeometryCanvas({ width, height, onReady, id }: Props) {
     };
   }, []);
 
+  const canvas = <canvas ref={canvasRef} id={id} width={width} height={height} aria-label="Drawing canvas" />;
+  if (!label)
+    return (
+      <div className="canvas-frame" style={{ maxWidth: width }}>
+        {canvas}
+      </div>
+    );
   return (
-    <div className="canvas-frame" style={{ maxWidth: width }}>
-      <canvas ref={canvasRef} id={id} width={width} height={height} aria-label="Drawing canvas" />
-    </div>
+    <figure className="canvas-frame" style={{ maxWidth: width }}>
+      {canvas}
+      <figcaption>{label}</figcaption>
+    </figure>
   );
 }

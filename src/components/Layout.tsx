@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
+import AlgorithmsNav from './AlgorithmsNav';
+import ErrorBoundary from './ErrorBoundary';
 
 const links = [
   { to: '/', label: 'Home', end: true },
@@ -9,6 +11,8 @@ const links = [
 ];
 
 export default function Layout({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const inAlgorithms = pathname === '/algorithms' || pathname.startsWith('/algorithms/');
   return (
     <div className="layout">
       <header className="site-header">
@@ -23,7 +27,11 @@ export default function Layout({ children }: { children: ReactNode }) {
           ))}
         </nav>
       </header>
-      <main>{children}</main>
+      {inAlgorithms && <AlgorithmsNav />}
+      <main>
+        {/* keyed by path: a page error does not stick when navigating to another page */}
+        <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
+      </main>
     </div>
   );
 }

@@ -11,8 +11,8 @@ export type CodeRunnerProps = {
   initialCode: string;
   /** localStorage key under which edits are kept. */
   storageKey?: string;
-  /** Inner canvas size, default 775x360. */
-  canvas?: { width: number; height: number };
+  /** Main canvas: inner size (default 775x360), optional element id and caption. */
+  canvas?: { width: number; height: number; id?: string; label?: string };
   /** Plain canvases reachable from user code by id (not paper scenes). */
   extraCanvases?: { id: string; width: number; height: number; label: string }[];
   /** Run once on mount, default true. */
@@ -147,7 +147,13 @@ export default function CodeRunner({
         <CodeEditor value={code} onChange={setCode} onRun={() => runCode(codeRef.current)} />
       </section>
       <section className="code-runner-canvases" aria-label="Canvas">
-        <GeometryCanvas width={canvas.width} height={canvas.height} onReady={handleReady} />
+        <GeometryCanvas
+          width={canvas.width}
+          height={canvas.height}
+          id={canvas.id}
+          label={canvas.label}
+          onReady={handleReady}
+        />
         {extraCanvases?.map((c) => (
           <figure key={c.id} className="canvas-frame" style={{ maxWidth: c.width }}>
             <canvas

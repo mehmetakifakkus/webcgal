@@ -42,7 +42,9 @@ export class StatusStructure {
 
   constructor(private segments: Segment[]) {}
 
+  /** Inserts segment i at sweep point p; a segment already present is ignored. */
   insert(i: number, p: Pt): void {
+    if (this.order.includes(i)) return
     const cmp = compareAt(this.segments, p)
     let lo = 0
     let hi = this.order.length

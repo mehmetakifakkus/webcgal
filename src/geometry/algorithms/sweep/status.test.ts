@@ -37,7 +37,7 @@ describe('StatusStructure', () => {
   it('findThrough returns all segments through p', () => {
     const st = new StatusStructure(base)
     for (const i of [0, 1, 2, 3]) st.insert(i, { x: 2, y: 2 })
-    expect([...st.findThrough({ x: 2, y: 2 })].sort()).toEqual([0, 1, 2, 3])
+    expect([...st.findThrough({ x: 2, y: 2 })].sort((a, b) => a - b)).toEqual([0, 1, 2, 3])
   })
 
   it('leftOf and rightOf exclude segments through p', () => {
@@ -56,6 +56,13 @@ describe('StatusStructure', () => {
     st.insert(0, { x: 2, y: 2 })
     expect(st.toArray()).toEqual([0, 1])
     expect(compareAt(segs, { x: 2, y: 2 })(0, 1)).toBeLessThan(0)
+  })
+
+  it('ignores a duplicate insert', () => {
+    const st = new StatusStructure(base)
+    st.insert(0, { x: 2, y: 3 })
+    st.insert(0, { x: 2, y: 3 })
+    expect(st.toArray()).toEqual([0])
   })
 
   it('remove updates neighbors', () => {

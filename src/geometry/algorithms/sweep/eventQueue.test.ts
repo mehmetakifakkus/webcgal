@@ -42,4 +42,23 @@ describe('EventQueue', () => {
     snap[0].upper.push(9)
     expect(q.toArray()[0].upper).toEqual([1])
   })
+
+  it('merges a noisy duplicate when other events share the y', () => {
+    const q = new EventQueue()
+    q.insert({ x: 1, y: 5 }, 0)
+    q.insert({ x: 100, y: 5 })
+    q.insert({ x: 1 + 2e-8, y: 5 - 1e-12 }, 1)
+    expect(q.size).toBe(2)
+    expect(q.has({ x: 1, y: 5 })).toBe(true)
+    expect(q.popNext()?.upper).toEqual([0, 1])
+  })
+
+  it('keeps y desc / x asc order for near-equal y values', () => {
+    const q = new EventQueue()
+    q.insert({ x: 5, y: 1 + 1e-9 })
+    q.insert({ x: 1, y: 1 })
+    q.insert({ x: 3, y: 1 - 1e-9 })
+    q.insert({ x: 0, y: 2 })
+    expect([0, 1, 2, 3].map(() => q.popNext()!.p.x)).toEqual([0, 1, 3, 5])
+  })
 })

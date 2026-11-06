@@ -1,14 +1,15 @@
 import type { Pt } from '../../types'
-import { samePt } from '../../primitives'
+import { GEOM_TOL, samePt } from '../../primitives'
 
 // Teaching scale (<= ~30 segments): a sorted array with binary search,
 // not the balanced tree from the book.
 
 export type SweepEvent = { p: Pt; upper: number[] }
 
-/** Sweep order: y descending, ties x ascending. */
+/** Sweep order: y descending, ties x ascending; y values within GEOM_TOL tie. */
 function before(p: Pt, q: Pt): boolean {
-  return p.y > q.y || (p.y === q.y && p.x < q.x)
+  if (Math.abs(p.y - q.y) <= GEOM_TOL) return p.x < q.x
+  return p.y > q.y
 }
 
 export class EventQueue {
@@ -29,8 +30,12 @@ export class EventQueue {
   /** Index of the event at p (within GEOM_TOL), or -1. */
   private find(p: Pt): number {
     const k = this.lowerBound(p)
-    for (const j of [k, k - 1, k + 1]) {
-      if (j >= 0 && j < this.events.length && samePt(this.events[j].p, p)) return j
+    const near = (j: number) => Math.abs(this.events[j].p.y - p.y) <= GEOM_TOL
+    for (let j = k; j < this.events.length && near(j); j++) {
+      if (samePt(this.events[j].p, p)) return j
+    }
+    for (let j = k - 1; j >= 0 && near(j); j--) {
+      if (samePt(this.events[j].p, p)) return j
     }
     return -1
   }

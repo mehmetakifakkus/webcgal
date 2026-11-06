@@ -5,6 +5,7 @@ import { mdxComponents } from '../components/MdxLink'
 import DocsNav from '../components/DocsNav'
 import { categories, findDoc, type DocEntry } from '../content/docs'
 import NotFound from './NotFound'
+import { reloadOnChunkError } from '../reloadOnChunkError'
 import './Docs.css'
 
 type Loaded = { name: string; Content: ComponentType<Record<string, unknown>> }
@@ -21,7 +22,7 @@ function DocPage({ entry }: { entry: DocEntry }) {
 
   useEffect(() => {
     let alive = true
-    entry.content().then(
+    reloadOnChunkError(entry.content).then(
       (mdx) => {
         if (alive) setLoaded({ name: entry.name, Content: mdx.default })
       },

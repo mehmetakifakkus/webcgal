@@ -15,6 +15,13 @@
   to = "/algorithms/smallestEnclosingDisk"
   status = 301
 
+# a missing chunk (e.g. a stale page after a redeploy) must fail as a 404, not get index.html;
+# the app then reloads once to load the new build
+[[redirects]]
+  from = "/assets/*"
+  to = "/404.html"
+  status = 404
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

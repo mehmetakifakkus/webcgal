@@ -4,14 +4,14 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import { algorithms, groups } from './registry';
+import { reloadOnChunkError } from './reloadOnChunkError';
 
-const AlgorithmsIndex = lazy(() => import('./pages/AlgorithmsIndex'));
-const AlgorithmPage = lazy(() => import('./pages/AlgorithmPage'));
-const DualityIndex = lazy(() => import('./pages/DualityIndex'));
-const Docs = lazy(() => import('./pages/Docs'));
-const DocItem = lazy(() => import('./pages/DocItem'));
-const Playground = lazy(() => import('./pages/Playground'));
-
+const AlgorithmsIndex = lazy(() => reloadOnChunkError(() => import('./pages/AlgorithmsIndex')));
+const AlgorithmPage = lazy(() => reloadOnChunkError(() => import('./pages/AlgorithmPage')));
+const DualityIndex = lazy(() => reloadOnChunkError(() => import('./pages/DualityIndex')));
+const Docs = lazy(() => reloadOnChunkError(() => import('./pages/Docs')));
+const DocItem = lazy(() => reloadOnChunkError(() => import('./pages/DocItem')));
+const Playground = lazy(() => reloadOnChunkError(() => import('./pages/Playground')));
 
 export default function App() {
   return (

@@ -5,6 +5,7 @@ import { mdxComponents } from '../components/MdxLink';
 import StepPlayer from '../components/StepPlayer';
 import type { PlayerModule } from '../players/types';
 import { groups, type AlgorithmEntry } from '../registry';
+import { reloadOnChunkError } from '../reloadOnChunkError';
 import './AlgorithmPage.css';
 
 type Loaded = {
@@ -50,7 +51,7 @@ export default function AlgorithmPage({ entry }: { entry: AlgorithmEntry }) {
 
   useEffect(() => {
     let alive = true;
-    Promise.all([entry.content(), entry.demoCode(), entry.player?.()]).then(
+    reloadOnChunkError(() => Promise.all([entry.content(), entry.demoCode(), entry.player?.()])).then(
       ([mdx, code, player]) => {
         if (alive) setLoaded({ slug: entry.slug, Content: mdx.default, code, player: player?.default });
       },

@@ -624,6 +624,13 @@ describe('triangulation api', () => {
       ['triangulate(5)', 'triangulate: expected a Polygon or an array of points'],
       ["makeMonotone([[0, 0], [1, 0], 'x'])", 'makeMonotone: expected a Polygon or an array of points (item 3 is not a point)'],
       ['triangulate([[0, 0], [1, 0]])', 'triangulate: the polygon needs at least 3 vertices'],
+      // two consecutive vertices closer than 0.001
+      ['triangulate([[0, 0], [100, 0], [100, 0.0005], [0, 100]])', 'triangulate: vertices must be at least 0.001 apart'],
+      // v3 almost on v5 (not consecutive): passes the simplicity test, but the sweep breaks down
+      [
+        'makeMonotone([[82, 2], [3, 37], [20.99999967183551, -38.999999773744904], [-20, -24], [21, -39]])',
+        'makeMonotone: the polygon is too degenerate to triangulate (vertices closer than about 0.001 apart)',
+      ],
     ]) {
       const { exec, lines } = setup()
       const res = exec(code)

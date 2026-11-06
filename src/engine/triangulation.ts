@@ -6,6 +6,9 @@ import { isPointInput } from './segments'
 /** A polygon as user code passes it: an engine `Polygon` (its `points`) or an array of points. */
 export type PolygonInput = { points: PointInput[] } | PointInput[]
 
+/** Consecutive vertices must be at least this far apart (closer ones make the sweep's comparisons unreliable). */
+const MIN_VERTEX_DISTANCE = 1e-3
+
 const describe = (v: unknown) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v)
 
 /**
@@ -19,10 +22,18 @@ export function toPolygon(input: unknown, fn: string): Pt[] {
       ? (input as { points: unknown[] }).points
       : input
   if (!Array.isArray(list)) throw new Error(`${prefix} (got ${describe(input)})`)
-  return list.map((p: unknown, i) => {
+  const pts = list.map((p: unknown, i) => {
     if (!isPointInput(p)) throw new Error(`${prefix} (item ${i + 1} is not a point)`)
     return toPt(p)
   })
+  const n = pts.length
+  if (n >= 2)
+    for (let i = 0; i < n; i++) {
+      const a = pts[i]
+      const b = pts[(i + 1) % n]
+      if (Math.hypot(a.x - b.x, a.y - b.y) < MIN_VERTEX_DISTANCE) throw new Error(`${fn}: vertices must be at least 0.001 apart`)
+    }
+  return pts
 }
 
 /** The geometry's triangulation with the API's messages (`fn` names the API function). */
@@ -34,7 +45,8 @@ function run(input: unknown, fn: string): TriangulationResult {
     const msg = e instanceof Error ? e.message : String(e)
     if (msg === 'polygon must be simple') throw new Error(`${fn}: the polygon must be simple (no crossing edges)`)
     if (msg === 'polygon needs at least 3 vertices') throw new Error(`${fn}: the polygon needs at least 3 vertices`)
-    throw e
+    // anything else is the algorithm failing on near-coincident vertices
+    throw new Error(`${fn}: the polygon is too degenerate to triangulate (vertices closer than about 0.001 apart)`)
   }
 }
 

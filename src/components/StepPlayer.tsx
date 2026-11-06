@@ -210,12 +210,17 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
         </div>
         <p className="step-player-description" aria-live="polite">{step?.description}</p>
         <p className="step-player-hint">Drag the handles to change the input. Keys: ← → to step, Space to play or pause.</p>
+        {panels.length ? (
+          // state panels stay next to the canvas, so they can be watched while stepping
+          <div className="step-player-panels">
+            {panels.map((panel, i) => (
+              <StatePanel key={i} panel={panel} />
+            ))}
+          </div>
+        ) : null}
       </div>
       <div className="step-player-side">
         <PseudocodePanel lines={module.pseudocode} active={step?.line ?? -1} />
-        {panels.map((panel, i) => (
-          <StatePanel key={i} panel={panel} />
-        ))}
       </div>
     </div>
   )

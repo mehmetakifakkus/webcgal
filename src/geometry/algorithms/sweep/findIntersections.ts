@@ -71,18 +71,9 @@ export function runSweep(segments: Segment[], record?: Recorder): IntersectionRe
     const testing: [number, number] = [sl, sr]
     const r = segmentIntersection(segments[sl], segments[sr])
     const pre = `Test ${name(sl)} and ${name(sr)}`
-    if (r?.kind === 'overlap') {
-      // Neighbours that overlap were already found by the in-event check (their
-      // common part lies above p); kept for safety, deduplicated by the Set.
-      const fresh = !overlapPairs.has(`${Math.min(sl, sr)},${Math.max(sl, sr)}`)
-      rec(19, `${pre}: collinear and overlapping${fresh ? '' : ', overlap already reported'}`, {
-        current: p,
-        testing,
-      })
-      reportOverlap(sl, sr, r.a, r.b, p)
-      return
-    }
-    if (r) {
+    // FindNewEvent handles point intersections only: overlaps are found by the
+    // in-event check in handleEventPoint (see its comment).
+    if (r?.kind === 'point') {
       const q = r.p
       const ahead =
         q.y < p.y - GEOM_TOL || (Math.abs(q.y - p.y) <= GEOM_TOL && q.x > p.x + GEOM_TOL)

@@ -181,7 +181,7 @@
 **Interfaces:**
 - Produces (`types.ts`, spec §4.1): `modes?: { id: string; label: string }[]`; `computeSteps(input: I, mode?: string)`; `dimmedLines?(mode?: string): number[]`; `validate?(input: I): string | null`; `renderInvalid?(scene: Scene, input: I): void`.
 - `StepPlayer` davranışı:
-  - `mode` durumu: `module.modes?.[0]?.id`; "Mode" etiketli `<select>` (preset menüsünün yanında) yalnızca modlar varsa; değişince `setIndex(0)`, `setPlaying(false)`; `useMemo(computeSteps, [module, input, mode])`. Sürükleme/preset/random modu **korumaz** → düzeltme: **korur** (mode state'ine dokunmaz).
+  - `mode` durumu: `module.modes?.[0]?.id`; "Mode" etiketli `<select>` (preset menüsünün yanında) yalnızca modlar varsa; değişince `setIndex(0)`, `setPlaying(false)`; `useMemo(computeSteps, [module, input, mode])`. Sürükleme, preset ve "New random input" modu **korur** (mode state'ine dokunmaz).
   - `invalid = module.validate?.(input) ?? null`. `invalid` doluysa: canvas üstünde `<div role="alert" class="step-player-alert">{invalid}</div>`; First/Previous/Play/Next/Last, Mode ve Preset kontrolleri `disabled`; "New random input" **açık** (çıkış yolu); `steps` hesaplanmaz (`[]`), sayaç "Step – / –"; çizim `module.renderInvalid?.(scene, input)` yoksa `scene.clear()` + tutamaçlar.
   - Sürükleme: `lastValidRef` (son geçerli girdi). Her hareket: `next = moveHandle(...)`; `validate(next)` null ise `lastValidRef = next`; her durumda `setInput(next)` (tutamaç fareyi izler; geçersizse uyarı). `onMouseUp`: girdi geçersizse `replaceInput(lastValidRef.current)`.
   - `PseudocodePanel` `dimmed?: number[]` → ilgili `<li>`'lere `pseudocode-dimmed` sınıfı (opacity .45); `aria-current` mantığı değişmez. `StepPlayer` `module.dimmedLines?.(mode)` geçirir.

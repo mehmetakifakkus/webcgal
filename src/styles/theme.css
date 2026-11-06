@@ -93,6 +93,18 @@
   --sweep-found: #c01c28;
   --sweep-overlap: #26a269;
 
+  /* polygon triangulation player */
+  --tri-start: #1a5fb4;
+  --tri-end: #1a5fb4;
+  --tri-split: #e66100;
+  --tri-merge: #9141ac;
+  --tri-regular: #1c1e21;
+  --tri-partition: #c01c28;
+  --tri-diagonal: #26a269;
+  --tri-sweep: #6b7280;
+  --tri-active: #4f46e5;
+  --tri-invalid: #c01c28;
+
   /* names used before the token set (kept for existing component styles) */
   --fg: var(--text);
   --muted: var(--text-muted);
@@ -141,5 +153,17 @@
     --sweep-event: #e66100;
     --sweep-found: #c01c28;
     --sweep-overlap: #26a269;
+
+    /* same as light (canvas stays white) */
+    --tri-start: #1a5fb4;
+    --tri-end: #1a5fb4;
+    --tri-split: #e66100;
+    --tri-merge: #9141ac;
+    --tri-regular: #1c1e21;
+    --tri-partition: #c01c28;
+    --tri-diagonal: #26a269;
+    --tri-sweep: #6b7280;
+    --tri-active: #4f46e5;
+    --tri-invalid: #c01c28;
   }
 }

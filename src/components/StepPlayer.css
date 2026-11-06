@@ -54,9 +54,16 @@
 }
 .step-player-preset .select { min-width: 0; max-width: 100%; min-height: 2rem; font-size: var(--fs-sm); }
 
-/* invalid input: shown above the canvas while no steps can be computed */
+/* invalid input: an overlay at the top of the canvas, so that it never shifts the canvas mid-drag */
+.step-player-stage { position: relative; }
 .step-player-alert {
-  margin: 0 0 var(--space-3);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  pointer-events: none;
+  margin: 0;
   padding: var(--space-3) var(--space-4);
   color: var(--text);
   background: color-mix(in srgb, var(--error) 8%, var(--surface));

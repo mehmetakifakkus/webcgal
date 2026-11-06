@@ -188,12 +188,14 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   return (
     <div ref={containerRef} className="step-player" tabIndex={0} aria-label="Step by step player">
       <div className="step-player-main">
-        {invalid !== null ? (
-          <div role="alert" className="step-player-alert">
-            {invalid}
-          </div>
-        ) : null}
-        <GeometryCanvas width={width} height={height} onReady={setScene} />
+        <div className="step-player-stage">
+          {invalid !== null ? (
+            <div role="alert" className="step-player-alert">
+              {invalid}
+            </div>
+          ) : null}
+          <GeometryCanvas width={width} height={height} onReady={setScene} />
+        </div>
         <div className="step-player-controls" role="group" aria-label="Player controls">
           <div className="step-player-transport">
             <button type="button" className="btn btn-ghost" onClick={() => go(0)} aria-label="First" title="First" disabled={invalid !== null}>

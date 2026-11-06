@@ -17,6 +17,11 @@ function collectErrors(page: Page) {
   return errors
 }
 
+/** Pages with a step player open on "Step by step"; the demo code is on the Code tab. */
+async function openCodeTab(page: Page) {
+  await page.getByRole('tab', { name: 'Code' }).click()
+}
+
 const errorLines = (page: Page) => page.getByRole('log').locator('.output-line.error')
 
 test('each algorithm page runs its demo', async ({ page }) => {
@@ -24,6 +29,7 @@ test('each algorithm page runs its demo', async ({ page }) => {
   for (const { path, title } of pages) {
     await page.goto(path)
     await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
+    await openCodeTab(page)
     await expect(page.getByRole('textbox', { name: 'Code editor' })).toBeVisible()
     await expect(page.getByLabel('Drawing canvas')).toBeVisible()
     // let a few frames run
@@ -61,6 +67,7 @@ test('navigating between algorithms leaves no errors', async ({ page }) => {
   ]) {
     await menu.getByRole('link', { name, exact: true }).click()
     await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
+    await openCodeTab(page)
     await page.waitForTimeout(300)
     await expect(errorLines(page)).toHaveCount(0)
   }
@@ -70,6 +77,7 @@ test('navigating between algorithms leaves no errors', async ({ page }) => {
 test('drag works at 375px width', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 })
   await page.goto('/algorithms/convexHull')
+  await openCodeTab(page)
   await expect(page.getByLabel('Drawing canvas')).toBeVisible()
   await page.getByLabel('Drawing canvas').scrollIntoViewIfNeeded()
   await page.waitForFunction(() => window.__webcgalDebug?.scene.paper.project.getItem({ name: '_p0' }))

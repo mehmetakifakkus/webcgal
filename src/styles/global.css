@@ -8,6 +8,11 @@
   --accent-contrast: #ffffff;
   --error: #c01c28;
   --warn: #8a5a00;
+  --hull-current: #c64600;
+  --hull-testing: #8a2be2;
+  --hull-upper: #1a5fb4;
+  --hull-lower: #1b8553;
+  --hull-removed: #c01c28;
   color-scheme: light dark;
 }
 
@@ -22,6 +27,11 @@
     --accent-contrast: #0d1117;
     --error: #ff7b72;
     --warn: #e3b341;
+    --hull-current: #ffa348;
+    --hull-testing: #d0a0ff;
+    --hull-upper: #7db2ff;
+    --hull-lower: #57e389;
+    --hull-removed: #ff7b72;
   }
 }
 

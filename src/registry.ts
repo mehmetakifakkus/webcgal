@@ -1,10 +1,12 @@
 import type { ComponentType } from 'react';
+import type { PlayerModule } from './players/types';
 
 /** A compiled MDX document (lazy-loaded). */
 export type MDXModule = { default: ComponentType<Record<string, unknown>> };
 
 /** Step-by-step player of an algorithm (added by the algorithms that have one). */
-export type PlayerModule = { default: ComponentType<Record<string, unknown>> };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type PlayerImport = { default: PlayerModule<any> };
 
 export type CanvasSpec = { id: string; width: number; height: number; label: string };
 
@@ -17,7 +19,7 @@ export type AlgorithmEntry = {
   summary: string;
   content: () => Promise<MDXModule>;
   demoCode: () => Promise<string>;
-  player?: () => Promise<PlayerModule>;
+  player?: () => Promise<PlayerImport>;
   /**
    * Canvases of demos that draw on two canvases: the first is the main scene,
    * the others are plain canvases reached with `document.getElementById(id)`.
@@ -38,6 +40,7 @@ export const algorithms: AlgorithmEntry[] = [
     summary: 'The well-known convex hull problem, a very basic algorithm in computational geometry.',
     content: () => import('./content/algorithms/convexHull/index.mdx'),
     demoCode: () => import('./content/algorithms/convexHull/demo.js?raw').then(raw),
+    player: () => import('./players/convexHullPlayer'),
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {

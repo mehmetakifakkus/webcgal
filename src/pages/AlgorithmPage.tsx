@@ -1,16 +1,24 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import CodeRunner from '../components/CodeRunner';
+import StepPlayer from '../components/StepPlayer';
+import type { PlayerModule } from '../players/types';
 import type { AlgorithmEntry } from '../registry';
 
-type Loaded = { slug: string; Content: ComponentType<Record<string, unknown>>; code: string };
+type Loaded = {
+  slug: string;
+  Content: ComponentType<Record<string, unknown>>;
+  code: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  player?: PlayerModule<any>;
+};
 
-type TabId = 'code';
+type TabId = 'steps' | 'code';
 type Tab = { id: TabId; label: string };
 
 /** Tabs of an algorithm page. The first one is selected when the page opens. */
-function tabsFor(_entry: AlgorithmEntry): Tab[] {
-  // A "Step by step" tab goes first here for entries with a player.
-  return [{ id: 'code', label: 'Code' }];
+function tabsFor(entry: AlgorithmEntry): Tab[] {
+  const code: Tab = { id: 'code', label: 'Code' };
+  return entry.player ? [{ id: 'steps', label: 'Step by step' }, code] : [code];
 }
 
 const DEFAULT_CANVAS = { id: 'canvas-1', width: 775, height: 360, label: '' };
@@ -23,9 +31,9 @@ export default function AlgorithmPage({ entry }: { entry: AlgorithmEntry }) {
 
   useEffect(() => {
     let alive = true;
-    Promise.all([entry.content(), entry.demoCode()]).then(
-      ([mdx, code]) => {
-        if (alive) setLoaded({ slug: entry.slug, Content: mdx.default, code });
+    Promise.all([entry.content(), entry.demoCode(), entry.player?.()]).then(
+      ([mdx, code, player]) => {
+        if (alive) setLoaded({ slug: entry.slug, Content: mdx.default, code, player: player?.default });
       },
       (e: unknown) => {
         // rethrow during render so the page's ErrorBoundary shows it
@@ -75,6 +83,7 @@ export default function AlgorithmPage({ entry }: { entry: AlgorithmEntry }) {
             ))}
           </div>
           <div role="tabpanel" id={`panel-${active}`} aria-labelledby={`tab-${active}`}>
+            {active === 'steps' && ready.player && <StepPlayer key={entry.slug} module={ready.player} />}
             {active === 'code' && (
               <CodeRunner
                 key={entry.slug}

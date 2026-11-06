@@ -9,9 +9,16 @@ const LEGACY_PATHS = [
   '/algorithms/duality/checkStabber',
 ]
 
+/** Pages added after the migration (not on the legacy site). */
+const NEW_PATHS = ['/algorithms/segmentIntersection']
+
 describe('registry', () => {
   test('paths are legacy paths', () => {
-    expect(algorithms.map((a) => a.path)).toEqual(LEGACY_PATHS)
+    expect(algorithms.map((a) => a.path).filter((p) => !NEW_PATHS.includes(p))).toEqual(LEGACY_PATHS)
+  })
+
+  test('Line Segment Intersection follows Convex Hull in the menu', () => {
+    expect(algorithms.map((a) => a.path).slice(0, 2)).toEqual(['/algorithms/convexHull', '/algorithms/segmentIntersection'])
   })
 
   test('slugs unique', () => {

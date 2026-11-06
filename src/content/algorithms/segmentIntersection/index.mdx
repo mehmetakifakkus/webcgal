@@ -1,0 +1,16 @@
+Given a set of *n* line segments in the plane, the task is to report every point where two or more of them meet, together with the segments that pass through it.
+
+The obvious solution tests every pair of segments. It takes O(n²) time, which is wasteful when the number of intersections *k* is small; an *output-sensitive* algorithm also depends on *k*. The plane sweep algorithm of Bentley and Ottmann reports all intersections in O((n + k) log n) time.
+
+This page follows chapter 2.1, *Line Segment Intersection*, of Computational Geometry: Algorithms and Applications, 3rd ed., by de Berg et al.
+
+An imaginary horizontal *sweep line* moves from the top of the plane downwards. Two segments can only intersect if they are next to each other on the sweep line just before the intersection, so the algorithm only ever tests neighbours. It keeps two structures:
+
+- The **event queue** *Q* holds the points where the sweep line has to stop: all segment endpoints, and the intersection points found so far below the sweep line. Events are ordered by decreasing y, and from left to right on equal y.
+- The **status structure** *T* holds the segments that currently cross the sweep line, ordered from left to right. A segment is inserted at its upper endpoint, removed at its lower endpoint, and segments that meet at an intersection swap their order there.
+
+At each event point the algorithm updates *T* and tests only the segments that have just become neighbours, adding any intersection below the sweep line to *Q*. Both structures are balanced search trees, so each event costs O(log n).
+
+The book assumes that no two segments overlap. Beyond the book's assumptions, this page also handles collinear overlapping segments (reported as overlaps).
+
+Drag the endpoints, pick a preset to see the degenerate cases, and follow the two panels next to the pseudocode. The **Code** tab runs the same algorithm through `findIntersections`; see the [documentation](/documentation) for the rest of the library.

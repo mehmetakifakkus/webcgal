@@ -44,6 +44,17 @@ export const algorithms: AlgorithmEntry[] = [
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {
+    slug: 'segmentIntersection',
+    path: '/algorithms/segmentIntersection',
+    name: 'Line Segment Intersection',
+    thumbnail: '/images/segmentIntersection_tn.png',
+    summary: 'Find all intersections of n line segments with a sweep line in O((n + k) log n) time.',
+    content: () => import('./content/algorithms/segmentIntersection/index.mdx'),
+    demoCode: () => import('./content/algorithms/segmentIntersection/demo.js?raw').then(raw),
+    player: () => import('./players/sweepLinePlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+  },
+  {
     slug: 'smallestEnclosingDisk',
     path: '/algorithms/smallestEnclosingDisk',
     name: 'Smallest Enclosing Disk',

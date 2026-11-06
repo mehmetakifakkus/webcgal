@@ -133,12 +133,13 @@
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
     --shadow-md: 0 6px 20px -4px rgb(0 0 0 / 0.55);
 
-    --sweep-line: #9ca3af;
-    --sweep-segment: #d1d5db;
-    --sweep-status: #60a5fa;
-    --sweep-testing: #c084fc;
-    --sweep-event: #fb923c;
-    --sweep-found: #f87171;
-    --sweep-overlap: #4ade80;
+    /* same as light: the canvas stays white in both themes (like --hull-*) */
+    --sweep-line: #6b7280;
+    --sweep-segment: #374151;
+    --sweep-status: #1a5fb4;
+    --sweep-testing: #9141ac;
+    --sweep-event: #e66100;
+    --sweep-found: #c01c28;
+    --sweep-overlap: #26a269;
   }
 }

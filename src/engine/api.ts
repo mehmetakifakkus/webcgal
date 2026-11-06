@@ -21,6 +21,7 @@ import { createConsole, errorText, formatArgs, stackLine, type OutputLine } from
 import { createPolygonClass } from './Polygon'
 import { createPoints, getRandomInt, shuffle } from './Points'
 import { createPolygon, createRandomPolygon } from './polygons'
+import { bruteForceIntersections, createSegments, findIntersections } from './segments'
 import type { Scene } from './scene'
 import { createTextPointClass, type TextPoint } from './TextPoint'
 import { Vector } from './Vector'
@@ -47,6 +48,8 @@ export const API_NAMES = [
   // geometry versions (take {x, y} or TextPoint)
   'dualLine', 'dualPoint', 'findStabber', 'isMonotone', 'monotoneDirections', 'smallestEnclosingDisk',
   'convexHullPts',
+  // line segment intersection (segments are {a, b}; result points are paper Points)
+  'Segments', 'findIntersections', 'bruteForceIntersections', 'drawIntersections',
   // environment
   'console', 'document',
   // paper.js
@@ -129,6 +132,7 @@ export function buildApi(
   const TextPoint = createTextPointClass(ctx)
   const Polygon = createPolygonClass(ctx, TextPoint)
   const Points = createPoints(ctx, TextPoint)
+  const { Segments, drawIntersections } = createSegments(ctx)
   const pts = (points: PointInput[]) => points.map(toPt)
 
   const getCenterAndRadius2 = (p1: PointInput, p2: PointInput) => legacyCircle(circleFrom2(toPt(p1), toPt(p2)))
@@ -212,6 +216,10 @@ export function buildApi(
       monotoneDirections(pts(Array.isArray(polygon) ? polygon : polygon.points)),
     smallestEnclosingDisk: (points: PointInput[]) => smallestEnclosingDisk(pts(points)),
     convexHullPts: (points: PointInput[]) => hullOf(pts(points)),
+    Segments,
+    findIntersections,
+    bruteForceIntersections,
+    drawIntersections,
     console: createConsole(output, clearOutput),
     document: options.extraCanvases ? scopedDocument(options.extraCanvases) : document,
     ...(Object.fromEntries(PAPER_CLASSES.map((n) => [n, scope[n as keyof paper.PaperScope]])) as Record<

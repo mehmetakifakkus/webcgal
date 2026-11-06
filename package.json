@@ -13,7 +13,8 @@
     "check:bundle": "node scripts/check-bundle.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "e2e": "playwright test --trace off"
+    "e2e": "playwright test --trace off",
+    "thumbnail:segmentIntersection": "node scripts/thumbnail.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

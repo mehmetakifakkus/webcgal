@@ -206,6 +206,17 @@ describe('findIntersections', () => {
     runSweep([], (line) => empty.push(line))
     expect(empty).toEqual([1, 2, 3])
   })
+  it('overlap check records 21 then 22, never 19', () => {
+    const recs: { line: number; d: string }[] = []
+    runSweep([seg(0, 0, 3, 0), seg(1, 0, 5, 0)], (line, d) => recs.push({ line, d }))
+    const i21 = recs.findIndex((r) => r.line === 21)
+    expect(i21).toBeGreaterThan(0)
+    expect(recs[i21].d).toBe('Test s1 and s2: collinear and overlapping → report overlap (1, 0)–(3, 0)')
+    expect(recs[i21 + 1].line).toBe(22)
+    expect(recs[i21 - 1].line).not.toBe(19)
+    expect(recs.filter((r) => r.line === 22)).toHaveLength(1)
+    expect(recs.filter((r) => r.line === 19)).toHaveLength(0)
+  })
 })
 
 describe('sameResult', () => {

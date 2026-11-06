@@ -40,44 +40,48 @@ export function runSweep(segments: Segment[], record?: Recorder): IntersectionRe
   rec(1, 'Insert all endpoints into the event queue')
   rec(2, 'Initialize an empty status structure T')
 
-  /** Overlap extension: report the common part of s_i and s_j once per pair. */
-  const reportOverlap = (i: number, j: number, a: Pt, b: Pt, current: Pt) => {
+  /**
+   * Overlap extension (lines 21–22): reports the common part of s_i and s_j once
+   * per pair. Records only 21 (pair found collinear-overlapping) and 22 (report);
+   * a pair already reported records nothing. Returns false for such a pair.
+   */
+  const reportOverlap = (i: number, j: number, a: Pt, b: Pt, current: Pt): boolean => {
     const [lo, hi] = i < j ? [i, j] : [j, i]
     const k = `${lo},${hi}`
-    const testing: [number, number] = [i, j]
-    if (overlapPairs.has(k)) {
-      rec(19, `Test ${name(i)} and ${name(j)}: collinear and overlapping, overlap already reported`, {
-        current,
-        testing,
-      })
-      rec(21, `${name(i)} and ${name(j)} are collinear and overlap`, { current, testing })
-      return
-    }
+    if (overlapPairs.has(k)) return false
     overlapPairs.add(k)
+    const testing: [number, number] = [i, j]
     const o: Overlap = { a: { ...a }, b: { ...b }, segments: [lo, hi] }
     overlaps.push(o)
     rec(
-      19,
+      21,
       `Test ${name(i)} and ${name(j)}: collinear and overlapping → report overlap ${fmt(a)}–${fmt(b)}`,
       { current, testing },
     )
-    rec(21, `${name(i)} and ${name(j)} are collinear and overlap`, { current, testing })
     rec(22, `Report overlap ${fmt(a)}–${fmt(b)}: ${name(lo)}, ${name(hi)}`, {
       current,
       testing,
       reported: o,
     })
+    return true
   }
 
   // FindNewEvent(sl, sr, p)
   const findNewEvent = (sl: number, sr: number, p: Pt) => {
     const testing: [number, number] = [sl, sr]
     const r = segmentIntersection(segments[sl], segments[sr])
+    const pre = `Test ${name(sl)} and ${name(sr)}`
     if (r?.kind === 'overlap') {
+      // Neighbours that overlap were already found by the in-event check (their
+      // common part lies above p); kept for safety, deduplicated by the Set.
+      const fresh = !overlapPairs.has(`${Math.min(sl, sr)},${Math.max(sl, sr)}`)
+      rec(19, `${pre}: collinear and overlapping${fresh ? '' : ', overlap already reported'}`, {
+        current: p,
+        testing,
+      })
       reportOverlap(sl, sr, r.a, r.b, p)
       return
     }
-    const pre = `Test ${name(sl)} and ${name(sr)}`
     if (r) {
       const q = r.p
       const ahead =
@@ -141,8 +145,16 @@ export function runSweep(segments: Segment[], record?: Recorder): IntersectionRe
     status.reorderAt(p)
     rec(12, 'Insert U ∪ C into T', { current: p })
 
-    // Overlap extension: collinear segments through p are tied in T and the
-    // book's neighbour tests never pair them, so check every pair here.
+    /*
+     * Overlap extension (Ruling R5). FindNewEvent alone cannot find overlaps: the
+     * book calls it only for the outer pairs (left neighbour, leftmost of U ∪ C)
+     * and (rightmost of U ∪ C, right neighbour). Two collinear overlapping
+     * segments both contain the upper end of their common part, so at that event
+     * both are in U ∪ C (one in U, the other in U or C) and are never tested
+     * against each other: identical segments, containment and partial overlaps
+     * would go unreported. So every pair in U ∪ C with at least one segment in U
+     * is checked here; each pair is reported once (Set of "lo,hi").
+     */
     for (let a = 0; a < UC.length; a++) {
       for (let b = a + 1; b < UC.length; b++) {
         const i = UC[a]

@@ -5,6 +5,9 @@
   --accent: #1a5fb4;
   --border: #d8dce2;
   --header-bg: #f4f6f8;
+  --accent-contrast: #ffffff;
+  --error: #c01c28;
+  --warn: #8a5a00;
   color-scheme: light dark;
 }
 
@@ -16,6 +19,9 @@
     --accent: #7db2ff;
     --border: #343a42;
     --header-bg: #1d2024;
+    --accent-contrast: #0d1117;
+    --error: #ff7b72;
+    --warn: #e3b341;
   }
 }
 
@@ -69,7 +75,7 @@ a {
 }
 
 main {
-  max-width: 60rem;
+  max-width: 75rem;
   margin: 0 auto;
   padding: 1rem;
 }

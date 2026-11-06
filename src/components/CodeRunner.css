@@ -1,0 +1,88 @@
+.code-runner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'editor canvases'
+    'output output';
+  gap: 1rem;
+  align-items: start;
+}
+
+.code-runner-editor { grid-area: editor; min-width: 0; }
+.code-runner-canvases { grid-area: canvases; min-width: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.code-runner-output { grid-area: output; min-width: 0; }
+
+@media (max-width: 800px) {
+  .code-runner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'editor'
+      'canvases'
+      'output';
+  }
+}
+
+.code-runner-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.code-runner-toolbar button,
+.code-runner-toolbar select,
+.error-boundary button {
+  font: inherit;
+  padding: 0.25rem 0.8rem;
+  color: var(--fg);
+  background: var(--header-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.code-runner-toolbar button.primary {
+  color: var(--accent-contrast);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.template-select { display: inline-flex; align-items: center; gap: 0.4rem; }
+.hint { color: var(--muted); font-size: 0.85rem; }
+
+.code-editor {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+
+.canvas-frame {
+  width: 100%;
+  margin: 0;
+  border: 1px solid var(--border);
+  background: #fff;
+  line-height: 0;
+}
+
+.canvas-frame canvas { display: block; max-width: 100%; }
+.canvas-frame figcaption { padding: 0.25rem 0.5rem; line-height: 1.4; font-size: 0.85rem; color: var(--muted); background: var(--bg); }
+
+.output-panel {
+  min-height: 5rem;
+  max-height: 14rem;
+  overflow: auto;
+  padding: 0.5rem 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  background: var(--header-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.output-line { white-space: pre-wrap; overflow-wrap: anywhere; }
+.output-line.warn { color: var(--warn); }
+.output-line.error { color: var(--error); }
+
+.error-boundary { padding: 1rem; border: 1px solid var(--error); border-radius: 4px; color: var(--error); }

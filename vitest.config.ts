@@ -5,7 +5,8 @@ import { playwright } from '@vitest/browser-playwright';
 export default defineConfig({
   plugins: [react()],
   // paper is only imported by the engine; pre-bundle it so the first browser run does not reload.
-  optimizeDeps: { include: ['paper'] },
+  optimizeDeps: { include: ['paper', '@uiw/react-codemirror'] },
+  resolve: { dedupe: ['react', 'react-dom'] },
   test: {
     projects: [
       {

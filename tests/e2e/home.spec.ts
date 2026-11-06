@@ -18,6 +18,10 @@ test('home shows hero and CTAs', async ({ page }) => {
   await expect(page).toHaveURL(/\/algorithms$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Algorithms' })).toBeVisible()
   await page.goBack()
+  await page.locator('main .features').getByRole('link', { name: 'API documentation' }).click()
+  await expect(page).toHaveURL(/\/documentation$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Documentation' })).toBeVisible()
+  await page.goBack()
   await page.getByRole('link', { name: 'Open the playground' }).click()
   await expect(page).toHaveURL(/\/playground$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Playground' })).toBeVisible()
@@ -58,9 +62,11 @@ test('mobile menu', async ({ page }) => {
 
   await button.click()
   await expect(main.getByRole('link', { name: 'Playground' })).toBeVisible()
+  await main.getByRole('link', { name: 'Playground' }).focus()
   await page.keyboard.press('Escape')
   await expect(button).toHaveAttribute('aria-expanded', 'false')
   await expect(main.getByRole('link', { name: 'Playground' })).toBeHidden()
+  await expect(button).toBeFocused()
 })
 
 test('menu button is not shown on wide screens', async ({ page }) => {

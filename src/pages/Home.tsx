@@ -9,7 +9,7 @@ import './Home.css';
 const features = [
   {
     title: 'Watch algorithms run',
-    text: 'Step through each algorithm with a player: play, pause, go back, and follow the highlighted pseudocode line.',
+    text: 'Step through algorithms with a player — starting with Convex Hull: play, pause, go back and follow the highlighted pseudocode line.',
     icon: <path d="M8 5.5v13l11-6.5z" />,
   },
   {
@@ -21,6 +21,7 @@ const features = [
     title: 'Sandbox with a geometry API',
     text: 'The playground gives you points, polygons and drawing helpers to try your own ideas.',
     icon: <path d="M4 18L9 6l6 9 5-7M4 18h16" />,
+    link: { to: '/documentation', label: 'Browse the API documentation' },
   },
 ];
 
@@ -83,6 +84,11 @@ export default function Home() {
               </span>
               <h3>{f.title}</h3>
               <p>{f.text}</p>
+              {'link' in f && f.link && (
+                <Link to={f.link.to} className="feature-link">
+                  {f.link.label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>

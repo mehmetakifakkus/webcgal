@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import AlgorithmsNav from './AlgorithmsNav';
 import ErrorBoundary from './ErrorBoundary';
@@ -32,6 +32,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const inAlgorithms = pathname === '/algorithms' || pathname.startsWith('/algorithms/');
   const [menuOpen, setMenuOpen] = useState(false);
   const navId = useId();
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // close the mobile menu on navigation
   useEffect(() => setMenuOpen(false), [pathname]);
@@ -39,7 +40,9 @@ export default function Layout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
+      if (e.key !== 'Escape') return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus(); // focus was in the now hidden menu
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -54,6 +57,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <span className="brand-name">WebCgal</span>
           </NavLink>
           <button
+            ref={menuButtonRef}
             type="button"
             className="menu-button"
             aria-expanded={menuOpen}

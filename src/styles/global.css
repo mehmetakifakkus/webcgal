@@ -204,7 +204,7 @@ a.btn:focus-visible,
 
 .eyebrow {
   display: inline-block;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
   color: var(--accent);
   font-size: var(--fs-sm);
   font-weight: 600;

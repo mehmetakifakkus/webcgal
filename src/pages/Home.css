@@ -68,8 +68,11 @@
   .hero-content {
     position: relative;
   }
+  /* keep the drawing to the lower part of the hero so the heading and lead stay clean */
   .hero-bg {
-    opacity: 0.55;
+    opacity: 0.4;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0 55%, #000);
+    mask-image: linear-gradient(to bottom, transparent 0 55%, #000);
   }
 }
 
@@ -103,6 +106,12 @@
   margin: 0;
   color: var(--text-muted);
   font-size: 0.95rem;
+}
+
+.feature-link {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-weight: 600;
 }
 
 .feature-icon {

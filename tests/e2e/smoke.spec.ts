@@ -25,3 +25,11 @@ test('a missing route chunk (stale page after a redeploy) reloads the page once'
   expect(await page.evaluate(() => (window as unknown as { __beforeReload?: boolean }).__beforeReload)).toBeUndefined();
   expect(await page.evaluate(() => sessionStorage.getItem('webcgal:chunk-reload-at'))).not.toBeNull(); // kept: no second reload within 10 s
 });
+
+test('legacy URLs of the old site redirect to the algorithm pages', async ({ page }) => {
+  await page.goto('/duality')
+  await expect(page).toHaveURL(/\/algorithms\/duality$/)
+  await page.goto('/smallestEnclosingDisk')
+  await expect(page).toHaveURL(/\/algorithms\/smallestEnclosingDisk$/)
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Smallest Enclosing Disk')
+})

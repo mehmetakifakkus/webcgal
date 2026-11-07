@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
@@ -27,6 +27,9 @@ export default function App() {
           <Route path="/documentation" element={<Docs />} />
           <Route path="/documentation/:item" element={<DocItem />} />
           <Route path="/playground" element={<Playground />} />
+          {/* legacy URLs of the old site; netlify.toml answers these with a 301, GitHub Pages cannot */}
+          <Route path="/duality" element={<Navigate to="/algorithms/duality" replace />} />
+          <Route path="/smallestEnclosingDisk" element={<Navigate to="/algorithms/smallestEnclosingDisk" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

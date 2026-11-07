@@ -1,0 +1,24 @@
+Computes the Voronoi diagram of a point set: for every point, the region of the plane that is closer to it than to any other point. It is derived from the Delaunay triangulation. The algorithm is explained step by step on the [Voronoi Diagram](/algorithms/voronoi) page.
+
+```js
+voronoi(points)
+```
+
+`points` is an array of `TextPoint` objects (for example from `Points.createRandom(n)`), `Point` objects, `{ x, y }` objects or `[x, y]` arrays. Errors are thrown for duplicate points ("voronoi: points must be distinct") and for other input ("voronoi: expected an array of points (item N is not a point)", or "voronoi: expected an array of points (got &lt;type&gt;)" when the argument is not an array). Points are referred to by their 0-based index in the input array. The result is not clipped and has these fields:
+
+- `vertices`: the Voronoi vertices, as `Point` objects.
+- `edges`: `{ sites: [i, j], a, b, dir? }`, the edge between the cells of points `i` and `j`. `a` and `b` index `vertices`; when `b` is `null` the edge is a ray from vertex `a` in the direction `dir`.
+- `cells`: `{ site, vertices, rays? }`, one per point: the vertex indices around the cell, plus `rays` for an unbounded cell.
+- `lines`: `{ sites, p, dir }`, only when all points are collinear: the bisector lines, each through `p` along `dir`.
+
+Two more functions are documented on this page. Both take the points and a `voronoi(points)` result, and throw an error for a result that is not shaped like a `voronoi()` result for that many points (index ranges and one cell per point are checked, geometry is not) or for an invalid `box`; `box` is `{ x0, y0, x1, y1 }` with `x0 < x1` and `y0 < y1`, and defaults to the canvas, `{ x0: 0, y0: 0, x1: 775, y1: 360 }`.
+
+- `drawVoronoi(points, result, color, box)` draws the edges with 1.5 px strokes, no fill. Rays and bisector lines are clipped to `box`; `color` defaults to `'black'`.
+- `voronoiCells(points, result, box)` returns one clipped polygon (an array of `Point`) per point, in the order of the input.
+
+```js
+var points = Points.createRandom(12);
+var result = voronoi(points);
+drawVoronoi(points, result);
+console.log(result.vertices.length + ' vertex/vertices, ' + result.edges.length + ' edge(s), ' + result.cells.length + ' cell(s)');
+```

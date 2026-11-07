@@ -24,6 +24,7 @@ import { createPolygon, createRandomPolygon } from './polygons'
 import { bruteForceIntersections, createSegments, findIntersections } from './segments'
 import { createTriangulationDrawing, makeMonotone, triangulate } from './triangulation'
 import { circumcircle as circumcircleApi, createDelaunayDrawing, delaunay } from './delaunay'
+import { createVoronoiDrawing, voronoi, voronoiCells } from './voronoi'
 import type { Scene } from './scene'
 import { createTextPointClass, type TextPoint } from './TextPoint'
 import { Vector } from './Vector'
@@ -56,6 +57,8 @@ export const API_NAMES = [
   'triangulate', 'makeMonotone', 'drawDiagonals', 'drawTriangles',
   // Delaunay triangulation (points are an array of points; indices refer to the input)
   'delaunay', 'drawTriangulation', 'circumcircle',
+  // Voronoi diagram (points are an array of points; site indices refer to the input)
+  'voronoi', 'drawVoronoi', 'voronoiCells',
   // environment
   'console', 'document',
   // paper.js
@@ -141,6 +144,7 @@ export function buildApi(
   const { Segments, drawIntersections } = createSegments(ctx)
   const { drawDiagonals, drawTriangles } = createTriangulationDrawing(ctx)
   const { drawTriangulation } = createDelaunayDrawing(ctx)
+  const { drawVoronoi } = createVoronoiDrawing(ctx)
   const pts = (points: PointInput[]) => points.map(toPt)
 
   const getCenterAndRadius2 = (p1: PointInput, p2: PointInput) => legacyCircle(circleFrom2(toPt(p1), toPt(p2)))
@@ -235,6 +239,9 @@ export function buildApi(
     delaunay,
     drawTriangulation,
     circumcircle: circumcircleApi,
+    voronoi,
+    drawVoronoi,
+    voronoiCells,
     console: createConsole(output, clearOutput),
     document: options.extraCanvases ? scopedDocument(options.extraCanvases) : document,
     ...(Object.fromEntries(PAPER_CLASSES.map((n) => [n, scope[n as keyof paper.PaperScope]])) as Record<

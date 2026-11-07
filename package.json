@@ -16,7 +16,8 @@
     "e2e": "playwright test --trace off",
     "thumbnail:segmentIntersection": "node scripts/thumbnail.mjs",
     "thumbnail:triangulation": "node scripts/thumbnail.mjs --slug triangulation --preset \"Textbook polygon\" --step 60",
-    "thumbnail:delaunay": "node scripts/thumbnail.mjs --slug delaunay --preset \"Textbook example\" --step 40"
+    "thumbnail:delaunay": "node scripts/thumbnail.mjs --slug delaunay --preset \"Textbook example\" --step 40",
+    "thumbnail:voronoi": "node scripts/thumbnail.mjs --slug voronoi --preset \"Textbook example\" --step 37"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

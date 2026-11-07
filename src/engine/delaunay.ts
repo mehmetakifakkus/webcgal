@@ -1,8 +1,9 @@
 import paper from 'paper'
 import { delaunay as delaunayOf } from '../geometry/algorithms/delaunay/delaunay'
 import { circumcenter, distance } from '../geometry/primitives'
-import type { Pt, Triangle } from '../geometry/types'
+import type { Triangle } from '../geometry/types'
 import { toPoint, toPt, type EngineContext, type PointInput } from './drawing'
+import { toPoints } from './toPoints'
 import { isPointInput } from './segments'
 
 /** What `delaunay` returns: every index refers to the input array. */
@@ -11,21 +12,6 @@ export type ApiDelaunayResult = {
   edges: [number, number][]
   /** Convex hull vertices, counter-clockwise. */
   hull: number[]
-}
-
-const describe = (v: unknown) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v)
-
-/**
- * Validates user input (`fn` names the API function in the message) and converts it:
- * an array of TextPoints (e.g. from `Points.createRandom`), paper Points, `{x, y}` or `[x, y]`.
- */
-export function toPoints(input: unknown, fn: string): Pt[] {
-  const prefix = `${fn}: expected an array of points`
-  if (!Array.isArray(input)) throw new Error(`${prefix} (got ${describe(input)})`)
-  return input.map((p: unknown, i) => {
-    if (!isPointInput(p)) throw new Error(`${prefix} (item ${i + 1} is not a point)`)
-    return toPt(p)
-  })
 }
 
 /** Delaunay triangulation of a point set (random incremental, de Berg et al. §9.3). */

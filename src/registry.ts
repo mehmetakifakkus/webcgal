@@ -77,6 +77,17 @@ export const algorithms: AlgorithmEntry[] = [
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {
+    slug: 'voronoi',
+    path: '/algorithms/voronoi',
+    name: 'Voronoi Diagram',
+    thumbnail: '/images/voronoi_tn.png',
+    summary: 'Build the Voronoi diagram of a point set from its Delaunay triangulation: circumcenters become vertices, dual edges become edges.',
+    content: () => import('./content/algorithms/voronoi/index.mdx'),
+    demoCode: () => import('./content/algorithms/voronoi/demo.js?raw').then(raw),
+    player: () => import('./players/voronoiPlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+  },
+  {
     slug: 'smallestEnclosingDisk',
     path: '/algorithms/smallestEnclosingDisk',
     name: 'Smallest Enclosing Disk',

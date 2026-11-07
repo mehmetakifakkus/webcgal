@@ -8,6 +8,7 @@ import legacyConvexHullJs from './__fixtures__/legacy/convexHull.js?raw'
 import segmentIntersectionDemo from '../content/algorithms/segmentIntersection/demo.js?raw'
 import triangulationDemo from '../content/algorithms/triangulation/demo.js?raw'
 import delaunayDemo from '../content/algorithms/delaunay/demo.js?raw'
+import voronoiDemo from '../content/algorithms/voronoi/demo.js?raw'
 
 const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
@@ -754,5 +755,121 @@ describe('delaunay api', () => {
     expect(exec(delaunayDemo)).toEqual({ ok: true })
     expect(lines).toHaveLength(1)
     expect(lines[0].text).toMatch(/^\d+ triangle\(s\), \d+ edge\(s\)$/)
+  })
+})
+
+describe('voronoi api', () => {
+  const errorsOf = (lines: OutputLine[], res: ReturnType<typeof run>) =>
+    [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+
+  test('a square gives one vertex and four rays', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var r = voronoi([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }]);
+      var rays = r.edges.filter(function (e) { return e.b === null && e.dir; });
+      var v = r.vertices[0];
+      console.log(Object.keys(r).sort().join(','), r.vertices.length, r.edges.length, rays.length, r.cells.length, r.lines.length, v.x, v.y);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: 'cells,edges,lines,vertices 1 4 4 4 0 50 50' }])
+  })
+
+  test('accepts the TextPoints of Points.createRandom', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var points = Points.createRandom(8);
+      var r = voronoi(points);
+      var inRange = r.cells.every(function (c) { return c.site >= 0 && c.site < 8; });
+      console.log(r.cells.length, r.vertices.length > 0, inRange);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '8 true true' }])
+  })
+
+  test('a triangle given as [x, y] pairs gives one vertex and three rays', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var r = voronoi([[0, 0], [100, 0], [0, 100]]);
+      var rays = r.edges.filter(function (e) { return e.b === null; });
+      console.log(r.vertices.length, rays.length, r.edges.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1 3 3' }])
+  })
+
+  test('collinear points give parallel bisector lines', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var r = voronoi([[100, 100], [300, 100], [500, 100]]);
+      console.log(r.vertices.length, r.edges.length, r.lines.length, r.cells.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '0 0 2 3' }])
+  })
+
+  test('duplicate points are rejected', () => {
+    const { exec, lines } = setup()
+    const res = exec('voronoi([[0, 0], [100, 0], [0, 0]])')
+    expect(res.ok).toBe(false)
+    expect(errorsOf(lines, res).some((l) => l.text.includes('voronoi: points must be distinct'))).toBe(true)
+  })
+
+  test('bad input is rejected with a clear message', () => {
+    for (const [code, msg] of [
+      ['voronoi([1, 2])', 'voronoi: expected an array of points (item 1 is not a point)'],
+      ["voronoi([[0, 0], [1, 0], 'x'])", 'voronoi: expected an array of points (item 3 is not a point)'],
+      ['voronoi(5)', 'voronoi: expected an array of points'],
+      ['drawVoronoi([[0, 0], [1, 0]], {})', 'drawVoronoi: expected the result of voronoi(points) for the same points'],
+      ['voronoiCells([[0, 0], [1, 0]], 3)', 'voronoiCells: expected the result of voronoi(points) for the same points'],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok).toBe(false)
+      expect(errorsOf(lines, res).some((l) => l.text.includes(msg)), code).toBe(true)
+    }
+  })
+
+  test('voronoiCells gives one polygon per site, inside the box', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var points = Points.createRandom(10);
+      var r = voronoi(points);
+      var cells = voronoiCells(points, r);
+      var inside = cells.every(function (c) {
+        return c.length >= 3 && c.every(function (p) { return p.x >= -1e-6 && p.x <= 775 + 1e-6 && p.y >= -1e-6 && p.y <= 360 + 1e-6; });
+      });
+      var small = voronoiCells([[10, 10], [30, 10], [10, 30]], voronoi([[10, 10], [30, 10], [10, 30]]), { x0: 0, y0: 0, x1: 40, y1: 40 });
+      var smallInside = small.every(function (c) { return c.every(function (p) { return p.x <= 40 + 1e-6 && p.y <= 40 + 1e-6; }); });
+      console.log(cells.length, inside, small.length, smallInside);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '10 true 3 true' }])
+  })
+
+  test('drawVoronoi adds 1.5px unfilled edges inside the box to drawables', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var p = [[300, 100], [400, 100], [400, 200], [300, 200]];
+      var r = voronoi(p);
+      var n = drawables.length;
+      drawVoronoi(p, r, 'red');
+      var added = drawables.slice(n);
+      var ok = added.every(function (d) {
+        var b = d.bounds;
+        return !d.fillColor && d.strokeWidth === 1.5 && b.left >= -1e-6 && b.right <= 775 + 1e-6 && b.top >= -1e-6 && b.bottom <= 360 + 1e-6;
+      });
+      var m = drawables.length;
+      drawVoronoi([[100, 100], [300, 100], [500, 100]], voronoi([[100, 100], [300, 100], [500, 100]]));
+      console.log(added.length, ok, drawables.length - m);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '4 true 2' }])
+  })
+
+  test('the demo runs', () => {
+    const { exec, lines } = setup()
+    expect(exec(voronoiDemo)).toEqual({ ok: true })
+    expect(lines).toHaveLength(1)
+    expect(lines[0].text).toMatch(/^\d+ vertex\/vertices, \d+ edge\(s\), \d+ cell\(s\)$/)
   })
 })

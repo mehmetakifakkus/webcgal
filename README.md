@@ -7,7 +7,7 @@ triangulation, Voronoi diagram) has a page with an explanation, a runnable demo 
 player. The demos are written in PaperScript, so you can edit them and see the
 result immediately.
 
-Live site: https://webcgal.netlify.app
+Live site: https://mehmetakifakkus.github.io/webcgal/ (also https://webcgal.netlify.app)
 
 ## Features
 
@@ -86,11 +86,24 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 
 ## Deployment
 
-The site is deployed on Netlify (`netlify.toml`): build command
-`npm run build`, publish directory `dist`. Old URLs are kept, and unknown
-paths fall back to `index.html` for client-side routing; missing files under
-`/assets/` answer 404 instead (a stale chunk after a redeploy makes the page
-reload once).
+Two targets are supported:
+
+- **GitHub Pages** (`.github/workflows/pages.yml`): every push to `master`
+  builds with `VITE_BASE=/webcgal/` and publishes `dist` to
+  https://mehmetakifakkus.github.io/webcgal/. Pages has no server-side
+  redirects, so `scripts/pages-postbuild.mjs` copies `index.html` to
+  `404.html` (deep links to client-side routes), adds `.nojekyll`, and writes a
+  meta-refresh stub for each legacy URL. Enable it once under Settings → Pages
+  → Source: "GitHub Actions".
+- **Netlify** (`netlify.toml`): build command `npm run build`, publish
+  directory `dist`, served at the root. Old URLs are kept with 301 redirects,
+  unknown paths fall back to `index.html`, and missing files under `/assets/`
+  answer 404 instead (a stale chunk after a redeploy makes the page reload
+  once).
+
+The base path is read from `VITE_BASE` at build time (default `/`); code that
+references `public/` assets by absolute path goes through `assetUrl()`, and the
+router gets its `basename` from the same value.
 
 ## License
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { AlgorithmEntry } from '../registry';
+import { assetUrl } from '../assetUrl';
 import './AlgorithmCard.css';
 
 export default function AlgorithmCard({ entry }: { entry: AlgorithmEntry }) {
@@ -7,7 +8,7 @@ export default function AlgorithmCard({ entry }: { entry: AlgorithmEntry }) {
     <li className="card">
       <Link to={entry.path}>
         <span className="card-thumb">
-          <img src={entry.thumbnail} alt="" width={320} height={180} loading="lazy" />
+          <img src={assetUrl(entry.thumbnail)} alt="" width={320} height={180} loading="lazy" />
         </span>
         <span className="card-title">{entry.name}</span>
       </Link>

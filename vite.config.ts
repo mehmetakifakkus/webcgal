@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import mdx from '@mdx-js/rollup';
 
 export default defineConfig({
+  // Sub-path deployments (GitHub Pages serves the site at /webcgal/): VITE_BASE=/webcgal/ npm run build
+  base: process.env.VITE_BASE || '/',
   build: {
     rolldownOptions: {
       output: {

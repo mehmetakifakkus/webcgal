@@ -70,7 +70,8 @@ test('points on a circle runs without errors', async ({ page }) => {
   const next = page.getByRole('button', { name: 'Next' })
   for (let i = 1; i < total; i++) await next.click()
   await expect(page.getByText(`Step ${total} / ${total}`, { exact: true })).toBeVisible()
-  await expect(description(page)).toContainText('Done: 6 triangles, 1 flips')
+  const { expected } = DELAUNAY_PRESETS.find((p) => p.name === 'Points on a circle')!
+  await expect(description(page)).toContainText(`Done: ${expected.triangles} triangles, ${expected.flips} flips`)
   expect(errors).toEqual([])
 })
 
@@ -94,21 +95,6 @@ test('dragging a point restarts the player', async ({ page }) => {
   expect((await pointPosition(page, 0, n)).x).not.toBe(120)
 })
 
-/**
- * Calls the player's view handler for a mouse event at a scene point (y-up). A real mouse cannot
- * land exactly on another point: the canvas is scaled and mouse positions are whole CSS pixels.
- */
-async function viewEvent(page: Page, type: 'onMouseDown' | 'onMouseDrag' | 'onMouseUp', p: { x: number; y: number }) {
-  await page.evaluate(
-    ({ type, p }) => {
-      const { paper: P, height } = window.__webcgalDebug!.scene
-      const handler = P.view[type] as unknown as (e: { point: unknown }) => void
-      handler({ point: new P.Point(p.x, height - p.y) })
-    },
-    { type, p },
-  )
-}
-
 test('dragging onto another point shows the alert and reverts', async ({ page }) => {
   test.skip(!!process.env.BASE_URL, 'needs the e2e debug hook')
   await page.goto(PATH)
@@ -120,12 +106,16 @@ test('dragging onto another point shows the alert and reverts', async ({ page })
   expect(v1).toMatchObject({ x: 120, y: 300, width: 8 })
   const v2 = await pointPosition(page, 1, n)
   expect(v2).toMatchObject({ x: 300, y: 320 })
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(page.getByText(/^Step 2 \/ /)).toBeVisible()
+  const from = await toPage(page, v1)
+  const to = await toPage(page, v2)
+  await page.mouse.move(from.x, from.y)
+  await page.mouse.down()
   // one move straight onto v2: no valid position in between, so the release reverts to the preset
-  await viewEvent(page, 'onMouseDown', v1)
-  await viewEvent(page, 'onMouseDrag', v2)
+  await page.mouse.move(to.x, to.y, { steps: 1 })
   await expect(page.getByRole('alert')).toHaveText('Points must be distinct')
-  expect(await pointPosition(page, 0, n)).toMatchObject({ x: 300, y: 320 })
-  await viewEvent(page, 'onMouseUp', v2)
+  await page.mouse.up()
   await expect(page.getByRole('alert')).toHaveCount(0)
   await expect(page.getByText(/^Step 1 \/ /)).toBeVisible()
   expect(await pointPosition(page, 0, n)).toMatchObject({ x: 120, y: 300 })

@@ -23,7 +23,7 @@ export function toPoints(input: unknown, fn: string): Pt[] {
   const prefix = `${fn}: expected an array of points`
   if (!Array.isArray(input)) throw new Error(`${prefix} (got ${describe(input)})`)
   return input.map((p: unknown, i) => {
-    if (!isPointInput(p)) throw new Error(`${prefix} (item ${i} is not a point)`)
+    if (!isPointInput(p)) throw new Error(`${prefix} (item ${i + 1} is not a point)`)
     return toPt(p)
   })
 }

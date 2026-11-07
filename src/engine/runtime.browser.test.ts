@@ -711,8 +711,8 @@ describe('delaunay api', () => {
 
   test('bad input is rejected with a clear message', () => {
     for (const [code, msg] of [
-      ['delaunay([1, 2])', 'delaunay: expected an array of points (item 0 is not a point)'],
-      ["delaunay([[0, 0], [1, 0], 'x'])", 'delaunay: expected an array of points (item 2 is not a point)'],
+      ['delaunay([1, 2])', 'delaunay: expected an array of points (item 1 is not a point)'],
+      ["delaunay([[0, 0], [1, 0], 'x'])", 'delaunay: expected an array of points (item 3 is not a point)'],
       ['delaunay(5)', 'delaunay: expected an array of points'],
     ]) {
       const { exec, lines } = setup()

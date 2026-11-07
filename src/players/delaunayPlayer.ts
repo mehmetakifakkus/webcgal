@@ -6,7 +6,6 @@ import { DELAUNAY_PRESETS } from '../geometry/algorithms/delaunay/presets'
 import { DELAUNAY_PSEUDOCODE } from '../geometry/algorithms/delaunay/pseudocode'
 import { highestIndex, isSymbolic, P_MINUS_1, P_MINUS_2 } from '../geometry/algorithms/delaunay/symbolic'
 import { randomPointSet } from '../geometry/algorithms/delaunay/verify'
-import { samePt } from '../geometry/primitives'
 import type { DelaunayInput, Pt } from '../geometry/types'
 import { cssColor } from './cssColor'
 import type { Panel, PlayerModule } from './types'
@@ -14,6 +13,8 @@ import type { Panel, PlayerModule } from './types'
 const WIDTH = 775
 const HEIGHT = 360
 const DISTINCT_MESSAGE = 'Points must be distinct'
+/** Points closer than this (canvas units) count as coincident, so that a drag can actually hit the check. */
+const MIN_DISTANCE = 2
 const RAY_LENGTH = 30
 const SQRT_HALF = Math.SQRT1_2
 /**
@@ -33,7 +34,7 @@ const aliveTriangles = (s: DelaunayState) => s.triangles.filter((t) => t.alive).
 
 function validate({ points }: DelaunayInput): string | null {
   for (let i = 0; i < points.length; i++)
-    for (let j = i + 1; j < points.length; j++) if (samePt(points[i], points[j])) return DISTINCT_MESSAGE
+    for (let j = i + 1; j < points.length; j++) if (Math.hypot(points[i].x - points[j].x, points[i].y - points[j].y) < MIN_DISTANCE) return DISTINCT_MESSAGE
   return null
 }
 

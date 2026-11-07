@@ -67,6 +67,11 @@ test('validate rejects coincident points, accepts distinct', () => {
   const pts = [{ x: 10, y: 10 }, { x: 50, y: 20 }, { x: 30, y: 60 }]
   expect(delaunayPlayer.validate!({ points: pts, order: [0, 1] })).toBeNull()
   expect(delaunayPlayer.validate!({ points: [...pts, { x: 50, y: 20 }], order: [0, 1, 3] })).toBe('Points must be distinct')
+  // closer than 2 canvas units counts as coincident
+  expect(delaunayPlayer.validate!({ points: [...pts, { x: 51, y: 20 }], order: [] })).toBe('Points must be distinct')
+  expect(delaunayPlayer.validate!({ points: [...pts, { x: 51.2, y: 21.2 }], order: [] })).toBe('Points must be distinct')
+  expect(delaunayPlayer.validate!({ points: [...pts, { x: 52, y: 20 }], order: [] })).toBeNull()
+  expect(delaunayPlayer.validate!({ points: [...pts, { x: 53, y: 22 }], order: [] })).toBeNull()
   const scene = makeScene()
   delaunayPlayer.renderInvalid!(scene, { points: [...pts, { x: 50, y: 20 }], order: [] })
   expect(scene.paper.project.activeLayer.children.length).toBeGreaterThanOrEqual(4)

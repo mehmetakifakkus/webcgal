@@ -14,6 +14,7 @@ const pages = [
   { path: '/algorithms/convexHull', name: 'convexHull', heading: 'Convex Hull' },
   { path: '/algorithms/segmentIntersection', name: 'segmentIntersection', heading: 'Line Segment Intersection' },
   { path: '/algorithms/triangulation', name: 'triangulation', heading: 'Polygon Triangulation' },
+  { path: '/algorithms/delaunay', name: 'delaunay', heading: 'Delaunay Triangulation' },
   { path: '/algorithms/L-monoton', name: 'L-monoton', heading: 'L-monotone Polygon' },
   { path: '/documentation', name: 'documentation', heading: 'Documentation' },
   { path: '/documentation/TextPoint', name: 'doc-TextPoint', heading: 'TextPoint' },

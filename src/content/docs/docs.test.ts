@@ -24,6 +24,7 @@ const legacyItems = [
 const newItems = [
   { name: 'findIntersections', category: 'misc_functions' },
   { name: 'triangulate', category: 'misc_functions' },
+  { name: 'delaunay', category: 'misc_functions' },
 ] as const
 const dir = new URL('.', import.meta.url).pathname
 
@@ -34,7 +35,7 @@ describe('documentation entries', () => {
       expect(findDoc(name)?.category, name).toBe(category)
     }
     expect(docs).toHaveLength(legacyItems.length + newItems.length)
-    expect(docs).toHaveLength(17)
+    expect(docs).toHaveLength(18)
   })
 
   test('findIntersections is documented with an example', () => {
@@ -49,6 +50,13 @@ describe('documentation entries', () => {
     expect(entry?.category).toBe('misc_functions')
     expect(entry?.example?.trim().length).toBeGreaterThan(0)
     expect(readFileSync(`${dir}triangulate.mdx`, 'utf8')).toContain(entry!.example!.trim())
+  })
+
+  test('delaunay is documented with an example', () => {
+    const entry = findDoc('delaunay')
+    expect(entry?.category).toBe('misc_functions')
+    expect(entry?.example?.trim().length).toBeGreaterThan(0)
+    expect(readFileSync(`${dir}delaunay.mdx`, 'utf8')).toContain(entry!.example!.trim())
   })
 
   test('names are unique and case-sensitive', () => {
@@ -71,7 +79,7 @@ describe('documentation entries', () => {
 
   test('no link_to left in any MDX file', () => {
     const files = readdirSync(dir).filter((f) => f.endsWith('.mdx'))
-    expect(files).toHaveLength(17)
+    expect(files).toHaveLength(18)
     for (const f of files) expect(readFileSync(dir + f, 'utf8'), f).not.toContain('link_to(')
   })
 

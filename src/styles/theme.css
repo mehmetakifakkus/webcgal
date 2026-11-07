@@ -105,6 +105,16 @@
   --tri-active: #4f46e5;
   --tri-invalid: #c01c28;
 
+  /* Delaunay triangulation player */
+  --del-edge: #374151;
+  --del-current: #e66100;
+  --del-located: #4f46e5;
+  --del-legal: #26a269;
+  --del-illegal: #c01c28;
+  --del-flip: #9141ac;
+  --del-circle: #6b7280;
+  --del-hull: #1a5fb4;
+
   /* names used before the token set (kept for existing component styles) */
   --fg: var(--text);
   --muted: var(--text-muted);
@@ -165,5 +175,15 @@
     --tri-sweep: #6b7280;
     --tri-active: #4f46e5;
     --tri-invalid: #c01c28;
+
+    /* same as light (canvas stays white) */
+    --del-edge: #374151;
+    --del-current: #e66100;
+    --del-located: #4f46e5;
+    --del-legal: #26a269;
+    --del-illegal: #c01c28;
+    --del-flip: #9141ac;
+    --del-circle: #6b7280;
+    --del-hull: #1a5fb4;
   }
 }

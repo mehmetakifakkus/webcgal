@@ -24,3 +24,12 @@ export type TriangulationResult = {
   triangulationDiagonals: Diagonal[]
   triangles: Triangle[]
 }
+
+export type DelaunayInput = { points: Pt[]; order: number[] }
+export type DelaunayResult = {
+  /** Triangles as indices into the input points. */
+  triangles: Triangle[]
+  edges: [number, number][]
+  hull: number[]
+  flips: number
+}

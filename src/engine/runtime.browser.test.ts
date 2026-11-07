@@ -7,6 +7,7 @@ import convexHullEjs from './__fixtures__/legacy/convexHull.ejs?raw'
 import legacyConvexHullJs from './__fixtures__/legacy/convexHull.js?raw'
 import segmentIntersectionDemo from '../content/algorithms/segmentIntersection/demo.js?raw'
 import triangulationDemo from '../content/algorithms/triangulation/demo.js?raw'
+import delaunayDemo from '../content/algorithms/delaunay/demo.js?raw'
 
 const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
@@ -661,5 +662,97 @@ describe('triangulation api', () => {
     expect(exec(triangulationDemo)).toEqual({ ok: true })
     expect(lines).toHaveLength(1)
     expect(lines[0].text).toMatch(/^\d+ triangle\(s\), \d+ partition diagonal\(s\)$/)
+  })
+})
+
+describe('delaunay api', () => {
+  const errorsOf = (lines: OutputLine[], res: ReturnType<typeof run>) =>
+    [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+
+  test('a square gives two triangles, five edges and a four-point hull', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var r = delaunay([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }]);
+      var inRange = r.triangles.every(function (t) { return t.every(function (i) { return i >= 0 && i < 4; }); });
+      console.log(Object.keys(r).sort().join(','), r.triangles.length, r.edges.length, r.hull.length, inRange);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: 'edges,hull,triangles 2 5 4 true' }])
+  })
+
+  test('accepts the TextPoints of Points.createRandom', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var points = Points.createRandom(6);
+      var r = delaunay(points);
+      console.log(r.triangles.length > 0, r.edges.length >= r.triangles.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: 'true true' }])
+  })
+
+  test('accepts [x, y] pairs and paper Points', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var a = delaunay([[0, 0], [1, 0], [0, 1]]);
+      var b = delaunay([new Point(0, 0), new Point(100, 0), new Point(50, 80), new Point(50, 20)]);
+      console.log(a.triangles.length, b.triangles.length);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1 3' }])
+  })
+
+  test('duplicate points are rejected', () => {
+    const { exec, lines } = setup()
+    const res = exec('delaunay([[0, 0], [100, 0], [0, 0]])')
+    expect(res.ok).toBe(false)
+    expect(errorsOf(lines, res).some((l) => l.text.includes('delaunay: points must be distinct'))).toBe(true)
+  })
+
+  test('bad input is rejected with a clear message', () => {
+    for (const [code, msg] of [
+      ['delaunay([1, 2])', 'delaunay: expected an array of points (item 1 is not a point)'],
+      ["delaunay([[0, 0], [1, 0], 'x'])", 'delaunay: expected an array of points (item 3 is not a point)'],
+      ['delaunay(5)', 'delaunay: expected an array of points'],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok).toBe(false)
+      expect(errorsOf(lines, res).some((l) => l.text.includes(msg)), code).toBe(true)
+    }
+  })
+
+  test('circumcircle returns centre and radius, null for collinear points', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var c = circumcircle([0, 0], [100, 0], [0, 100]);
+      var d = circumcircle(new TextPoint(0, 0), new Point(50, 50), { x: 100, y: 100 });
+      console.log(c.center instanceof Point, c.center.x, c.center.y, Math.round(c.radius * 1000), d);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: 'true 50 50 70711 null' }])
+  })
+
+  test('drawTriangulation adds edges and filled triangles to drawables', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var p = [[0, 0], [100, 0], [100, 100], [0, 100]];
+      var r = delaunay(p);
+      var n = drawables.length;
+      drawTriangulation(p, r, 'red');
+      var added = drawables.slice(n);
+      var fills = added.filter(function (d) { return d.fillColor; });
+      var lines = added.filter(function (d) { return !d.fillColor; });
+      console.log(fills.length, lines.length, fills[0].fillColor.alpha, lines[0].strokeWidth);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '2 5 0.08 1.5' }])
+  })
+
+  test('the demo runs', () => {
+    const { exec, lines } = setup()
+    expect(exec(delaunayDemo)).toEqual({ ok: true })
+    expect(lines).toHaveLength(1)
+    expect(lines[0].text).toMatch(/^\d+ triangle\(s\), \d+ edge\(s\)$/)
   })
 })

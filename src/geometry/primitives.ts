@@ -132,3 +132,41 @@ export function segmentIntersection(s: Segment, t: Segment): SegmentIntersection
   const up = upperEndpoint(seg)
   return { kind: 'overlap', a: up, b: up === seg.a ? seg.b : seg.a }
 }
+
+/**
+ * In-circle test. +1 when d is strictly inside the circle through a, b, c, 0 on it,
+ * -1 outside. The sign is corrected for a clockwise (a, b, c), so the result does not
+ * depend on the orientation. Points are translated by d first; the determinant is
+ * compared with a tolerance relative to the scale s (largest distance of a, b, c from
+ * d, floored at Number.MIN_VALUE so it is never 0): |det| <= 1e-7 * s^4 counts as 0.
+ * The tolerance is purely scale-relative, so it works for tiny coordinates too.
+ */
+export function inCircle(a: Pt, b: Pt, c: Pt, d: Pt): -1 | 0 | 1 {
+  const ax = a.x - d.x
+  const ay = a.y - d.y
+  const bx = b.x - d.x
+  const by = b.y - d.y
+  const cx = c.x - d.x
+  const cy = c.y - d.y
+  const det =
+    (ax * ax + ay * ay) * (bx * cy - cx * by) -
+    (bx * bx + by * by) * (ax * cy - cx * ay) +
+    (cx * cx + cy * cy) * (ax * by - bx * ay)
+  const s = Math.max(Number.MIN_VALUE, Math.hypot(ax, ay), Math.hypot(bx, by), Math.hypot(cx, cy))
+  if (Math.abs(det) <= GEOM_TOL * s ** 4) return 0
+  const ccw = cross(a, b, c) >= 0
+  return (det > 0) === ccw ? 1 : -1
+}
+
+/** Centre of the circle through a, b, c; null when they are (nearly) collinear. */
+export function circumcenter(a: Pt, b: Pt, c: Pt): Pt | null {
+  const bx = b.x - a.x
+  const by = b.y - a.y
+  const cx = c.x - a.x
+  const cy = c.y - a.y
+  const d = 2 * (bx * cy - by * cx)
+  if (Math.abs(d) <= EPS) return null
+  const b2 = bx * bx + by * by
+  const c2 = cx * cx + cy * cy
+  return { x: a.x + (cy * b2 - by * c2) / d, y: a.y + (bx * c2 - cx * b2) / d }
+}

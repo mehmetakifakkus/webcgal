@@ -2,8 +2,8 @@
 
 WebCgal is a small teaching site for computational geometry. Each algorithm
 (convex hull, line segment intersection, polygon triangulation, smallest
-enclosing disk, monotone polygons, point-line duality)
-has a page with an explanation, a runnable demo and, for some, a step-by-step
+enclosing disk, monotone polygons, point-line duality, Delaunay
+triangulation) has a page with an explanation, a runnable demo and, for some, a step-by-step
 player. The demos are written in PaperScript, so you can edit them and see the
 result immediately.
 
@@ -18,7 +18,10 @@ Live site: https://webcgal.netlify.app
   segment player also has presets for degenerate cases and event-queue and
   sweep-status panels. The triangulation player has the modes Full /
   Partition only / Triangulation only, presets, and draggable vertices with a
-  simplicity guard.
+  simplicity guard. The Delaunay player (`/algorithms/delaunay`, de Berg ch. 9:
+  randomized incremental insertion with the symbolic vertices p₋₁/p₋₂ and edge
+  flips) has the panels Insertion order / Flip stack / Triangles, presets, and
+  draggable points with a "Points must be distinct" guard.
 - Live PaperScript editor on every algorithm page: edit the demo and run it.
 - Playground: a free canvas with templates; the code is saved in the browser.
 - API documentation of the helper objects and functions (`Polygon`,
@@ -47,6 +50,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 - `src/geometry/` - pure geometry (no DOM, no paper.js) with unit tests
 - `src/geometry/algorithms/sweep/` - sweep-line segment intersection (event queue, status, step recorder, presets)
 - `src/geometry/algorithms/triangulation/` - polygon triangulation (MakeMonotone, monotone triangulation, step recorder, presets)
+- `src/geometry/algorithms/delaunay/` - Delaunay triangulation (inCircle/symbolic vertices, triangle mesh, randomized incremental algorithm, verifier, step recorder, presets)
 - `src/engine/` - PaperScript runtime and the API exposed to user code (`api.ts`)
 - `src/engine/__fixtures__/legacy/` - code of the old site, kept to prove it still runs
 - `src/components/` - shared React components (editor, runner, player, layout)
@@ -54,7 +58,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 - `src/players/` - step players of the algorithms
 - `src/content/` - MDX content: algorithms, API docs, playground templates
 - `src/registry.ts` - the list of algorithms; menu, cards and routes derive from it
-- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`node scripts/thumbnail.mjs --slug <slug> --preset "<name>" --step <n>`; `npm run thumbnail:segmentIntersection` and `npm run thumbnail:triangulation` regenerate those thumbnails)
+- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`node scripts/thumbnail.mjs --slug <slug> --preset "<name>" --step <n>`; `npm run thumbnail:segmentIntersection`, `npm run thumbnail:triangulation` and `npm run thumbnail:delaunay` regenerate those thumbnails)
 - `tests/e2e/` - Playwright tests
 
 ## Adding a new algorithm

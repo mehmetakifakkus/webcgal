@@ -1,5 +1,6 @@
 import type { Pt, VoronoiResult } from '../../types'
 import { crossVec, distance, dot, subtract } from '../../primitives'
+import { convexHull } from '../convexHull'
 import { hullBoundaryCount } from '../delaunay/verify'
 import { diagonal, label, vertexLabel } from './voronoi'
 
@@ -25,7 +26,11 @@ export function isVoronoi(points: Pt[], result: VoronoiResult): Verdict {
   const D = diagonal(points)
   const tol = 1e-6 * D
   const { vertices, edges, lines, cells, triangles, vertexOfTriangle } = result
-  const collinear = triangles.length === 0
+  // decided from the points, not from the result
+  const collinear = convexHull(points).length < 3
+  if (collinear && triangles.length > 0) return fail('vertex: the points are collinear but the result has triangles')
+  if (!collinear && triangles.length === 0)
+    return fail('vertex: the points are not collinear but the result has no triangles (bisector lines instead of vertices)')
 
   // vertices
   if (collinear && vertices.length > 0) return fail('vertex: collinear input has no Voronoi vertices')

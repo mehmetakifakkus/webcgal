@@ -59,6 +59,31 @@ describe('isVoronoi', () => {
     expect(vc.reason).toMatch(/euler/i)
   })
 
+  it('rejects collinear-style bisector lines for non-collinear points, and triangles for collinear points', () => {
+    const pts = P([[0, 0], [10, 0], [5, 1]])
+    const forged: VoronoiResult = {
+      vertices: [],
+      edges: [],
+      lines: [
+        { sites: [0, 2], p: { x: 2.5, y: 0.5 }, dir: { x: 1 / Math.hypot(1, 5), y: -5 / Math.hypot(1, 5) } },
+        { sites: [2, 1], p: { x: 7.5, y: 0.5 }, dir: { x: 1 / Math.hypot(1, 5), y: 5 / Math.hypot(1, 5) } },
+      ],
+      cells: pts.map((_, site) => ({ site, vertices: [] })),
+      triangles: [],
+      vertexOfTriangle: [],
+    }
+    const v = isVoronoi(pts, forged)
+    expect(v.ok).toBe(false)
+    expect(v.reason).toMatch(/not collinear/)
+    expect(isVoronoi(pts, voronoi(pts))).toEqual({ ok: true })
+
+    const col = P([[0, 0], [10, 0], [20, 0]])
+    const bad = { ...clone(voronoi(col)), triangles: [[0, 1, 2]] as [number, number, number][], vertexOfTriangle: [0] }
+    const vc = isVoronoi(col, bad)
+    expect(vc.ok).toBe(false)
+    expect(vc.reason).toMatch(/collinear/)
+  })
+
   it('rejects a broken cell', () => {
     const pts = grid()
     const r = clone(voronoi(pts))

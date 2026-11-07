@@ -8,6 +8,8 @@ export const label = (i: number) => `v${i + 1}`
 /** Voronoi vertex label. */
 export const vertexLabel = (k: number) => `u${k + 1}`
 
+/** Map key of the undirected Delaunay edge i–j. */
+const key = (i: number, j: number) => (i < j ? `${i},${j}` : `${j},${i}`)
 const edgeLabel = (i: number, j: number) => `${label(i)}–${label(j)}`
 const fmt = (p: Pt) => `(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`
 
@@ -143,17 +145,16 @@ export function voronoi(points: Pt[], record?: VorRecorder, order?: number[]): V
   const trianglesOf = new Map<string, number[]>()
   triangles.forEach((t, ti) => {
     for (let e = 0; e < 3; e++) {
-      const a = t[e], b = t[(e + 1) % 3]
-      const key = a < b ? `${a},${b}` : `${b},${a}`
-      const list = trianglesOf.get(key)
+      const k = key(t[e], t[(e + 1) % 3])
+      const list = trianglesOf.get(k)
       if (list) list.push(ti)
-      else trianglesOf.set(key, [ti])
+      else trianglesOf.set(k, [ti])
     }
   })
 
   phase = 'edges'
   for (const [i, j] of delaunayEdges) {
-    const ts = trianglesOf.get(`${i},${j}`) ?? []
+    const ts = trianglesOf.get(key(i, j)) ?? []
     const currentEdge: [number, number] = [i, j]
     if (ts.length === 2) {
       const a = vot[ts[0]], b = vot[ts[1]]

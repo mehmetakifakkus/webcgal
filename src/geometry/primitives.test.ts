@@ -189,6 +189,15 @@ describe('inCircle', () => {
     expect(inCircle(scale(a, k), scale(b, k), scale(c, k), { x: 0, y: -k })).toBe(0)
   })
 
+  it('is not loosened for tiny coordinates', () => {
+    const t = { x: 0, y: 0 }
+    expect(inCircle(t, { x: 1e-3, y: 0 }, { x: 0, y: 1e-3 }, { x: 0.9e-3, y: 0.9e-3 })).toBe(1)
+    const k = 1e-3
+    expect(inCircle(scale(a, k), scale(b, k), scale(c, k), { x: 0, y: 0 })).toBe(1)
+    expect(inCircle(scale(a, k), scale(b, k), scale(c, k), { x: 2 * k, y: 0 })).toBe(-1)
+    expect(inCircle(scale(a, k), scale(b, k), scale(c, k), { x: 0, y: -k })).toBe(0)
+  })
+
   it('circumcenter of a right triangle is the hypotenuse midpoint', () => {
     const o = circumcenter({ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 0, y: 4 })
     expect(o).not.toBeNull()

@@ -119,7 +119,7 @@ Son adım = `delaunay()`; `line` geçerli ve başlık değil; `flipped` yalnızc
 
 Oynatıcı altyapısı değişmez. `PlayerModule<DelaunayState, DelaunayInput>`, `DelaunayInput = { points: Pt[]; order: number[] }`.
 - `randomInput()`: 12 nokta, canvas içinde %12 kenar boşluğu, çiftler arası ≥ 25; `order` = p₀ hariç rastgele permütasyon.
-- `presets`: §3.5. `validate`: `samePt` ile çakışan çift varsa "Points must be distinct"; aksi halde null.
+- `presets`: §3.5. `validate`: birbirine 2 canvas biriminden yakın bir çift varsa "Points must be distinct"; aksi halde null.
 - `handles = points`; `moveHandle` noktayı taşır, `order` korunur (p₀ değişimi §2.4 kuralıyla çözülür).
 - `canvas` 775×360; `hint`: "Drag the points to change the input; the insertion order stays. Keys: ← → to step, Space to play or pause."
 - `render`: sembolik köşeli üçgenler çizilmez; sembolik köşeye giden kenarlar, gerçek köşeden p₋₁ için sol-üste, p₋₂ için sağ-alta (sembolik geometri p₋₁'i batıya, p₋₂'yi doğuya koyar) 30px kesikli ışın; henüz eklenmemiş noktalar içi boş daire, eklenenler dolu; `current` r=7 vurgulu; `located` üçgen dolgu; `testing.edge` 3px (`legal` ise `--del-legal`, değilse `--del-illegal`); `circle` ince kesikli çember; `flipped.to` 3px `--del-flip`; cleanup/done'da gerçek üçgenler hafif dolgu, zarf 2px. Etiketler `v1…`. Renkler `--del-edge`, `--del-current`, `--del-located`, `--del-legal`, `--del-illegal`, `--del-flip`, `--del-circle`, `--del-hull` (açık/koyu aynı).

@@ -183,7 +183,7 @@ describe('delaunay recorder', () => {
     expect(steps.slice(0, 6).map((s) => [s.line, s.description])).toEqual([
       [3, 'p₀ = v3 is the lexicographically highest point; start with the triangle p₀ p₋₁ p₋₂'],
       [4, 'Insertion order: v1, v2'],
-      [5, 'Insert p_r = v1 (2 of 3)'],
+      [5, 'Insert p_r = v1 (1 of 2)'],
       [6, 'v1 lies inside triangle (v3, p₋₁, p₋₂)'],
       [8, 'Split into three triangles'],
       [9, 'Push edges v3–p₋₁, p₋₁–p₋₂, p₋₂–v3 onto the stack'],

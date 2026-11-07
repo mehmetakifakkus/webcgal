@@ -82,7 +82,8 @@ function hullIndices(points: Pt[]): number[] {
  * Randomized incremental Delaunay triangulation (de Berg et al. §9.3). Points are inserted in
  * `order` (normalized: p0 removed, invalid/repeated indices dropped, missing ones appended in
  * ascending order; default `defaultOrder(n, p0)`). `record` receives one call per step; the
- * insert step "(k of n)" counts p0 as point 1, so the first inserted point is "2 of n".
+ * insert step "(r of m)" counts r as the pseudocode loop variable over the m points of the
+ * insertion order (p0 excluded), so the first inserted point is "1 of m".
  *
  * Stack entries are (triangle, e) with v[e] = p_r, i.e. the edge opposite p_r in a triangle of
  * the star of p_r. A flip only replaces the tested triangle and its neighbor across the link,
@@ -135,7 +136,7 @@ export function delaunay(points: Pt[], order?: number[], record?: DelRecorder): 
   ord.forEach((pr, idx) => {
     phase = 'insert'
     current = pr
-    emit(5, `Insert p_r = ${label(pr)} (${idx + 2} of ${n})`)
+    emit(5, `Insert p_r = ${label(pr)} (${idx + 1} of ${ord.length})`)
     const loc = mesh.locate(pr)
     const tv = [...mesh.tris[loc.t].v] as [number, number, number]
     if (loc.edge === undefined) {

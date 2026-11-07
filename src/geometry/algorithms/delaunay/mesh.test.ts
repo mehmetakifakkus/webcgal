@@ -172,7 +172,7 @@ describe('TriangleMesh', () => {
       expectAllCcw(points, m)
     }
     expect(flips).toBeGreaterThan(20)
-    // Euler: 2n+1 triangles for n real points + 2 symbolic with a triangular outer face.
+    // Euler: for N real points the mesh has 2(N-1)+1 = 2N-1 triangles (2 symbolic points, triangular outer face).
     expect(m.alive()).toHaveLength(2 * (points.length - 1) + 1)
   })
 })

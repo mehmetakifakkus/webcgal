@@ -116,12 +116,12 @@ describe('pointInTriangle', () => {
   })
 
   it('handles a triangle with one symbolic vertex', () => {
-    // [(4,0), p-1, (0,0)]: edge (4,0)->(0,0) with p-1 on its left side, so it is CCW.
+    // [(4,0), p-1, (0,0)]: the real edge is tri[2]->tri[0], i.e. (0,0)->(4,0), with p-1 to its left.
     const t: [number, number, number] = [1, P_MINUS_1, 0]
     expect(orient(pts, 1, P_MINUS_1, 0)).toBe(1)
-    expect(pointInTriangle(pts, t, 3).inside).toBe(false) // (1,1) is on the other side of the real edge
-    // (2,0) lies on the real edge; it is never reported on a symbolic edge.
+    expect(pointInTriangle(pts, t, 3).inside).toBe(false) // orient((4,0), p-1, (1,1)) = -1: (4,0) is not lexicographically higher than (1,1)
+    // (2,0) lies on the real edge (edge 2 = tri[2]->tri[0]); it is never reported on a symbolic edge.
     const r = pointInTriangle(pts, t, 6)
-    expect(r.edge === undefined || r.edge === 2).toBe(true)
+    expect(r).toEqual({ inside: true, edge: 2 })
   })
 })

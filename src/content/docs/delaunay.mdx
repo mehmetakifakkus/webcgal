@@ -1,0 +1,23 @@
+Computes the Delaunay triangulation of a point set: the triangulation in which no point lies inside the circumcircle of any triangle. The algorithm is explained step by step on the [Delaunay Triangulation](/algorithms/delaunay) page.
+
+```js
+delaunay(points)
+```
+
+`points` is an array of `TextPoint` objects (for example from `Points.createRandom(n)`), `Point` objects, `{ x, y }` objects or `[x, y]` arrays. Errors are thrown for duplicate points ("delaunay: points must be distinct") and for other input ("delaunay: expected an array of points (item N is not a point)"). Points are referred to by their 0-based index in the input array. The result has these fields:
+
+- `triangles`: the triangles, each a list of three point indices.
+- `edges`: `[[i, j], ...]`, the edges of the triangulation.
+- `hull`: the indices of the convex hull vertices, counter-clockwise.
+
+Two more functions are documented on this page:
+
+- `drawTriangulation(points, result, color)` draws the triangles of a `delaunay(points)` result lightly filled, with 1.5 px edges; `color` defaults to `'black'`.
+- `circumcircle(a, b, c)` returns `{ center, radius }`, the circle through three points (`center` is a `Point`), or `null` when the points are collinear.
+
+```js
+var points = Points.createRandom(12);
+var result = delaunay(points);
+drawTriangulation(points, result);
+console.log(result.triangles.length + ' triangle(s), ' + result.edges.length + ' edge(s)');
+```

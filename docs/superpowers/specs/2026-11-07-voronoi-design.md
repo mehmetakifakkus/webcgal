@@ -23,7 +23,7 @@ WebCgal'e Voronoi diyagramı eklenecek. Diyagram, de Berg et al. Bölüm 7'nin (
 1. Rastgele ve dejenere girdilerde `isVoronoi` doğrular: her köşe komşu sitelerine eşit uzaklıkta ve başka hiçbir siteye daha yakın değil; her kenarın orta noktası iki sitesine eşit uzaklıkta; Euler ilişkisi.
 2. Presetlerde beklenen köşe/kenar/hücre sayıları (ızgara 9 köşe; çember 1 köşe + 8 ışın; eşdoğrusal 4 doğru).
 3. Işın ve doğrular canvas kutusuna kırpılır; çizilen hiçbir nokta canvas dışına taşmaz.
-4. 12 noktada adım sayısı ≤ 4n + 2; 25 noktada ≤ 110.
+4. adım sayısı = 1 + T + E + n + 1 (Delaunay üçgen ve kenar sayıları); 25 noktada ≤ 140.
 5. Mevcut oynatıcılar ve testler değişmez (sayım güncellemeleri hariç).
 
 ## 2. Geometri modülü (`src/geometry/algorithms/voronoi/`)

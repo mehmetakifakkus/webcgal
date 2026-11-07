@@ -14,7 +14,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "e2e": "playwright test --trace off",
-    "thumbnail:segmentIntersection": "node scripts/thumbnail.mjs"
+    "thumbnail:segmentIntersection": "node scripts/thumbnail.mjs",
+    "thumbnail:triangulation": "node scripts/thumbnail.mjs --slug triangulation --preset \"Textbook polygon\" --step 60"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

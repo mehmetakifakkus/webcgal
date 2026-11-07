@@ -1,0 +1,32 @@
+Splits a simple polygon into triangles: first into y-monotone pieces, then each piece into triangles. The algorithm is explained step by step on the [Polygon Triangulation](/algorithms/triangulation) page.
+
+```js
+triangulate(polygon)
+```
+
+`polygon` is a `Polygon` object, an array of `TextPoint` objects, or an array of `Point` objects, `{ x, y }` objects or `[x, y]` arrays. Errors are thrown for a polygon that is not simple ("triangulate: the polygon must be simple (no crossing edges)"), for fewer than three vertices ("triangulate: the polygon needs at least 3 vertices"), for two consecutive vertices closer than 0.001 ("triangulate: vertices must be at least 0.001 apart") and for other input ("triangulate: expected a Polygon or an array of points (item N is not a point)"). Vertices are referred to by their 0-based index in the input order, whichever way the polygon is oriented. The result has these fields:
+
+- `types`: the type of each vertex (`start`, `end`, `split`, `merge` or `regular`).
+- `partitionDiagonals`: `[[i, j], ...]`, the diagonals that split the polygon into monotone pieces.
+- `pieces`: the monotone pieces, each a list of vertex indices.
+- `triangulationDiagonals`: `[[i, j], ...]`, the diagonals that split the pieces into triangles.
+- `triangles`: the triangles, each a list of three vertex indices.
+
+`makeMonotone(polygon)` returns only the first phase's result (it runs the same algorithm): `types`, `diagonals` (the same diagonals `triangulate` reports as `partitionDiagonals`) and `pieces`.
+
+Two helpers draw a result:
+
+- `drawDiagonals(polygon, diagonals, color)` draws diagonals as lines; `color` defaults to `'red'`.
+- `drawTriangles(polygon, triangles, color)` draws the triangles; `color` defaults to `'blue'`.
+
+`diagonals` must be an array of `[i, j]` pairs and `triangles` an array of `[i, j, k]` triples of 0-based vertex indices; an out-of-range index throws an error.
+
+```js
+drawCoordinateSystem();
+polygon = createRandomPolygon();
+polygon.draw();
+var result = triangulate(polygon);
+drawDiagonals(polygon, result.partitionDiagonals, 'red');
+drawDiagonals(polygon, result.triangulationDiagonals, 'blue');
+console.log(result.triangles.length + ' triangle(s), ' + result.partitionDiagonals.length + ' partition diagonal(s)');
+```

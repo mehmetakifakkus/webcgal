@@ -55,6 +55,17 @@ export const algorithms: AlgorithmEntry[] = [
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {
+    slug: 'triangulation',
+    path: '/algorithms/triangulation',
+    name: 'Polygon Triangulation',
+    thumbnail: '/images/triangulation_tn.png',
+    summary: 'Partition a simple polygon into y-monotone pieces with a sweep, then triangulate each piece in linear time.',
+    content: () => import('./content/algorithms/triangulation/index.mdx'),
+    demoCode: () => import('./content/algorithms/triangulation/demo.js?raw').then(raw),
+    player: () => import('./players/triangulationPlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+  },
+  {
     slug: 'smallestEnclosingDisk',
     path: '/algorithms/smallestEnclosingDisk',
     name: 'Smallest Enclosing Disk',

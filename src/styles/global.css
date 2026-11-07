@@ -117,12 +117,12 @@ a.btn:focus-visible,
     transform 0.15s;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   color: var(--text);
   background: var(--surface-sunken);
 }
 
-.btn:active {
+.btn:active:not(:disabled) {
   transform: translateY(1px);
 }
 
@@ -140,8 +140,8 @@ a.btn:focus-visible,
   border-color: var(--accent);
 }
 
-.btn-primary:hover,
-.btn.primary:hover {
+.btn-primary:hover:not(:disabled),
+.btn.primary:hover:not(:disabled) {
   color: var(--accent-contrast);
   background: var(--accent-hover);
   border-color: var(--accent-hover);
@@ -153,8 +153,15 @@ a.btn:focus-visible,
   box-shadow: none;
 }
 
-.btn-ghost:hover {
+.btn-ghost:hover:not(:disabled) {
   background: var(--surface-sunken);
+}
+
+/* disabled: faded, no hover colour or press movement (the hover/active rules skip :disabled) */
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-lg {

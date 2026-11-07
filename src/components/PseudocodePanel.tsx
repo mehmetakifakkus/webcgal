@@ -1,20 +1,22 @@
 import type { CSSProperties } from 'react'
 
-type Props = { lines: string[]; active: number }
+type Props = { lines: string[]; active: number; dimmed?: number[] }
 
 /**
  * Pseudocode listing; the line of the current step is highlighted and marked with aria-current="step".
+ * Lines in `dimmed` are shown faded (class pseudocode-dimmed).
  * Leading spaces become a hanging indent (--indent, in ch), so wrapped lines keep their indentation.
  */
-export default function PseudocodePanel({ lines, active }: Props) {
+export default function PseudocodePanel({ lines, active, dimmed }: Props) {
   return (
     <ol className="pseudocode" aria-label="Pseudocode">
       {lines.map((text, i) => {
         const body = text.trimStart()
+        const classes = [i === active && 'active', dimmed?.includes(i) && 'pseudocode-dimmed'].filter(Boolean).join(' ')
         return (
           <li
             key={i}
-            className={i === active ? 'active' : undefined}
+            className={classes || undefined}
             aria-current={i === active ? 'step' : undefined}
             style={{ '--indent': text.length - body.length } as CSSProperties}
           >

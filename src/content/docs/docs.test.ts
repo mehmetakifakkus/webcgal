@@ -21,7 +21,10 @@ const legacyItems = [
   ['getCenterAndRadius', 'misc_functions'],
 ] as const
 /** Items added after the legacy site. */
-const newItems = [{ name: 'findIntersections', category: 'misc_functions' }] as const
+const newItems = [
+  { name: 'findIntersections', category: 'misc_functions' },
+  { name: 'triangulate', category: 'misc_functions' },
+] as const
 const dir = new URL('.', import.meta.url).pathname
 
 describe('documentation entries', () => {
@@ -31,7 +34,7 @@ describe('documentation entries', () => {
       expect(findDoc(name)?.category, name).toBe(category)
     }
     expect(docs).toHaveLength(legacyItems.length + newItems.length)
-    expect(docs).toHaveLength(16)
+    expect(docs).toHaveLength(17)
   })
 
   test('findIntersections is documented with an example', () => {
@@ -39,6 +42,13 @@ describe('documentation entries', () => {
     expect(entry?.category).toBe('misc_functions')
     expect(entry?.example?.trim().length).toBeGreaterThan(0)
     expect(readFileSync(`${dir}findIntersections.mdx`, 'utf8')).toContain(entry!.example!.trim())
+  })
+
+  test('triangulate is documented with an example', () => {
+    const entry = findDoc('triangulate')
+    expect(entry?.category).toBe('misc_functions')
+    expect(entry?.example?.trim().length).toBeGreaterThan(0)
+    expect(readFileSync(`${dir}triangulate.mdx`, 'utf8')).toContain(entry!.example!.trim())
   })
 
   test('names are unique and case-sensitive', () => {
@@ -61,7 +71,7 @@ describe('documentation entries', () => {
 
   test('no link_to left in any MDX file', () => {
     const files = readdirSync(dir).filter((f) => f.endsWith('.mdx'))
-    expect(files).toHaveLength(16)
+    expect(files).toHaveLength(17)
     for (const f of files) expect(readFileSync(dir + f, 'utf8'), f).not.toContain('link_to(')
   })
 

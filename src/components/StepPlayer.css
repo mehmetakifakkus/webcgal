@@ -29,7 +29,7 @@
 }
 .step-player-transport .btn { min-height: 2rem; padding: 0.3rem 0.6rem; font-size: var(--fs-sm); }
 .step-player-transport .btn-ghost { color: var(--text-muted); }
-.step-player-transport .btn-ghost:hover { color: var(--text); background: var(--surface-raised); }
+.step-player-transport .btn-ghost:hover:not(:disabled) { color: var(--text); background: var(--surface-raised); }
 .step-player-play { min-width: 5.25rem; }
 .icon { width: 1em; height: 1em; fill: currentColor; }
 .icon-stroke { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
@@ -53,6 +53,37 @@
   font-weight: 500;
 }
 .step-player-preset .select { min-width: 0; max-width: 100%; min-height: 2rem; font-size: var(--fs-sm); }
+
+/* invalid input: an overlay at the top of the canvas, so that it never shifts the canvas mid-drag;
+   translucent, so that the vertex being dragged stays visible under it */
+.step-player-stage { position: relative; }
+.step-player-alert {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  z-index: 1;
+  pointer-events: none;
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  color: var(--text);
+  background: color-mix(in srgb, color-mix(in srgb, var(--error) 8%, var(--surface)) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 45%, transparent);
+  border-left: 3px solid var(--error);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-weight: 600;
+}
+.step-player-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.step-player-mode .select { min-width: 0; max-width: 100%; min-height: 2rem; font-size: var(--fs-sm); }
 
 /* right column: the pseudocode; below the canvas on narrow screens */
 .step-player-side { min-width: 0; }
@@ -107,6 +138,8 @@
 .pseudocode code { white-space: pre-wrap; font-family: inherit; font-size: inherit; }
 .pseudocode li.active { background: var(--accent); color: var(--accent-contrast); box-shadow: var(--shadow-sm); }
 .pseudocode li.active::marker { color: var(--accent); font-weight: 700; }
+/* lines the current mode skips */
+.pseudocode li.pseudocode-dimmed { opacity: 0.45; }
 
 @media (prefers-reduced-motion: reduce) {
   .pseudocode li, .step-player-progress span { transition: none; }

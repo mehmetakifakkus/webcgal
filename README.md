@@ -1,8 +1,8 @@
 # WebCgal
 
 WebCgal is a small teaching site for computational geometry. Each algorithm
-(convex hull, line segment intersection, smallest enclosing disk, monotone
-polygons, point-line duality)
+(convex hull, line segment intersection, polygon triangulation, smallest
+enclosing disk, monotone polygons, point-line duality)
 has a page with an explanation, a runnable demo and, for some, a step-by-step
 player. The demos are written in PaperScript, so you can edit them and see the
 result immediately.
@@ -11,11 +11,14 @@ Live site: https://webcgal.netlify.app
 
 ## Features
 
-- Step-by-step players for Convex Hull and Line Segment Intersection (sweep
-  line, de Berg ch. 2.1): play, step through and reset an algorithm, with the
-  pseudocode line that is running highlighted. Points can be dragged. The
+- Step-by-step players for Convex Hull, Line Segment Intersection (sweep
+  line, de Berg ch. 2.1) and Polygon Triangulation (de Berg ch. 3: MakeMonotone
+  + monotone triangulation): play, step through and reset an algorithm, with
+  the pseudocode line that is running highlighted. Points can be dragged. The
   segment player also has presets for degenerate cases and event-queue and
-  sweep-status panels.
+  sweep-status panels. The triangulation player has the modes Full /
+  Partition only / Triangulation only, presets, and draggable vertices with a
+  simplicity guard.
 - Live PaperScript editor on every algorithm page: edit the demo and run it.
 - Playground: a free canvas with templates; the code is saved in the browser.
 - API documentation of the helper objects and functions (`Polygon`,
@@ -43,6 +46,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 
 - `src/geometry/` - pure geometry (no DOM, no paper.js) with unit tests
 - `src/geometry/algorithms/sweep/` - sweep-line segment intersection (event queue, status, step recorder, presets)
+- `src/geometry/algorithms/triangulation/` - polygon triangulation (MakeMonotone, monotone triangulation, step recorder, presets)
 - `src/engine/` - PaperScript runtime and the API exposed to user code (`api.ts`)
 - `src/engine/__fixtures__/legacy/` - code of the old site, kept to prove it still runs
 - `src/components/` - shared React components (editor, runner, player, layout)
@@ -50,7 +54,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 - `src/players/` - step players of the algorithms
 - `src/content/` - MDX content: algorithms, API docs, playground templates
 - `src/registry.ts` - the list of algorithms; menu, cards and routes derive from it
-- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`npm run thumbnail:segmentIntersection` regenerates that algorithm's thumbnail)
+- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`node scripts/thumbnail.mjs --slug <slug> --preset "<name>" --step <n>`; `npm run thumbnail:segmentIntersection` and `npm run thumbnail:triangulation` regenerate those thumbnails)
 - `tests/e2e/` - Playwright tests
 
 ## Adding a new algorithm
@@ -66,9 +70,11 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
    `PlayerModule<S, I>` from `src/players/types.ts` and wire it with the
    `player` field of the registry entry. A module provides `computeSteps`,
    `render`, `pseudocode`, `randomInput`, `handles` and `moveHandle`, and
-   optionally `presets`, `panels` and `canvas`. See
-   `src/players/convexHullPlayer.ts` for a minimal example and
-   `src/players/sweepLinePlayer.ts` for one with panels and presets.
+   optionally `presets`, `panels`, `canvas`, `modes` (with
+   `computeSteps(input, mode)`), `validate`/`renderInvalid`, `dimmedLines` and
+   `hint`. See `src/players/convexHullPlayer.ts` for a minimal example,
+   `src/players/sweepLinePlayer.ts` for one with panels and presets and
+   `src/players/triangulationPlayer.ts` for one with modes and validation.
 
 ## Deployment
 

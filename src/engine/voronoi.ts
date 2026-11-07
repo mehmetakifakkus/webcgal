@@ -22,7 +22,7 @@ export type ApiVoronoiResult = {
 
 const P = (p: Pt) => new paper.Point(p.x, p.y)
 
-/** Voronoi diagram of a point set, derived from its Delaunay triangulation (de Berg et al. §9.5). */
+/** Voronoi diagram of a point set, derived from its Delaunay triangulation (de Berg et al. §9.2). */
 export function voronoi(input: PointInput[]): ApiVoronoiResult {
   const points = toPoints(input, 'voronoi')
   let r: VoronoiResult

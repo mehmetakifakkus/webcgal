@@ -7,11 +7,11 @@
 
 ## 1. Amaç ve bağlam
 
-WebCgal'e Voronoi diyagramı eklenecek. Diyagram, de Berg et al. Bölüm 7'nin (*Voronoi Diagrams*) tanımıyla ve §9.5'teki ikilikle **Delaunay üçgenlemesinden türetilir**: her üçgenin çevrel merkezi bir Voronoi köşesi, her Delaunay kenarının ikilisi bir Voronoi kenarı (zarf kenarları için ışın). Fortune'un süpürme çizgisi (§7.2) bu sayfada uygulanmaz; metinde anlatılır.
+WebCgal'e Voronoi diyagramı eklenecek. Diyagram, de Berg et al. Bölüm 7'nin (*Voronoi Diagrams*) tanımıyla ve §9.2'deki ikilikle **Delaunay üçgenlemesinden türetilir**: her üçgenin çevrel merkezi bir Voronoi köşesi, her Delaunay kenarının ikilisi bir Voronoi kenarı (zarf kenarları için ışın). Fortune'un süpürme çizgisi (§7.2) bu sayfada uygulanmaz; metinde anlatılır.
 
 **Kullanıcı kararları:**
 - Algoritma: Delaunay ikiliği (Fortune değil).
-- Oynatıcı adımları köşe → kenar sırasıyla (Teorem 9.5'i bire bir gösterir); hücreler sonda toplanır.
+- Oynatıcı adımları köşe → kenar sırasıyla (Teorem 9.6'i bire bir gösterir); hücreler sonda toplanır.
 - Dejenere girdilerde **sadık diyagram**: çakışan çevrel merkezler tek köşede birleştirilir, sıfır uzunluklu kenarlar atılır; eşdoğrusal girdide ardışık noktaların orta dikmeleri çizilir.
 
 **Varsayımlar:**
@@ -49,7 +49,7 @@ export type VoronoiInput = { points: Pt[] }
   3. **Kenarlar:** kenar → üçgen haritası (`Map<string, number[]>`, anahtar `"i,j"` i<j) ile her Delaunay kenarı için:
      - iki üçgen: `a = vertexOfTriangle[t]`, `b = vertexOfTriangle[t']`; `a === b` ise kenar atlanır (sıfır uzunluk);
      - tek üçgen (zarf): `a` üçgenin köşesi, `b = null`, `dir` = `p_i p_j`'nin orta dikmesi boyunca, üçgenin üçüncü köşesi `p_k`'dan **uzağa** bakan birim vektör (`dot(dir, p_k − mid) < 0`).
-  4. **Eşdoğrusal girdi** (üçgen yok, n ≥ 2): noktalar doğru boyunca sıralanır; ardışık çiftler için `lines` = orta nokta + doğruya dik birim yön. `vertices`, `edges`, `cells` boş. n ≤ 1 → her şey boş.
+  4. **Eşdoğrusal girdi** (üçgen yok, n ≥ 2): noktalar doğru boyunca sıralanır; ardışık çiftler için `lines` = orta nokta + doğruya dik birim yön. `vertices`, `edges`, `cells` boş. n = 0 → her şey boş; n = 1 → köşe/kenar yok, tek hücre.
   5. **Hücreler:** her site için kendisine değen kenarlar (ve ışınlar) toplanır; köşeler siteye göre açıyla CCW sıralanır. Kapalı hücre: `vertices` döngüsel. Açık hücre (zarf sitesi): iki ışın; `vertices` giriş ışınının köşesinden çıkış ışınının köşesine CCW; `rays = [giriş, çıkış]`. Eşçember birleştirmesi sonrası aynı köşe birden çok kez listelenmez.
 - Hata: çakışan nokta → `delaunay`'ın `Error('points must be distinct')` aynen geçer.
 - Sıra bağımsızlığı: sonuç `delaunay`'ın varsayılan sırasına dayanır; birleştirme sayesinde eşçember kümelerde de köşe/kenar kümesi tektir (testle doğrulanır: üç farklı `order` ile aynı köşe ve kenar kümesi).
@@ -57,7 +57,7 @@ export type VoronoiInput = { points: Pt[] }
 ### 2.3 Kırpma (`clip.ts`)
 - `Box = { x0, y0, x1, y1 }`.
 - `clipSegment(a, b, box): [Pt, Pt] | null`, `clipRay(a, dir, box): [Pt, Pt] | null`, `clipLine(p, dir, box): [Pt, Pt] | null` — Liang–Barsky parametrik kırpma (`t ∈ [0,1]`, `[0,∞)`, `(−∞,∞)`).
-- `clipPolygonToBox(poly: Pt[], box): Pt[]` — Sutherland–Hodgman; açık hücreler için kullanılacak çokgen: `[ışın_giriş uzak ucu, köşeler…, ışın_çıkış uzak ucu]` ("uzak uç" = köşe + dir · 4·D) kırpılır; `cellPolygon(points, result, cell, box): Pt[]` bu birleşimi yapar (kapalı hücrede yalnızca köşeler kırpılır).
+- `clipPolygonToBox(poly: Pt[], box): Pt[]` — Sutherland–Hodgman; açık hücre = canvas kutusunun, sitenin Voronoi komşularının orta dikme yarım düzlemleriyle kırpılması (kesin); `cellPolygon(points, result, cell, box): Pt[]` bunu yapar (kapalı hücrede yalnızca köşeler kırpılır).
 
 ### 2.4 Doğrulayıcı (`verify.ts`)
 - `isVoronoi(points, result): { ok: boolean; reason?: string }`:
@@ -128,7 +128,7 @@ Koordinatlar bir ondalıkla. Etiketler: siteler `v1…`, köşeler `u1…`.
 ### 3.4 Adım üreteci ve presetler
 - `voronoiSteps(points, showDelaunay = true): Step<VoronoiState>[]`. Adım sayısı = 1 + T + E + n + 1 (eşdoğrusal: 1 + (n−1) + n + 1).
 - `VORONOI_PRESETS: { name; points; expected: { vertices; edges; cells; unbounded } }[]`: "Textbook example", "Square grid 4×4", "Points on a circle", "Two clusters", "Collinear plus one" (koordinatlar `DELAUNAY_PRESETS`'ten içe aktarılır) ve "Collinear" ((150,100),(300,100),(450,100),(600,100),(700,100); expected vertices 0, edges 0, `lines` 4). `expected` değerleri uygulamada hesaplanıp sabitlenir; testler `isVoronoi` ile birlikte doğrular.
-- Testler: `last step matches voronoi`; `lines valid, never heading`; `newEdge only on lines 7/9`, `merged only on line 4`; `step count = 1 + T + E + n + 1`; `showDelaunay propagates`; `snapshots independent`; `preset counts`; 25 noktada ≤ 110 adım.
+- Testler: `last step matches voronoi`; `lines valid, never heading`; `newEdge only on lines 7/9`, `merged only on line 4`; `step count = 1 + T + E + n + 1`; `showDelaunay propagates`; `snapshots independent`; `preset counts`; 25 noktada ≤ 141 adım (= 147 − 2h).
 
 ## 4. Oynatıcı modülü (`src/players/voronoiPlayer.ts`)
 
@@ -143,7 +143,7 @@ Koordinatlar bir ondalıkla. Etiketler: siteler `v1…`, köşeler `u1…`.
 ## 5. Sayfa, API, dokümantasyon, testler ve yayın
 
 - **Registry:** `slug 'voronoi'`, `path '/algorithms/voronoi'`, `name 'Voronoi Diagram'`, Delaunay'dan sonra (9. kart); `summary 'Build the Voronoi diagram of a point set from its Delaunay triangulation: circumcenters become vertices, dual edges become edges.'`; `thumbnail '/images/voronoi_tn.png'` (`--slug voronoi --preset "Textbook example"`, son adım); tek 775×360 canvas.
-- **İçerik (MDX):** tanım (site, hücre, en yakın site), köşe = üç siteye eşit uzaklık = boş çember, ikilik (Teorem 9.5), neden Delaunay'dan türetildiği + Fortune'a bir cümle (bölüm 7, O(n log n)), dejenere durumlar, kitap referansı "This page follows chapter 7, *Voronoi Diagrams*, and section 9.5 of Computational Geometry: Algorithms and Applications, 3rd ed., by de Berg et al.", etkileşim ipuçları, `[Delaunay Triangulation](/algorithms/delaunay)` linki.
+- **İçerik (MDX):** tanım (site, hücre, en yakın site), köşe = üç siteye eşit uzaklık = boş çember, ikilik (Teorem 9.6), neden Delaunay'dan türetildiği + Fortune'a bir cümle (bölüm 7, O(n log n)), dejenere durumlar, kitap referansı "This page follows chapter 7, *Voronoi Diagrams*, and section 9.2 of Computational Geometry: Algorithms and Applications, 3rd ed., by de Berg et al.", etkileşim ipuçları, `[Delaunay Triangulation](/algorithms/delaunay)` linki.
 - **API** (`src/engine/voronoi.ts`, `API_NAMES`'e `voronoi`, `drawVoronoi`, `voronoiCells`): `voronoi(points)` → `{ vertices, edges, cells, lines }` (kırpılmamış; `edges[k].dir` ile ışın); `drawVoronoi(points, result, color = 'black', box = {x0:0,y0:0,x1:775,y1:360})` — kenarlar 1.5px, ışın/doğrular kutuya kırpılır, dolgu yok; `voronoiCells(points, result, box?)` → `Point[][]` (site sırasıyla kırpılmış hücre çokgenleri). Hatalar `voronoi:` önekiyle: `points must be distinct`, `expected an array of points (item N is not a point)` (N 1 tabanlı). `demo.js`: `var points = Points.createRandom(12); var result = voronoi(points); drawVoronoi(points, result); console.log(result.vertices.length + ' vertex/vertices, ' + result.edges.length + ' edge(s), ' + result.cells.length + ' cell(s)');`
 - **Dokümantasyon:** `misc_functions` altına `voronoi` (19. öğe; `drawVoronoi` ve `voronoiCells` aynı sayfada); docs 19 / "Try it" 13.
 - **Testler:** e2e `voronoi.spec.ts` (sayfa "Vertices" paneliyle açılır; presetlerin `Done: …` metinleri; mod değişimi adım sayısını korur; sürükleme yeniden başlatır; çakıştırma uyarısı ve geri dönüş; Code demosu `/^\d+ vertex\/vertices, \d+ edge\(s\), \d+ cell\(s\)$/`), `visual.spec` sayfa, kart 9, docs 19 / 13. Mevcut testler değişmez.

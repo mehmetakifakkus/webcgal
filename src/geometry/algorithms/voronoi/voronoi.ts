@@ -70,7 +70,7 @@ function buildCell(points: Pt[], vertices: Pt[], edges: VoronoiEdge[], site: num
 }
 
 /**
- * Voronoi diagram as the dual of the Delaunay triangulation (de Berg et al. §7, §9.5, spec
+ * Voronoi diagram as the dual of the Delaunay triangulation (de Berg et al. §7, §9.2, spec
  * §2.2): circumcenters become vertices (merged within `mergeTol`), shared Delaunay edges become
  * edges (skipped when both triangles share a vertex), hull edges become outward rays. Collinear
  * input gives the bisectors of consecutive points as `lines`. `order` is passed to `delaunay`.

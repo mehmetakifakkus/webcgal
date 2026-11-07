@@ -22,7 +22,7 @@ Live site: https://webcgal.netlify.app
   randomized incremental insertion with the symbolic vertices p₋₁/p₋₂ and edge
   flips) has the panels Insertion order / Flip stack / Triangles, presets, and
   draggable points with a "Points must be distinct" guard. The Voronoi player
-  (`/algorithms/voronoi`, de Berg ch. 7 / §9.5: the diagram is derived from the
+  (`/algorithms/voronoi`, de Berg ch. 7 / §9.2: the diagram is derived from the
   Delaunay triangulation by duality) has the modes With Delaunay / Voronoi
   only, the panels Vertices / Edges / Cells, presets, and draggable points.
 - Live PaperScript editor on every algorithm page: edit the demo and run it.

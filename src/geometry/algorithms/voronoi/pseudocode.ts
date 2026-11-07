@@ -1,4 +1,4 @@
-// Pseudocode for the Voronoi diagram from the Delaunay triangulation (de Berg et al., §7, §9.5).
+// Pseudocode for the Voronoi diagram from the Delaunay triangulation (de Berg et al., §7, §9.2).
 // Line numbers are the 0-based indices used by the recorder in voronoi.ts.
 
 export const VORONOI_PSEUDOCODE: string[] = [

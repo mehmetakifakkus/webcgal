@@ -84,6 +84,15 @@ describe('isVoronoi', () => {
     expect(vc.reason).toMatch(/collinear/)
   })
 
+  it('rejects a duplicated bisector line for collinear input', () => {
+    const col = P([[0, 0], [10, 0], [20, 0]])
+    const r = clone(voronoi(col))
+    r.lines[1] = structuredClone(r.lines[0])
+    const v = isVoronoi(col, r)
+    expect(v.ok).toBe(false)
+    expect(v.reason).toMatch(/twice/)
+  })
+
   it('rejects a broken cell', () => {
     const pts = grid()
     const r = clone(voronoi(pts))

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pt } from '../../types'
-import { mulberry32 } from '../delaunay/delaunay'
+import { delaunay, mulberry32 } from '../delaunay/delaunay'
 import { randomPointSet } from '../delaunay/verify'
 import { VORONOI_PRESETS } from './presets'
 import { PSEUDOCODE_HEADINGS, VORONOI_PSEUDOCODE } from './pseudocode'
@@ -74,10 +74,7 @@ describe('voronoiSteps', () => {
       const steps = voronoiSteps(pts)
       if (r.lines.length > 0) expect(steps).toHaveLength(1 + (n - 1) + n + 1)
       else {
-        let edgeCount = 0
-        voronoi(pts, (line) => {
-          if (line === 7 || line === 9) edgeCount++
-        })
+        const edgeCount = delaunay(pts).edges.length
         expect(steps).toHaveLength(1 + r.triangles.length + edgeCount + n + 1)
       }
     }
@@ -109,8 +106,9 @@ describe('voronoiSteps', () => {
     expect(steps.at(-2)!.state.edges.length).toBeGreaterThan(0)
   })
 
-  it('25 random points take at most 140 steps', () => {
-    for (let seed = 1; seed <= 10; seed++) expect(voronoiSteps(random(seed, 25)).length).toBeLessThanOrEqual(140)
+  // = 147 − 2h for n = 25; h ≥ 3
+  it('25 random points take at most 141 steps', () => {
+    for (let seed = 1; seed <= 10; seed++) expect(voronoiSteps(random(seed, 25)).length).toBeLessThanOrEqual(141)
   })
 
   it('collinear steps: phases delaunay, collinear, cells, done; four line-10 steps', () => {

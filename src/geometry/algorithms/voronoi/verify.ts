@@ -95,10 +95,14 @@ export function isVoronoi(points: Pt[], result: VoronoiResult): Verdict {
 
   // collinear bisector lines
   if (!collinear && lines.length > 0) return fail('edge: bisector lines only occur for collinear input')
+  const linePairs = new Set<string>()
   for (let k = 0; k < lines.length; k++) {
     const { sites, p, dir } = lines[k]
     const [i, j] = sites
     if (!isIndex(i, n) || !isIndex(j, n) || i === j) return fail(`edge: bisector ${k + 1} has invalid sites`)
+    const lineKey = i < j ? `${i},${j}` : `${j},${i}`
+    if (linePairs.has(lineKey)) return fail(`edge: bisector ${label(i)}–${label(j)} is listed twice`)
+    linePairs.add(lineKey)
     const name = `bisector edge ${label(i)}–${label(j)}`
     if (Math.abs(Math.hypot(dir.x, dir.y) - 1) > 1e-9) return fail(`${name} has no unit direction`)
     const pq = subtract(points[j], points[i])

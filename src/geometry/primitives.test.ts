@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  circumcenter,
   cross,
+  inCircle,
   distance,
   isHorizontal,
   lowerEndpoint,
@@ -159,5 +161,42 @@ describe('segments', () => {
   it('samePt uses the geometric tolerance', () => {
     expect(samePt({ x: 1, y: 1 }, { x: 1 + 5e-8, y: 1 })).toBe(true)
     expect(samePt({ x: 1, y: 1 }, { x: 1 + 5e-7, y: 1 })).toBe(false)
+  })
+})
+
+describe('inCircle', () => {
+  const a = { x: 1, y: 0 }
+  const b = { x: 0, y: 1 }
+  const c = { x: -1, y: 0 }
+  const scale = (p: { x: number; y: number }, k: number) => ({ x: p.x * k, y: p.y * k })
+
+  it('classifies inside, outside and on the circle', () => {
+    expect(inCircle(a, b, c, { x: 0, y: 0 })).toBe(1)
+    expect(inCircle(a, b, c, { x: 2, y: 0 })).toBe(-1)
+    expect(inCircle(a, b, c, { x: 0, y: -1 })).toBe(0)
+  })
+
+  it('is independent of the orientation of (a, b, c)', () => {
+    expect(inCircle(b, a, c, { x: 0, y: 0 })).toBe(1)
+    expect(inCircle(b, a, c, { x: 2, y: 0 })).toBe(-1)
+    expect(inCircle(b, a, c, { x: 0, y: -1 })).toBe(0)
+  })
+
+  it('gives the same results at a large scale', () => {
+    const k = 1000
+    expect(inCircle(scale(a, k), scale(b, k), scale(c, k), { x: 0, y: 0 })).toBe(1)
+    expect(inCircle(scale(a, k), scale(b, k), scale(c, k), { x: 2 * k, y: 0 })).toBe(-1)
+    expect(inCircle(scale(a, k), scale(b, k), scale(c, k), { x: 0, y: -k })).toBe(0)
+  })
+
+  it('circumcenter of a right triangle is the hypotenuse midpoint', () => {
+    const o = circumcenter({ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 0, y: 4 })
+    expect(o).not.toBeNull()
+    expect(o!.x).toBeCloseTo(2)
+    expect(o!.y).toBeCloseTo(2)
+  })
+
+  it('circumcenter of collinear points is null', () => {
+    expect(circumcenter({ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 })).toBeNull()
   })
 })

@@ -115,6 +115,22 @@
   --del-circle: #6b7280;
   --del-hull: #1a5fb4;
 
+  /* Voronoi diagram player */
+  --vor-delaunay: #c7cad1;
+  --vor-edge: #1a5fb4;
+  --vor-vertex: #1a5fb4;
+  --vor-current: #e66100;
+  --vor-new: #26a269;
+  --vor-skip: #c01c28;
+  --vor-cell-0: #8ecae6;
+  --vor-cell-1: #ffb703;
+  --vor-cell-2: #90be6d;
+  --vor-cell-3: #f4a261;
+  --vor-cell-4: #cdb4db;
+  --vor-cell-5: #a8dadc;
+  --vor-cell-6: #e9c46a;
+  --vor-cell-7: #b5e48c;
+
   /* names used before the token set (kept for existing component styles) */
   --fg: var(--text);
   --muted: var(--text-muted);
@@ -185,5 +201,21 @@
     --del-flip: #9141ac;
     --del-circle: #6b7280;
     --del-hull: #1a5fb4;
+
+    /* Voronoi: same as light (canvas stays white) */
+    --vor-delaunay: #c7cad1;
+    --vor-edge: #1a5fb4;
+    --vor-vertex: #1a5fb4;
+    --vor-current: #e66100;
+    --vor-new: #26a269;
+    --vor-skip: #c01c28;
+    --vor-cell-0: #8ecae6;
+    --vor-cell-1: #ffb703;
+    --vor-cell-2: #90be6d;
+    --vor-cell-3: #f4a261;
+    --vor-cell-4: #cdb4db;
+    --vor-cell-5: #a8dadc;
+    --vor-cell-6: #e9c46a;
+    --vor-cell-7: #b5e48c;
   }
 }

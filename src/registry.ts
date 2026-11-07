@@ -66,6 +66,17 @@ export const algorithms: AlgorithmEntry[] = [
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {
+    slug: 'delaunay',
+    path: '/algorithms/delaunay',
+    name: 'Delaunay Triangulation',
+    thumbnail: '/images/delaunay_tn.png',
+    summary: 'Build the Delaunay triangulation of a point set by random incremental insertion and edge flips.',
+    content: () => import('./content/algorithms/delaunay/index.mdx'),
+    demoCode: () => import('./content/algorithms/delaunay/demo.js?raw').then(raw),
+    player: () => import('./players/delaunayPlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+  },
+  {
     slug: 'smallestEnclosingDisk',
     path: '/algorithms/smallestEnclosingDisk',
     name: 'Smallest Enclosing Disk',

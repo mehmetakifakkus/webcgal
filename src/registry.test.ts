@@ -10,7 +10,7 @@ const LEGACY_PATHS = [
 ]
 
 /** Pages added after the migration (not on the legacy site). */
-const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation']
+const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation', '/algorithms/delaunay']
 
 describe('registry', () => {
   test('paths are legacy paths', () => {
@@ -22,9 +22,13 @@ describe('registry', () => {
   })
 
   test('Polygon Triangulation follows Line Segment Intersection in the menu', () => {
-    expect(algorithms.map((a) => a.path).slice(1, 4)).toEqual([
-      '/algorithms/segmentIntersection',
+    expect(algorithms.map((a) => a.path).slice(1, 3)).toEqual(['/algorithms/segmentIntersection', '/algorithms/triangulation'])
+  })
+
+  test('Delaunay Triangulation follows Polygon Triangulation in the menu', () => {
+    expect(algorithms.map((a) => a.path).slice(2, 5)).toEqual([
       '/algorithms/triangulation',
+      '/algorithms/delaunay',
       '/algorithms/smallestEnclosingDisk',
     ])
   })

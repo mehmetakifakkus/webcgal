@@ -131,6 +131,14 @@
   --vor-cell-6: #e9c46a;
   --vor-cell-7: #b5e48c;
 
+  /* smallest enclosing disc player */
+  --md-disk: #1a5fb4;
+  --md-outer: #9aa0a6;
+  --md-fixed: #9141ac;
+  --md-inside: #26a269;
+  --md-outside: #c01c28;
+  --md-new: #e66100;
+
   /* names used before the token set (kept for existing component styles) */
   --fg: var(--text);
   --muted: var(--text-muted);
@@ -217,5 +225,13 @@
     --vor-cell-5: #a8dadc;
     --vor-cell-6: #e9c46a;
     --vor-cell-7: #b5e48c;
+
+    /* smallest enclosing disc: same as light (canvas stays white) */
+    --md-disk: #1a5fb4;
+    --md-outer: #9aa0a6;
+    --md-fixed: #9141ac;
+    --md-inside: #26a269;
+    --md-outside: #c01c28;
+    --md-new: #e66100;
   }
 }

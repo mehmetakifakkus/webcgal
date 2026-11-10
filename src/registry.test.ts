@@ -10,7 +10,7 @@ const LEGACY_PATHS = [
 ]
 
 /** Pages added after the migration (not on the legacy site). */
-const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation', '/algorithms/delaunay', '/algorithms/voronoi']
+const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation', '/algorithms/delaunay', '/algorithms/voronoi', '/algorithms/kdTree']
 
 describe('registry', () => {
   test('paths are legacy paths', () => {
@@ -35,6 +35,26 @@ describe('registry', () => {
       '/algorithms/voronoi',
       '/algorithms/smallestEnclosingDisk',
     ])
+  })
+
+  test('kd-Tree Range Search follows Smallest Enclosing Disk in the menu', () => {
+    expect(algorithms.map((a) => a.path).slice(5, 8)).toEqual([
+      '/algorithms/smallestEnclosingDisk',
+      '/algorithms/kdTree',
+      '/algorithms/L-monoton',
+    ])
+  })
+
+  test('the kd-tree page has a step player and one 775x360 canvas', () => {
+    const a = findAlgorithm('/algorithms/kdTree')
+    expect(a).toMatchObject({
+      slug: 'kdTree',
+      name: 'kd-Tree Range Search',
+      thumbnail: '/images/kdTree_tn.png',
+      summary: 'Build a kd-tree by alternating median splits and answer a rectangular range query, step by step.',
+      canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+    })
+    expect(a?.player).toBeTypeOf('function')
   })
 
   test('slugs unique', () => {

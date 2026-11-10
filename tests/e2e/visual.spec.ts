@@ -17,6 +17,7 @@ const pages = [
   { path: 'algorithms/delaunay', name: 'delaunay', heading: 'Delaunay Triangulation' },
   { path: 'algorithms/voronoi', name: 'voronoi', heading: 'Voronoi Diagram' },
   { path: 'algorithms/smallestEnclosingDisk', name: 'smallestEnclosingDisk', heading: 'Smallest Enclosing Disk' },
+  { path: 'algorithms/kdTree', name: 'kdTree', heading: 'kd-Tree Range Search' },
   { path: 'algorithms/L-monoton', name: 'L-monoton', heading: 'L-monotone Polygon' },
   { path: 'documentation', name: 'documentation', heading: 'Documentation' },
   { path: 'documentation/TextPoint', name: 'doc-TextPoint', heading: 'TextPoint' },

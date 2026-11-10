@@ -39,9 +39,9 @@ test('each algorithm page runs its demo', async ({ page }) => {
   expect(errors).toEqual([])
 })
 
-test('algorithms index lists 9 cards and the Duality group', async ({ page }) => {
+test('algorithms index lists 10 cards and the Duality group', async ({ page }) => {
   await page.goto('algorithms')
-  await expect(page.locator('main .card')).toHaveCount(9)
+  await expect(page.locator('main .card')).toHaveCount(10)
   await expect(page.getByRole('heading', { name: 'Duality' })).toBeVisible()
 })
 

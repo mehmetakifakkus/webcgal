@@ -99,6 +99,17 @@ export const algorithms: AlgorithmEntry[] = [
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {
+    slug: 'kdTree',
+    path: '/algorithms/kdTree',
+    name: 'kd-Tree Range Search',
+    thumbnail: '/images/kdTree_tn.png',
+    summary: 'Build a kd-tree by alternating median splits and answer a rectangular range query, step by step.',
+    content: () => import('./content/algorithms/kdTree/index.mdx'),
+    demoCode: () => import('./content/algorithms/kdTree/demo.js?raw').then(raw),
+    player: () => import('./players/kdTreePlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+  },
+  {
     slug: 'L-monoton',
     path: '/algorithms/L-monoton',
     name: 'L-monotone Polygon',

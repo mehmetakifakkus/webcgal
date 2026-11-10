@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { BASE_PATH } from './base';
 
 const items = [
   'Polygon', 'TextPoint', 'Points', 'clearScreen', 'clearLog', 'draw', 'createPolygon', 'createRandomPolygon',
@@ -45,7 +46,7 @@ test('sidebar navigation switches pages', async ({ page }) => {
 
 test('converted links point to documentation pages', async ({ page }) => {
   await page.goto('documentation/Points');
-  await expect(page.locator('article a[href="/documentation/createRandom"]').first()).toBeVisible();
+  await expect(page.locator(`article a[href="${BASE_PATH}/documentation/createRandom"]`).first()).toBeVisible();
 });
 
 test('unknown item is not found, case-sensitively', async ({ page }) => {
@@ -69,7 +70,7 @@ test('Try it link exists exactly where an example exists', async ({ page }) => {
   await page.goto('documentation/sort');
   await expect(page.getByRole('link', { name: 'Try it' })).toHaveCount(0);
   await page.goto('documentation/animate');
-  await expect(page.getByRole('link', { name: 'Try it' })).toHaveAttribute('href', '/playground?example=animate');
+  await expect(page.getByRole('link', { name: 'Try it' })).toHaveAttribute('href', `${BASE_PATH}/playground?example=animate`);
 });
 
 test('example link does not overwrite saved playground code', async ({ page }) => {

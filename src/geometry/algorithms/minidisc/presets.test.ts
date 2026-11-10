@@ -29,6 +29,17 @@ describe('MINIDISC_PRESETS', () => {
     })
   }
 
+  it('every final disc fits the 775×360 canvas with a margin of 10', () => {
+    for (const p of MINIDISC_PRESETS) {
+      const { center: c, radius: r } = minidisc(p.points, p.order).disk!
+      expect(r, p.name).toBeLessThanOrEqual(165)
+      expect(c.x - r, p.name).toBeGreaterThanOrEqual(10)
+      expect(c.x + r, p.name).toBeLessThanOrEqual(775 - 10)
+      expect(c.y - r, p.name).toBeGreaterThanOrEqual(10)
+      expect(c.y + r, p.name).toBeLessThanOrEqual(360 - 10)
+    }
+  })
+
   it('preset shapes: boundary counts and circle radius', () => {
     expect(byName('Two far points').expected.boundary).toBe(2)
     expect(byName('Acute triangle').expected.boundary).toBe(3)

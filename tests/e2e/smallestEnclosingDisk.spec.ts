@@ -85,8 +85,9 @@ test('dragging a point restarts the player', async ({ page }) => {
   await expect(page.getByText(/^Step 2 \/ /)).toBeVisible()
   await page.waitForFunction(() => window.__webcgalDebug?.scene.paper.project.activeLayer.children.length)
   const n = preset.points.length
+  const start = preset.points[0]
   const v1 = await pointPosition(page, 0, n)
-  expect(v1).toMatchObject({ x: 180, y: 250, width: 8 })
+  expect(v1).toMatchObject({ x: start.x, y: start.y, width: 8 })
   const from = await toPage(page, v1)
   await page.mouse.move(from.x, from.y)
   await page.mouse.down()
@@ -94,7 +95,7 @@ test('dragging a point restarts the player', async ({ page }) => {
   await page.mouse.up()
   await expect(page.getByText(/^Step 1 \/ /)).toBeVisible()
   await expect(page.getByRole('alert')).toHaveCount(0)
-  expect((await pointPosition(page, 0, n)).x).not.toBe(180)
+  expect((await pointPosition(page, 0, n)).x).not.toBe(start.x)
   // the order stays
   await expect(description(page)).toHaveText(`Order: ${preset.order.map(label).join(', ')}`)
 })

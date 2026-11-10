@@ -23,19 +23,19 @@ export const MINIDISC_PRESETS: {
 }[] = [
   {
     name: 'Random example',
-    points: pts([180, 250], [260, 120], [330, 300], [400, 190], [470, 90], [520, 260], [590, 170], [300, 200], [450, 300], [380, 110]),
+    points: pts([239, 209], [297, 115], [347, 245], [398, 166], [448, 94], [484, 216], [535, 151], [326, 173], [434, 245], [383, 108]),
     order: defaultOrder(10, 10),
-    expected: { boundary: 2, radius: 208.9, tests: 17, updates: 4 },
+    expected: { boundary: 2, radius: 150.8, tests: 17, updates: 4 },
   },
   {
     name: 'Two far points',
-    points: pts([150, 180], [620, 180], [300, 150], [450, 220], [380, 170], [500, 140]),
+    points: pts([234, 180], [540, 180], [332, 161], [429, 206], [384, 174], [462, 154]),
     order: [2, 3, 4, 5, 0, 1],
-    expected: { boundary: 2, radius: 235, tests: 21, updates: 6 },
+    expected: { boundary: 2, radius: 153, tests: 21, updates: 6 },
   },
   {
     name: 'Acute triangle',
-    points: pts([260, 290], [510, 280], [390, 80], [380, 200], [330, 230], [440, 220]),
+    points: pts([260, 250], [510, 240], [390, 40], [380, 160], [330, 190], [440, 180]),
     order: defaultOrder(6, 6),
     expected: { boundary: 3, radius: 140.8, tests: 18, updates: 11 },
   },
@@ -53,8 +53,8 @@ export const MINIDISC_PRESETS: {
   },
   {
     name: 'Collinear',
-    points: pts([150, 180], [250, 180], [400, 180], [520, 180], [640, 180]),
+    points: pts([228, 180], [293, 180], [390, 180], [468, 180], [546, 180]),
     order: [2, 1, 3, 0, 4],
-    expected: { boundary: 2, radius: 245, tests: 16, updates: 7 },
+    expected: { boundary: 2, radius: 159, tests: 16, updates: 7 },
   },
 ]

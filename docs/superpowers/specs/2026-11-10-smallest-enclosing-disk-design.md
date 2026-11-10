@@ -113,12 +113,13 @@ Yarıçap bir ondalıkla; etiketler `v1…`. Çağrıdan sonraki ilk adım iç p
 ### 3.4 Adım üreteci ve presetler
 - `miniDiscSteps(points, order): Step<MiniDiscState>[]`; n ≤ 1 → satır 1 ve 7.
 - `MINIDISC_PRESETS: { name; points; order; expected: { boundary: number; radius: number; tests: number; updates: number } }[]` (koordinatlar spec'te sabit, `expected` uygulamada hesaplanıp sabitlenir):
-  1. "Random example": (180,250),(260,120),(330,300),(400,190),(470,90),(520,260),(590,170),(300,200),(450,300),(380,110); order `defaultOrder(10, 10)`.
-  2. "Two far points": (150,180),(620,180),(300,150),(450,220),(380,170),(500,140); order [2,3,4,5,0,1] (uç noktalar en sonda → her ikisi de dışarıda düşer).
-  3. "Acute triangle": (260,290),(510,280),(390,80),(380,200),(330,230),(440,220); order `defaultOrder(6, 6)`.
+  1. "Random example": (239,209),(297,115),(347,245),(398,166),(448,94),(484,216),(535,151),(326,173),(434,245),(383,108); order `defaultOrder(10, 10)`.
+  2. "Two far points": (234,180),(540,180),(332,161),(429,206),(384,174),(462,154); order [2,3,4,5,0,1] (uç noktalar en sonda → her ikisi de dışarıda düşer).
+  3. "Acute triangle": (260,250),(510,240),(390,40),(380,160),(330,190),(440,180); order `defaultOrder(6, 6)`.
   4. "Points on a circle": 8 nokta `(387 + 140cos(kπ/4), 180 + 140sin(kπ/4))`; order `defaultOrder(8, 8)`.
   5. "Bad order": 10 nokta `(387 + rₖcos(2.4k), 180 + rₖsin(2.4k))`, rₖ = 15 + 14k; order [0..9] (merkezden dışa → neredeyse her nokta dışarıda).
-  6. "Collinear": (150,180),(250,180),(400,180),(520,180),(640,180); order [2,1,3,0,4].
+  6. "Collinear": (228,180),(293,180),(390,180),(468,180),(546,180); order [2,1,3,0,4].
+- Her presetin son diski canvas'a sığar: r ≤ 165, merkez ± r 775×360 içinde, kenar payı ≥ 10 (Random example, Two far points ve Collinear 1–3. görevde bu koşulu sağlamıyordu; ölçeklenip (387, 180) merkezine taşındı, Acute triangle 40 birim aşağı kaydırıldı; sıralar ve sınır sayıları aynı).
 - Testler: `last step matches minidisc` (presetler + 30 rastgele); satırlar geçerli ve başlık değil; `testing` yalnızca 4/11/18'de; `newDisk` yalnızca 20'de; `returned` yalnızca 14/21'de; yığın derinliği çağrı adımında +1, dönüşte −1; anlık görüntüler bağımsız; preset sayıları; 25 rastgele nokta ≤ 600 adım (20 seed).
 
 ## 4. Oynatıcı modülü (`src/players/miniDiscPlayer.ts`)

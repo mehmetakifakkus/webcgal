@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { isSimple } from '../triangulation/polygon'
 import { TRIANGULATION_PRESETS } from '../triangulation/presets'
+import { pointInPolygon } from '../triangulation/verify'
 import { fisk } from './fisk'
 import { GALLERY_PRESETS } from './presets'
-import { coverage } from './visibility'
+import { coverage, sees } from './visibility'
 
 const byName = (name: string) => GALLERY_PRESETS.find((p) => p.name === name)!
 
@@ -43,16 +44,39 @@ describe('GALLERY_PRESETS', () => {
 
   it('comb needs four: no three vertex cameras cover it', () => {
     const { polygon } = byName('Comb')
-    expect(fisk(polygon).cameras).toHaveLength(4)
+    const cameras = fisk(polygon).cameras
+    expect(cameras).toHaveLength(4)
+    expect(coverage(polygon, cameras).covered).toBe(true)
+    // The grid of coverage() (multiples of 5 inside the polygon, replicated here), each sample
+    // with the 12-bit mask of vertices that see it.
+    const xs = polygon.map((p) => p.x)
+    const ys = polygon.map((p) => p.y)
+    const masks: number[] = []
+    for (let i = Math.ceil(Math.min(...xs) / 5); i * 5 <= Math.max(...xs); i++)
+      for (let j = Math.ceil(Math.min(...ys) / 5); j * 5 <= Math.max(...ys); j++) {
+        const s = { x: i * 5, y: j * 5 }
+        if (!pointInPolygon(s, polygon)) continue
+        masks.push(polygon.reduce((m, v, k) => (sees(polygon, v, s) ? m | (1 << k) : m), 0))
+      }
+    expect(masks.length).toBeGreaterThan(1000)
     let triples = 0
+    let best: [number, number, number] = [0, 1, 2]
+    let bestMissed = Infinity
     for (let a = 0; a < 12; a++)
       for (let b = a + 1; b < 12; b++)
         for (let c = b + 1; c < 12; c++) {
           triples++
-          expect(coverage(polygon, [a, b, c]).covered, `${a},${b},${c}`).toBe(false)
+          const bits = (1 << a) | (1 << b) | (1 << c)
+          const missed = masks.filter((m) => (m & bits) === 0).length
+          expect(missed, `${a},${b},${c}`).toBeGreaterThan(0)
+          if (missed < bestMissed) {
+            bestMissed = missed
+            best = [a, b, c]
+          }
         }
     expect(triples).toBe(220)
-  }, 120_000)
+    expect(coverage(polygon, best).covered).toBe(false)
+  })
 
   it('convex room is covered by one camera', () => {
     const { polygon } = byName('Convex room')

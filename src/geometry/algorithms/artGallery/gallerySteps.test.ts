@@ -71,6 +71,9 @@ describe('gallerySteps (fisk)', () => {
     for (const poly of [TEXTBOOK, ...GALLERY_PRESETS.map((p) => p.polygon)]) {
       const steps = gallerySteps(input(poly))
       const seen = new Set<number>()
+      const start = steps.find((x) => x.line === 3)!.state
+      seen.add(start.current!)
+      expect(new Set(start.triangles[start.current!].map((v) => start.colors[v])).size).toBe(3)
       for (const s of steps.filter((x) => x.line === 6)) {
         const { newlyColored, current, colors, triangles } = s.state
         expect(newlyColored).toHaveLength(1)
@@ -106,7 +109,7 @@ describe('gallerySteps (fisk)', () => {
     for (let k = 0; k < 20; k++) {
       const n = 3 + Math.floor(rng() * 20)
       const p = randomStarPolygon(rng, n, 387, 180, 30 + rng() * 60, 160)
-      if (!isSimple(p)) continue
+      expect(isSimple(p)).toBe(true)
       const steps = gallerySteps(input(p))
       expect(steps).toHaveLength(n + 3)
       expect(steps.at(-1)!.state.cameras).toEqual(fisk(p).cameras)
@@ -132,6 +135,12 @@ describe('gallerySteps (sandbox)', () => {
       "Room covered with 1 camera (Fisk's bound: ⌊9/3⌋ = 3)",
     )
     expect(gallerySteps(input(TEXTBOOK, [0]), 'sandbox')[0].description).toMatch(/^1 camera · \d+% covered$/)
+  })
+
+  it('never shows 100% while the room is not covered', () => {
+    const s = gallerySteps(input(TEXTBOOK, [3, 6]), 'sandbox')[0]
+    expect(s.state.coverage!.covered).toBe(false)
+    expect(s.description).toBe('2 cameras · 99% covered')
   })
 
   it('sandbox step carries cameras, visibility and coverage', () => {

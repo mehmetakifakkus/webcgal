@@ -24,7 +24,7 @@ export const label = (i: number) => `v${i + 1}`
 const COLOUR_NAMES = ['red', 'green', 'blue'] as const
 export const colorName = (c: Colour): 'red' | 'green' | 'blue' => COLOUR_NAMES[c]
 
-const plural = (k: number, word: string) => `${k} ${word}${k === 1 ? '' : 's'}`
+export const plural = (k: number, word: string) => `${k} ${word}${k === 1 ? '' : 's'}`
 
 /**
  * The dual graph of a triangulation: a node per triangle, an arc between two triangles

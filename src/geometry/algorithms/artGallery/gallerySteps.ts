@@ -1,10 +1,8 @@
 import type { Step } from '../../steps'
 import type { ArtGalleryInput } from '../../types'
-import { fisk } from './fisk'
+import { fisk, plural } from './fisk'
 import type { GalleryState } from './galleryState'
 import { coverage, visibilityPolygon } from './visibility'
-
-const plural = (k: number, word: string) => `${k} ${word}${k === 1 ? '' : 's'}`
 
 /**
  * Steps of the art gallery player. 'fisk': the recorder calls of `fisk` (n + 3 steps, each
@@ -28,7 +26,7 @@ export function gallerySteps(input: ArtGalleryInput, mode: 'fisk' | 'sandbox' = 
       ? 'No cameras yet: click a corner to place one'
       : cov.covered
         ? `Room covered with ${plural(cameras.length, 'camera')} (Fisk's bound: ⌊${n}/3⌋ = ${Math.floor(n / 3)})`
-        : `${plural(cameras.length, 'camera')} · ${cov.percent}% covered`
+        : `${plural(cameras.length, 'camera')} · ${Math.min(cov.percent, 99)}% covered`
   const state: GalleryState = {
     mode: 'sandbox',
     phase: 'sandbox',

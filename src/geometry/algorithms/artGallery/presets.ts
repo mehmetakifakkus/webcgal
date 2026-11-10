@@ -13,8 +13,8 @@ export const GALLERY_PRESETS: { name: string; polygon: Pt[]; expected: { cameras
     // its own tooth, so four teeth need four cameras (no three vertices cover the room).
     name: 'Comb',
     polygon: poly(
-      [40, 20], [735, 20], [700, 345], [660, 110], [600, 110], [560, 345],
-      [500, 110], [440, 110], [400, 345], [340, 110], [280, 110], [240, 345],
+      [40, 20], [735, 20], [700, 345], [630, 110], [560, 110], [490, 345],
+      [420, 110], [355, 110], [285, 345], [215, 110], [145, 110], [75, 345],
     ),
     expected: { cameras: 4, n: 12 },
   },
@@ -45,7 +45,7 @@ export const GALLERY_PRESETS: { name: string; polygon: Pt[]; expected: { cameras
     expected: { cameras: 3, n: 10 },
   },
   {
-    // A rectangular corridor (36 wide, walls 54 thick) winding inwards.
+    // A rectangular corridor (36 wide, walls 49 to 72 thick) winding inwards.
     name: 'Spiral corridor',
     polygon: poly(
       [50, 32], [743, 32], [743, 328], [122, 328], [122, 122], [653, 122], [653, 243], [230, 243],

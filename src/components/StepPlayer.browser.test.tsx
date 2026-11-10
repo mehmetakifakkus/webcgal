@@ -402,6 +402,11 @@ const CLICK_POINTS: Pt[] = [
   { x: 350, y: 260 },
   { x: 550, y: 140 },
 ]
+const CLICK_PRESET: Pt[] = [
+  { x: 200, y: 100 },
+  { x: 400, y: 280 },
+  { x: 600, y: 120 },
+]
 type ClickInput = { pts: Pt[]; on: number[] }
 function makeClickModule() {
   const computeSteps = vi.fn((input: ClickInput, mode?: string) =>
@@ -426,6 +431,7 @@ function makeClickModule() {
     render: () => {},
     pseudocode: ['first', 'second'],
     randomInput: () => ({ pts: CLICK_POINTS, on: [] }),
+    presets: [{ name: 'Click preset', input: { pts: CLICK_PRESET, on: [] } }],
     handles: (input) => input.pts,
     moveHandle,
     clickHandle,
@@ -529,4 +535,36 @@ test('players without clickHandle keep their behaviour', async () => {
   ])
   await expect.poll(() => moveHandle.mock.calls.length).toBeGreaterThan(0)
   await expect.element(screen.getByText('Step 1 / 3')).toBeVisible()
+})
+
+test('a click keeps the preset selection; a drag clears it', async () => {
+  const { module, computeSteps, clickHandle } = makeClickModule()
+  const screen = await render(<StepPlayer module={module} />)
+  const select = screen.getByLabelText('Preset')
+  const value = () => (select.element() as HTMLSelectElement).value
+  await userEvent.selectOptions(select, 'Click preset')
+  expect(value()).toBe('0')
+  await screen.getByRole('button', { name: 'Next' }).click()
+  await expect.element(screen.getByText('Step 2 / 2')).toBeVisible()
+  const { canvas, at } = canvasAt(screen)
+  await userEvent.pointer([
+    { target: canvas, coords: at(CLICK_PRESET[1]) },
+    { keys: '[MouseLeft>]' },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.element(screen.getByText('on [1] a 0')).toBeVisible()
+  expect(clickHandle).toHaveBeenCalledTimes(1)
+  // the steps are recomputed and start over, but the room is still the preset
+  await expect.element(screen.getByText('Step 1 / 2')).toBeVisible()
+  expect(computeSteps.mock.lastCall![0].pts).toEqual(CLICK_PRESET)
+  expect(value()).toBe('0')
+  // moving a handle changes the geometry: the placeholder shows again
+  const from = CLICK_PRESET[0]
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: from.x + 40, y: from.y + 40 }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(value).toBe('')
 })

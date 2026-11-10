@@ -22,6 +22,11 @@ const CAMERA_SIZE = 10
 const LABEL_SIZE = 13
 const VIEW_ALPHA = 0.25
 const UNCOVERED_ALPHA = 0.35
+/** The uncovered area's outline: keeps thin slivers along a wall visible over the room's 2 px outline. */
+const UNCOVERED_STROKE = 1.5
+const DUAL_WIDTH = 1.5
+const DUAL_NODE_RADIUS = 3.5
+const DUAL_CURRENT_RADIUS = 5.5
 
 type Mode = 'fisk' | 'sandbox'
 const modeOf = (mode?: string): Mode => (mode === 'sandbox' ? 'sandbox' : 'fisk')
@@ -79,7 +84,8 @@ function uncoveredRegion(P: paper.PaperScope, poly: Pt[], regions: Pt[][]): pape
     const room = path(poly)
     const rest = union ? room.subtract(union, { insert: false }) : room
     return Math.abs((rest as paper.Path).area) >= MIN_UNCOVERED_AREA ? rest : null
-  } catch {
+  } catch (e) {
+    if (import.meta.env.DEV) console.warn('artGallery: uncovered area failed', e)
     return null
   }
 }
@@ -187,6 +193,7 @@ const artGalleryPlayer: PlayerModule<GalleryState, ArtGalleryInput> = {
     const c = {
       colour: [cssColor('--ag-c0', '#c01c28'), cssColor('--ag-c1', '#26a269'), cssColor('--ag-c2', '#1a5fb4')],
       diag: cssColor('--ag-diag', '#9aa0a6'),
+      dual: cssColor('--ag-dual', '#5e5c64'),
       current: cssColor('--ag-current', '#e66100'),
       view: cssColor('--ag-view', '#f5c211'),
       uncovered: cssColor('--ag-uncovered', '#c01c28'),
@@ -209,18 +216,9 @@ const artGalleryPlayer: PlayerModule<GalleryState, ArtGalleryInput> = {
     if (s.current !== undefined && s.triangles[s.current])
       new P.Path({ segments: s.triangles[s.current].map((v) => pt(poly[v])), closed: true, fillColor: withAlpha(c.current, 0.2) })
 
-    // what the cameras see, and (camera mode) what nobody sees
+    // what the cameras see
     for (const r of s.visibility)
       if (r.length >= 3) new P.Path({ segments: r.map(pt), closed: true, fillColor: withAlpha(c.view, VIEW_ALPHA) })
-    if (sandbox) {
-      const rest = uncoveredRegion(P, poly, s.visibility)
-      if (rest) {
-        rest.fillColor = withAlpha(c.uncovered, UNCOVERED_ALPHA)
-        rest.strokeColor = null
-        rest.name = 'uncovered'
-        P.project.activeLayer.addChild(rest)
-      }
-    }
 
     // diagonals of the triangulation: triangle sides that are not polygon edges
     const seen = new Set<string>()
@@ -238,18 +236,37 @@ const artGalleryPlayer: PlayerModule<GalleryState, ArtGalleryInput> = {
       for (const [i, j] of s.dualEdges)
         new P.Path({
           segments: [pt(centroid(s.triangles[i])), pt(centroid(s.triangles[j]))],
-          strokeColor: c.diag,
-          strokeWidth: 1,
-          dashArray: [4, 3],
+          strokeColor: c.dual,
+          strokeWidth: DUAL_WIDTH,
+          dashArray: [5, 3],
         })
       s.triangles.forEach((t, i) => {
         const active = i === s.current
-        new P.Path.Circle({ center: pt(centroid(t)), radius: active ? 5 : 2.5, fillColor: active ? c.current : c.diag })
+        new P.Path.Circle({
+          center: pt(centroid(t)),
+          radius: active ? DUAL_CURRENT_RADIUS : DUAL_NODE_RADIUS,
+          fillColor: active ? c.current : c.dual,
+        })
       })
     }
 
     // the room
     new P.Path({ segments: poly.map(pt), closed: true, strokeColor: c.ink, strokeWidth: 2, strokeJoin: 'round' })
+
+    // camera mode: what nobody sees, over the room's outline so that slivers along a wall show. The
+    // sampled coverage decides: a room it calls covered gets no red (patches between grid points
+    // would contradict the text).
+    if (sandbox && !s.coverage?.covered) {
+      const rest = uncoveredRegion(P, poly, s.visibility)
+      if (rest) {
+        rest.fillColor = withAlpha(c.uncovered, UNCOVERED_ALPHA)
+        rest.strokeColor = new P.Color(c.uncovered)
+        rest.strokeWidth = UNCOVERED_STROKE
+        rest.strokeJoin = 'round'
+        rest.name = 'uncovered'
+        P.project.activeLayer.addChild(rest)
+      }
+    }
 
     // corners: colours (Fisk) or small dots (camera mode); one 'vertex' item per corner, in order
     const cameraSet = new Set(s.cameras)

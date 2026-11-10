@@ -193,7 +193,14 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
         pressed = -1
         const current = inputRef.current
         const next = module.clickHandle?.(current, k, modeRef.current) ?? current
-        if (next !== current) replaceInput(next)
+        if (next === current) return
+        // a click changes what is placed on the input (e.g. cameras), not its geometry: the loaded
+        // preset stays selected
+        inputRef.current = next
+        if ((module.validate?.(next) ?? null) === null) lastValidRef.current = next
+        setInput(next)
+        setIndex(0)
+        setPlaying(false)
         return
       }
       const wasDragging = dragging >= 0

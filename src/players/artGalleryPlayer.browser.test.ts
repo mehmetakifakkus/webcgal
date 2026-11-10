@@ -83,6 +83,7 @@ test('modes, dimmed lines, pseudocode, hint and colours', () => {
     '--ag-c1': '#26a269',
     '--ag-c2': '#1a5fb4',
     '--ag-diag': '#9aa0a6',
+    '--ag-dual': '#5e5c64',
     '--ag-current': '#e66100',
     '--ag-view': '#f5c211',
     '--ag-uncovered': '#c01c28',
@@ -127,7 +128,9 @@ test('last Fisk step: cameras ≤ ⌊n/3⌋ and no uncovered area drawn', () => 
     // Fisk's cameras leave nothing uncovered in the camera mode either
     const own = { polygon: input.polygon, cameras: last.state.cameras }
     artGalleryPlayer.render(scene, artGalleryPlayer.computeSteps(own, 'sandbox')[0], own)
-    expect(uncoveredArea(scene), preset.name).toBeLessThan(1)
+    const covered = artGalleryPlayer.computeSteps(own, 'sandbox')[0].state.coverage!.covered
+    expect(covered, preset.name).toBe(true)
+    expect(uncovered(scene), preset.name).toHaveLength(0)
     const coverage = artGalleryPlayer.panels!(last, input).find((p) => p.title === 'Coverage')!
     expect(coverage.rows[0].text).toBe(
       `n = ${n} · ⌊n/3⌋ = ${Math.floor(n / 3)} · cameras ${last.state.cameras.length} · covered 100%`,
@@ -214,13 +217,73 @@ test('uncovered area > 0 without cameras', () => {
   artGalleryPlayer.render(scene, artGalleryPlayer.computeSteps(one, 'sandbox')[0], one)
   expect(uncoveredArea(scene)).toBeGreaterThan(0)
   expect(uncoveredArea(scene)).toBeLessThan(area * 0.95)
-  // the uncovered area is drawn in --ag-uncovered at alpha .35
-  const fill = uncovered(scene)[0].fillColor!
-  expect(fill.alpha).toBeCloseTo(0.35, 5)
+  // the uncovered area is drawn in --ag-uncovered at alpha .35, outlined in the same colour
+  const region = uncovered(scene)[0]
+  expect(region.fillColor!.alpha).toBeCloseTo(0.35, 5)
+  expect(region.strokeColor?.toCSS(true)).toBe('#c01c28')
+  expect(region.strokeWidth).toBe(1.5)
   // a convex room is covered by any single camera
   const convex = { ...presetInput('Convex room'), cameras: [4] }
   artGalleryPlayer.render(scene, artGalleryPlayer.computeSteps(convex, 'sandbox')[0], convex)
-  expect(uncoveredArea(scene)).toBeLessThan(1)
+  expect(uncovered(scene)).toHaveLength(0)
+})
+
+test('a thin uncovered sliver is outlined over the walls; a covered room has no red', () => {
+  const scene = makeScene()
+  // two cameras on the textbook polygon leave a thin sliver along the wall v12–v11
+  const input = { ...presetInput('Textbook polygon'), cameras: [3, 6] }
+  const step = artGalleryPlayer.computeSteps(input, 'sandbox')[0]
+  expect(step.state.coverage!.covered).toBe(false)
+  expect(step.description).toMatch(/^2 cameras · 9\d% covered$/)
+  artGalleryPlayer.render(scene, step, input)
+  const [region] = uncovered(scene)
+  expect(region).toBeDefined()
+  expect(Math.abs((region as paper.Path).area)).toBeGreaterThan(1)
+  expect(region.strokeColor?.toCSS(true)).toBe('#c01c28')
+  expect(region.strokeWidth).toBe(1.5)
+  // drawn after the room's outline (the closed 2 px path), so the walls do not hide it
+  const room = items(scene).findIndex((c) => c instanceof scene.paper.Path && c.closed && c.strokeWidth === 2)
+  expect(room).toBeGreaterThanOrEqual(0)
+  expect(region.index).toBeGreaterThan(room)
+  // the sampled coverage decides: a covered room gets no red at all
+  for (const preset of GALLERY_PRESETS) {
+    const fisk = artGalleryPlayer.computeSteps(presetInput(preset.name), 'fisk')
+    const own = { polygon: preset.polygon, cameras: fisk[fisk.length - 1].state.cameras }
+    const s = artGalleryPlayer.computeSteps(own, 'sandbox')[0]
+    expect(s.state.coverage!.covered).toBe(true)
+    artGalleryPlayer.render(scene, s, own)
+    expect(uncovered(scene), preset.name).toHaveLength(0)
+  }
+})
+
+test('the dual tree is drawn apart from the diagonals', () => {
+  const scene = makeScene()
+  const input = presetInput('Textbook polygon')
+  const steps = artGalleryPlayer.computeSteps(input, 'fisk')
+  const dual = steps.find((s) => s.state.phase === 'dual')!
+  artGalleryPlayer.render(scene, dual, input)
+  const lines = items(scene).filter((c): c is paper.Path => c instanceof scene.paper.Path && !c.closed)
+  const arcs = lines.filter((p) => p.dashArray && p.dashArray.length > 0)
+  const diagonals = lines.filter((p) => !p.dashArray || p.dashArray.length === 0)
+  expect(arcs).toHaveLength(dual.state.dualEdges.length)
+  expect(diagonals).toHaveLength(input.polygon.length - 3)
+  for (const a of arcs) {
+    expect(a.strokeColor?.toCSS(true)).toBe('#5e5c64')
+    expect(a.strokeWidth).toBe(1.5)
+  }
+  for (const d of diagonals) {
+    expect(d.strokeColor?.toCSS(true)).toBe('#9aa0a6')
+    expect(d.strokeWidth).toBe(1)
+  }
+  // a node per triangle (r = 3.5), the current one in --ag-current (r = 5.5)
+  const nodes = (r: number) =>
+    items(scene).filter((c) => c instanceof scene.paper.Path && c.closed && Math.abs(c.bounds.width - 2 * r) < 1e-6)
+  expect(nodes(3.5)).toHaveLength(dual.state.triangles.length)
+  const colour = steps.find((s) => s.state.phase === 'color')!
+  artGalleryPlayer.render(scene, colour, input)
+  const current = nodes(5.5) as paper.Path[]
+  expect(current).toHaveLength(1)
+  expect(current[0].fillColor?.toCSS(true)).toBe('#e66100')
 })
 
 test('panels by phase', () => {

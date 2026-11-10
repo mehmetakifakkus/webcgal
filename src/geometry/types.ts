@@ -48,3 +48,5 @@ export type VoronoiResult = {
   vertexOfTriangle: number[]
 }
 export type VoronoiInput = { points: Pt[] }
+
+export type MiniDiscInput = { points: Pt[]; order: number[] }

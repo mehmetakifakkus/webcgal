@@ -1,0 +1,28 @@
+Places cameras so that they see a whole polygon (a room): Fisk's construction triangulates the polygon, 3-colours its vertices and keeps the smallest colour class, which is at most ⌊n/3⌋ vertices. The algorithm is explained step by step on the [Art Gallery Problem](/algorithms/artGallery) page.
+
+```js
+artGallery(polygon)
+```
+
+`polygon` is a `Polygon` object, an array of `TextPoint` objects, or an array of `Point` objects, `{ x, y }` objects or `[x, y]` arrays, in either orientation. Errors are thrown for a polygon that is not simple ("artGallery: the polygon must be simple (no crossing edges)"), for fewer than three vertices, for two consecutive vertices closer than 0.001 and for other input ("artGallery: expected a Polygon or an array of points (item N is not a point)"). The result is read-only and refers to vertices by their 0-based index in the input order:
+
+- `cameras`: the camera vertices, in ascending order.
+- `colors`: the colour (0, 1 or 2) of each vertex.
+- `triangles`: `[[i, j, k], ...]`, the triangulation that the colouring follows.
+
+Two more functions are documented on this page. They check the polygon in the same way, with their own name as the error prefix.
+
+- `visibilityPolygon(polygon, i)` returns the region that a camera on vertex `i` (0-based) sees, as a read-only array of `Point` objects. An index that is not a vertex throws "visibilityPolygon: vertex index out of range".
+- `drawArtGallery(polygon, result, color)` draws, for each camera, the region it sees (at low opacity) and a 10 × 10 square on its vertex; `color` defaults to `'black'`. `result` is the result of `artGallery(polygon)` or any `{ cameras: [...] }` with distinct vertex indices; otherwise it throws "drawArtGallery: expected the result of artGallery(polygon) for the same polygon".
+
+```js
+// a random star-shaped room of 10 to 15 corners around the centre of the view
+var n = getRandomInt(10, 16);
+polygon = new Polygon('gallery');
+for (var i = 0; i < n; i++)
+  polygon.addPoint(view.center + new Point({ angle: (360 / n) * i, length: getRandomInt(50, 150) }));
+polygon.draw();
+var result = artGallery(polygon);
+drawArtGallery(polygon, result, 'orange');
+console.log(result.cameras.length + ' camera(s) for ' + n + ' vertices');
+```

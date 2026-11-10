@@ -50,3 +50,6 @@ export type VoronoiResult = {
 export type VoronoiInput = { points: Pt[] }
 
 export type MiniDiscInput = { points: Pt[]; order: number[] }
+
+/** `query` is a closed axis-parallel rectangle, structurally the `Box` of voronoi/clip.ts. */
+export type KdInput = { points: Pt[]; query: { x0: number; y0: number; x1: number; y1: number } }

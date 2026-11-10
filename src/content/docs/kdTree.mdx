@@ -1,0 +1,25 @@
+Builds a kd-tree of a point set by alternating median splits, starting with a vertical line (`x`). It supports orthogonal range searching. The algorithm is explained step by step on the [kd-Tree Range Search](/algorithms/kdTree) page.
+
+```js
+kdTree(points)
+```
+
+`points` is an array of `TextPoint` objects (for example from `Points.createRandom(n)`), `Point` objects, `{ x, y }` objects or `[x, y]` arrays. Errors are thrown for other input ("kdTree: expected an array of points (item N is not a point)", or "kdTree: expected an array of points (got &lt;type&gt;)" when the argument is not an array). The result is read-only and has these fields:
+
+- `root`: the root node, or `null` for no points. A split node is `{ axis, value, left, right }` (`axis` is `'x'` or `'y'`); a leaf is `{ point }`, the 0-based index of a point in the input array.
+- `depth`: the depth of the deepest leaf (0 for one point).
+- `size`: the number of points.
+
+Two more functions are documented on this page. Both take the points and a `kdTree(points)` result for the same points; otherwise they throw "rangeQuery: expected the result of kdTree(points) for the same points" (or the same message with `drawKdTree:`). Only the structure of the tree is checked.
+
+- `rangeQuery(points, tree, rect)` returns the indices of the points in the closed rectangle `rect`, given as `{ x0, y0, x1, y1 }` or as two points (opposite corners); it is normalized, so the corners may come in any order. Other input throws `rangeQuery: expected a rectangle {x0, y0, x1, y1} or two points`.
+- `drawKdTree(points, tree, color)` draws the split lines with 1 px strokes, each clipped to its region; `color` defaults to `'black'`.
+
+```js
+var points = Points.createRandom(30);
+var tree = kdTree(points);
+drawKdTree(points, tree);
+var hits = rangeQuery(points, tree, { x0: 200, y0: 100, x1: 500, y1: 300 });
+hits.forEach(function (i) { points[i].path.fillColor = 'red'; });
+console.log(hits.length + ' point(s) in the range');
+```

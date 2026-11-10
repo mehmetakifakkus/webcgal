@@ -7,7 +7,7 @@ test('step by step tab is the default and works without console errors', async (
   })
   page.on('pageerror', (err) => errors.push(err.message))
 
-  await page.goto('/algorithms/convexHull')
+  await page.goto('algorithms/convexHull')
   await expect(page.getByRole('tab', { name: 'Step by step' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByText(/^Step 1 \/ /)).toBeVisible()
   await page.getByRole('button', { name: 'Last' }).click()
@@ -17,7 +17,7 @@ test('step by step tab is the default and works without console errors', async (
 })
 
 test('new random points restart the player', async ({ page }) => {
-  await page.goto('/algorithms/convexHull')
+  await page.goto('algorithms/convexHull')
   await page.getByRole('button', { name: 'Last' }).click()
   await expect(page.getByText(/^Step 1 \/ /)).toHaveCount(0)
   await page.getByRole('button', { name: 'New random input' }).click()
@@ -25,7 +25,7 @@ test('new random points restart the player', async ({ page }) => {
 })
 
 test('dragging a point restarts the player', async ({ page }) => {
-  await page.goto('/algorithms/convexHull')
+  await page.goto('algorithms/convexHull')
   await page.getByRole('button', { name: 'Last' }).click()
   const box = (await page.getByLabel('Drawing canvas').boundingBox())!
   await page.waitForFunction(() => window.__webcgalDebug?.scene.paper.project.activeLayer.children.length)
@@ -47,7 +47,7 @@ test('dragging a point restarts the player', async ({ page }) => {
 
 test('points can be grabbed 9 CSS px off-centre on a narrow screen', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 })
-  await page.goto('/algorithms/convexHull')
+  await page.goto('algorithms/convexHull')
   await page.getByRole('button', { name: 'Last' }).click()
   await expect(page.getByText(/^Step 1 \/ /)).toHaveCount(0)
   const canvas = page.getByLabel('Drawing canvas')

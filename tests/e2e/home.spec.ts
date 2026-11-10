@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { algorithms } from '../../src/registry'
+import { BASE_PATH } from './base'
 
 function collectErrors(page: Page) {
   const errors: string[] = []
@@ -12,7 +13,7 @@ function collectErrors(page: Page) {
 
 test('home shows hero and CTAs', async ({ page }) => {
   const errors = collectErrors(page)
-  await page.goto('/')
+  await page.goto('./')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await page.getByRole('link', { name: 'Explore algorithms' }).click()
   await expect(page).toHaveURL(/\/algorithms$/)
@@ -29,13 +30,13 @@ test('home shows hero and CTAs', async ({ page }) => {
 })
 
 test('home lists every algorithm', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('./')
   const cards = page.locator('main .card')
   await expect(cards).toHaveCount(algorithms.length)
   expect(algorithms.length).toBe(9)
   for (const [i, a] of algorithms.entries()) {
     const card = cards.nth(i)
-    await expect(card.getByRole('link', { name: a.name })).toHaveAttribute('href', a.path)
+    await expect(card.getByRole('link', { name: a.name })).toHaveAttribute('href', BASE_PATH + a.path)
     if (a.player) await expect(card.getByText('Step-by-step')).toBeVisible()
     else await expect(card.getByText('Step-by-step')).toHaveCount(0)
   }
@@ -45,7 +46,7 @@ test('home lists every algorithm', async ({ page }) => {
 
 test('mobile menu', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 })
-  await page.goto('/')
+  await page.goto('./')
   const button = page.getByRole('button', { name: 'Menu' })
   const main = page.getByRole('navigation', { name: 'Main' })
   await expect(button).toBeVisible()
@@ -71,7 +72,7 @@ test('mobile menu', async ({ page }) => {
 
 test('menu button is not shown on wide screens', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
-  await page.goto('/')
+  await page.goto('./')
   await expect(page.getByRole('button', { name: 'Menu' })).toBeHidden()
   await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Playground' })).toBeVisible()
 })
@@ -85,7 +86,7 @@ const canvasHash = (page: Page) =>
   })
 
 test('background animates', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('./')
   const canvas = page.locator('canvas.hull-background')
   await expect(canvas).toHaveAttribute('aria-hidden', 'true')
   await page.waitForTimeout(200)
@@ -96,7 +97,7 @@ test('background animates', async ({ page }) => {
 
 test('reduced motion renders static background', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.goto('/')
+  await page.goto('./')
   const canvas = page.locator('canvas.hull-background')
   await expect(canvas).toBeAttached()
   await expect(canvas).toHaveAttribute('aria-hidden', 'true')

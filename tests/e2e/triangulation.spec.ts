@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { TRIANGULATION_PRESETS } from '../../src/geometry/algorithms/triangulation/presets'
 
-const PATH = '/algorithms/triangulation'
+const PATH = 'algorithms/triangulation'
 
 function collectErrors(page: Page) {
   const errors: string[] = []

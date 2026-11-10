@@ -195,6 +195,23 @@ test('panels by phase', () => {
   ])
 })
 
+test('call stack rows, literally (Bad order, v2 tested inside the innermost call)', () => {
+  const input = preset('Bad order')
+  const steps = miniDiscPlayer.computeSteps(input)
+  const step = steps.find((s) => s.line === 18 && s.description === 'v2 is inside D → keep D')!
+  expect(step).toBeDefined()
+  expect(step.state.stack.map((f) => [f.proc, f.prefix, f.index, f.fixed])).toEqual([
+    ['MiniDisc', 10, 3, []],
+    ['WithPoint', 3, 2, [3]],
+    ['With2Points', 2, 1, [3, 2]],
+  ])
+  expect(miniDiscPlayer.panels!(step, input)[0].rows.map((r) => r.text)).toEqual([
+    'MiniDisc · i = 4 of 10',
+    'MiniDiscWithPoint(q = v4) · j = 3 of 3',
+    'MiniDiscWith2Points(q₁ = v3, q₂ = v4) · k = 2 of 2',
+  ])
+})
+
 test('presets expose six names', () => {
   expect(miniDiscPlayer.presets!.map((p) => p.name)).toEqual(MINIDISC_PRESETS.map((p) => p.name))
   expect(miniDiscPlayer.presets).toHaveLength(6)

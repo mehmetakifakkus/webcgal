@@ -92,10 +92,11 @@ export const algorithms: AlgorithmEntry[] = [
     path: '/algorithms/smallestEnclosingDisk',
     name: 'Smallest Enclosing Disk',
     thumbnail: '/images/smallestDisk_tn.png',
-    summary: 'Finding the smallest circle that contains all of a given set of points in the Euclidean plane.',
+    summary: 'Find the smallest disc containing a point set by randomized incremental construction, step by step.',
     content: () => import('./content/algorithms/smallestEnclosingDisk/index.mdx'),
     demoCode: () => import('./content/algorithms/smallestEnclosingDisk/demo.js?raw').then(raw),
-    canvases: [{ id: 'canvas-1', width: 900, height: 400, label: '' }],
+    player: () => import('./players/miniDiscPlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {
     slug: 'L-monoton',

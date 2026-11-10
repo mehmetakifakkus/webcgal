@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { SWEEP_PRESETS } from '../../src/geometry/algorithms/sweep/presets'
 
-const PATH = '/algorithms/segmentIntersection'
+const PATH = 'algorithms/segmentIntersection'
 
 function collectErrors(page: Page) {
   const errors: string[] = []

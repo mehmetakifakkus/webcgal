@@ -1,11 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
 
 const pages = [
-  { path: '/algorithms/convexHull', title: 'Convex Hull' },
-  { path: '/algorithms/smallestEnclosingDisk', title: 'Smallest Enclosing Disk' },
-  { path: '/algorithms/L-monoton', title: 'L-monotone Polygon' },
-  { path: '/algorithms/duality/dualLine', title: 'Dual Line' },
-  { path: '/algorithms/duality/checkStabber', title: 'Check Stabber' },
+  { path: 'algorithms/convexHull', title: 'Convex Hull' },
+  { path: 'algorithms/smallestEnclosingDisk', title: 'Smallest Enclosing Disk' },
+  { path: 'algorithms/L-monoton', title: 'L-monotone Polygon' },
+  { path: 'algorithms/duality/dualLine', title: 'Dual Line' },
+  { path: 'algorithms/duality/checkStabber', title: 'Check Stabber' },
 ]
 
 function collectErrors(page: Page) {
@@ -40,25 +40,25 @@ test('each algorithm page runs its demo', async ({ page }) => {
 })
 
 test('algorithms index lists 9 cards and the Duality group', async ({ page }) => {
-  await page.goto('/algorithms')
+  await page.goto('algorithms')
   await expect(page.locator('main .card')).toHaveCount(9)
   await expect(page.getByRole('heading', { name: 'Duality' })).toBeVisible()
 })
 
 test('duality index lists 2 cards', async ({ page }) => {
-  await page.goto('/algorithms/duality')
+  await page.goto('algorithms/duality')
   await expect(page.locator('main .card')).toHaveCount(2)
   await expect(page.locator('main .card').first()).toContainText('Dual Line')
 })
 
 test('unknown algorithm shows 404', async ({ page }) => {
-  await page.goto('/algorithms/nope')
+  await page.goto('algorithms/nope')
   await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
 })
 
 test('navigating between algorithms leaves no errors', async ({ page }) => {
   const errors = collectErrors(page)
-  await page.goto('/algorithms/convexHull')
+  await page.goto('algorithms/convexHull')
   const menu = page.getByRole('navigation', { name: 'Algorithms' })
   for (const { name, title } of [
     { name: 'L-monotone Polygon', title: 'L-monotone Polygon' },
@@ -76,7 +76,7 @@ test('navigating between algorithms leaves no errors', async ({ page }) => {
 
 test('drag works at 375px width', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 })
-  await page.goto('/algorithms/convexHull')
+  await page.goto('algorithms/convexHull')
   await openCodeTab(page)
   await expect(page.getByLabel('Drawing canvas')).toBeVisible()
   await page.getByLabel('Drawing canvas').scrollIntoViewIfNeeded()
@@ -125,7 +125,7 @@ test('drag works at 375px width', async ({ page }) => {
 })
 
 test('tabs follow the ARIA tabs pattern', async ({ page }) => {
-  await page.goto('/algorithms/convexHull')
+  await page.goto('algorithms/convexHull')
   const steps = page.getByRole('tab', { name: 'Step by step' })
   const code = page.getByRole('tab', { name: 'Code' })
   await expect(steps).toHaveAttribute('aria-selected', 'true')

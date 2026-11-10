@@ -6,7 +6,7 @@ test('home loads without console errors', async ({ page }) => {
     if (msg.type() === 'error') errors.push(msg.text());
   });
   page.on('pageerror', (err) => errors.push(err.message));
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.getByRole('link', { name: 'Algorithms', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -17,7 +17,7 @@ test('a missing route chunk (stale page after a redeploy) reloads the page once'
     if (failed++ === 0) return route.fulfill({ status: 404, body: 'Not Found' });
     return route.continue();
   });
-  await page.goto('/');
+  await page.goto('./');
   await page.evaluate(() => ((window as unknown as { __beforeReload: boolean }).__beforeReload = true));
   await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Algorithms' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Algorithms' })).toBeVisible();
@@ -27,9 +27,9 @@ test('a missing route chunk (stale page after a redeploy) reloads the page once'
 });
 
 test('legacy URLs of the old site redirect to the algorithm pages', async ({ page }) => {
-  await page.goto('/duality')
+  await page.goto('duality')
   await expect(page).toHaveURL(/\/algorithms\/duality$/)
-  await page.goto('/smallestEnclosingDisk')
+  await page.goto('smallestEnclosingDisk')
   await expect(page).toHaveURL(/\/algorithms\/smallestEnclosingDisk$/)
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Smallest Enclosing Disk')
 })

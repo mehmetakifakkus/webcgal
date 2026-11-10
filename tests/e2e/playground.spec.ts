@@ -5,7 +5,7 @@ const templates = ['Square polygon', 'Random polygon', 'Drag a polygon point', '
 test('playground runs templates', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (err) => errors.push(err.message));
-  await page.goto('/playground');
+  await page.goto('playground');
   for (const label of templates) {
     await page.getByLabel('Template').selectOption({ label });
     await page.getByRole('button', { name: 'Run' }).click();
@@ -15,7 +15,7 @@ test('playground runs templates', async ({ page }) => {
 });
 
 test('code persists', async ({ page }) => {
-  await page.goto('/playground');
+  await page.goto('playground');
   const editor = page.getByRole('textbox', { name: 'Code editor' });
   await editor.click();
   await page.keyboard.press('ControlOrMeta+a');
@@ -35,7 +35,7 @@ test('playground works without localStorage', async ({ page }) => {
   });
   const errors: string[] = [];
   page.on('pageerror', (err) => errors.push(err.message));
-  await page.goto('/playground');
+  await page.goto('playground');
   await page.getByRole('button', { name: 'Run' }).click();
   await expect(page.getByRole('textbox', { name: 'Code editor' })).toBeVisible();
   await expect(page.getByRole('log').locator('.output-line.error')).toHaveCount(0);
@@ -51,10 +51,10 @@ test('example mode never touches the saved playground code', async ({ page }) =>
     await page.waitForTimeout(600);
   };
 
-  await page.goto('/playground');
+  await page.goto('playground');
   await replaceCode('var mine = 1;');
 
-  await page.goto('/playground?example=Polygon');
+  await page.goto('playground?example=Polygon');
   await expect(editor).not.toContainText('var mine = 1;');
   const example = await editor.textContent();
   await replaceCode('var edited = 2;');
@@ -64,7 +64,7 @@ test('example mode never touches the saved playground code', async ({ page }) =>
   await expect(editor).toHaveText(example!);
   await page.waitForTimeout(600);
 
-  await page.goto('/playground');
+  await page.goto('playground');
   await expect(editor).toContainText('var mine = 1;');
   expect(await page.evaluate(() => localStorage.getItem('webcgal:playground'))).toBe('var mine = 1;');
   expect(await page.evaluate(() => localStorage.getItem('webcgal:playground:example:Polygon'))).toBeNull();

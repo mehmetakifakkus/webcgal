@@ -103,7 +103,9 @@ Two targets are supported:
   builds with `VITE_BASE=/webcgal/` and publishes `dist` to
   https://mehmetakifakkus.github.io/webcgal/. Pages has no server-side
   redirects, so `scripts/pages-postbuild.mjs` copies `index.html` to
-  `404.html` (deep links to client-side routes), adds `.nojekyll`, and writes a
+  `<route>.html` and `<route>/index.html` for every app route (read from
+  `src/registry.ts` and `src/content/docs/index.ts`), so deep links answer 200,
+  and to `404.html` for other paths, adds `.nojekyll`, and writes a
   meta-refresh stub for each legacy URL. Enable it once under Settings → Pages
   → Source: "GitHub Actions".
 - **Netlify** (`netlify.toml`): build command `npm run build`, publish

@@ -32,6 +32,22 @@ describe('checkKdTree', () => {
     expect(checkKdTree([], buildKdTree([]))).toEqual({ ok: true })
   })
 
+  it('rejects a split axis that does not alternate', () => {
+    // on a diagonal the x and y orders agree, so only the axis is wrong
+    const pts = P([[50, 50], [100, 100], [150, 150], [200, 200]])
+    expect(checkKdTree(pts, buildKdTree(pts))).toEqual({ ok: true })
+    for (const flip of ['root', 'child'] as const) {
+      const t = clone(buildKdTree(pts))
+      const root = t.root!
+      if (root.kind !== 'split' || root.left.kind !== 'split') throw new Error('unexpected shape')
+      if (flip === 'root') root.axis = 'y'
+      else root.left.axis = 'x'
+      const res = checkKdTree(pts, t)
+      expect(res.ok).toBe(false)
+      expect(res.reason).toMatch(/axis/)
+    }
+  })
+
   it('rejects a missing root', () => {
     const t = clone(buildKdTree(TEXTBOOK))
     t.root = null

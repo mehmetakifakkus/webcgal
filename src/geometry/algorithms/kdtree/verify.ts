@@ -28,7 +28,8 @@ function leafPoints(v: KdNode, out: number[] = []): number[] {
 
 /**
  * Checks a tree from `buildKdTree(points)` (spec §2.3), in this order: every point is stored
- * in exactly one leaf ("leaf"); at every split node the left side lies on or before the line,
+ * in exactly one leaf ("leaf"); split nodes alternate x and y with the depth, x at the root
+ * ("axis"); at every split node the left side lies on or before the line,
  * the right side after it in composite order, and `value` is the largest coordinate of the
  * left side ("side"); every region lies in its parent's and every leaf's point in its region
  * ("region"); depths, sizes and the node count match; the height is ⌈log₂ n⌉ ("height").
@@ -50,6 +51,18 @@ export function checkKdTree(points: Pt[], tree: KdTree): Check {
   for (let i = 0; i < n; i++)
     if (count[i] !== 1) return { ok: false, reason: `${label(i)} is stored in ${count[i]} leaves, expected exactly one leaf` }
   if (leaves !== n) return { ok: false, reason: `${leaves} leaves for ${n} points` }
+
+  // the split axes alternate: x at even depth, y at odd depth
+  const axes = (v: KdNode, depth: number): Check => {
+    if (v.kind === 'leaf') return { ok: true }
+    const expected = depth % 2 ? 'y' : 'x'
+    if (v.axis !== expected)
+      return { ok: false, reason: `node ${v.id} at depth ${depth} splits on axis ${v.axis}, expected axis ${expected}` }
+    const l = axes(v.left, depth + 1)
+    return l.ok ? axes(v.right, depth + 1) : l
+  }
+  const a = axes(tree.root, 0)
+  if (!a.ok) return a
 
   for (const v of walk(tree.root)) {
     if (v.kind !== 'split') continue

@@ -990,6 +990,28 @@ describe('kd-tree api', () => {
     expect(lines).toEqual([{ kind: 'log', text: '9 true 0' }])
   })
 
+  test('drawKdTree clips every split line to its region, not to the whole box', () => {
+    const { exec, lines } = setup()
+    // the 10 points of the player's Textbook example; the root region is their bounding box + 10
+    const res = exec(`
+      var points = [[60, 280], [110, 90], [150, 200], [200, 320], [240, 60],
+        [280, 170], [330, 260], [370, 110], [410, 300], [430, 40]];
+      var n = drawables.length;
+      drawKdTree(points, kdTree(points));
+      var added = drawables.slice(n);
+      var W = (430 + 10) - (60 - 10), H = (320 + 10) - (40 - 10);
+      var vertical = added.filter(function (d) { return d.bounds.width < 1e-6; });
+      var horizontal = added.filter(function (d) { return d.bounds.height < 1e-6; });
+      console.log(added.length, vertical.length, horizontal.length,
+        vertical.filter(function (d) { return d.bounds.height < H - 1e-6; }).length > 0,
+        horizontal.filter(function (d) { return d.bounds.width < W - 1e-6; }).length > 0,
+        vertical.some(function (d) { return Math.abs(d.bounds.height - H) < 1e-6; }));
+    `)
+    expect(res).toEqual({ ok: true })
+    // 9 split lines; the root's vertical line spans the box, deeper ones are shorter in their own direction
+    expect(lines).toEqual([{ kind: 'log', text: '9 5 4 true true true' }])
+  })
+
   test('the demo runs', () => {
     const { exec, lines } = setup()
     expect(exec(kdTreeDemo)).toEqual({ ok: true })

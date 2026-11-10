@@ -10,7 +10,7 @@ kdTree(points)
 - `depth`: the depth of the deepest leaf (0 for one point).
 - `size`: the number of points.
 
-Two more functions are documented on this page. Both take the points and a `kdTree(points)` result for the same points; otherwise they throw "rangeQuery: expected the result of kdTree(points) for the same points" (or the same message with `drawKdTree:`). Only the structure of the tree is checked.
+Two more functions are documented on this page. Both take the points and a `kdTree(points)` result for the same points; otherwise they throw "rangeQuery: expected the result of kdTree(points) for the same points" (or the same message with `drawKdTree:`). The tree's structure and the placement of the points are checked: every point is stored in exactly one leaf, on the correct side of every split line above it; the tree is not rebuilt, so whether the lines are medians is not checked.
 
 - `rangeQuery(points, tree, rect)` returns the indices of the points in the closed rectangle `rect`, given as `{ x0, y0, x1, y1 }` or as two points (opposite corners); it is normalized, so the corners may come in any order. Other input throws `rangeQuery: expected a rectangle {x0, y0, x1, y1} or two points`.
 - `drawKdTree(points, tree, color)` draws the split lines with 1 px strokes, each clipped to its region; `color` defaults to `'black'`.
@@ -19,6 +19,7 @@ Two more functions are documented on this page. Both take the points and a `kdTr
 var points = Points.createRandom(30);
 var tree = kdTree(points);
 drawKdTree(points, tree);
+new Path.Rectangle({ from: [200, 100], to: [500, 300], strokeColor: 'red' });
 var hits = rangeQuery(points, tree, { x0: 200, y0: 100, x1: 500, y1: 300 });
 hits.forEach(function (i) { points[i].path.fillColor = 'red'; });
 console.log(hits.length + ' point(s) in the range');

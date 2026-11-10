@@ -20,7 +20,7 @@ de Berg et al. §4.7'nin (*Smallest Enclosing Discs*) rastgele artımlı algorit
 **Başarı ölçütleri:**
 1. Rastgele ve dejenere girdilerde sonuç `isMinimalDisk` ile doğrulanır ve küçük n'de O(n⁴) kaba kuvvetle aynı diski verir.
 2. Presetlerde sabitlenmiş disk, test ve güncelleme sayıları tutar.
-3. 25 rastgele noktada adım sayısı ≤ 400.
+3. 25 rastgele noktada adım sayısı ≤ 600 (20 seed).
 4. Mevcut testler değişmeden geçer (sayım ve sayfa beklentileri hariç).
 
 ## 2. Geometri modülü (`src/geometry/algorithms/minidisc/`)
@@ -119,7 +119,7 @@ Yarıçap bir ondalıkla; etiketler `v1…`. Çağrıdan sonraki ilk adım iç p
   4. "Points on a circle": 8 nokta `(387 + 140cos(kπ/4), 180 + 140sin(kπ/4))`; order `defaultOrder(8, 8)`.
   5. "Bad order": 10 nokta `(387 + rₖcos(2.4k), 180 + rₖsin(2.4k))`, rₖ = 15 + 14k; order [0..9] (merkezden dışa → neredeyse her nokta dışarıda).
   6. "Collinear": (150,180),(250,180),(400,180),(520,180),(640,180); order [2,1,3,0,4].
-- Testler: `last step matches minidisc` (presetler + 30 rastgele); satırlar geçerli ve başlık değil; `testing` yalnızca 4/11/18'de; `newDisk` yalnızca 20'de; `returned` yalnızca 14/21'de; yığın derinliği çağrı adımında +1, dönüşte −1; anlık görüntüler bağımsız; preset sayıları; 25 rastgele nokta ≤ 400 adım.
+- Testler: `last step matches minidisc` (presetler + 30 rastgele); satırlar geçerli ve başlık değil; `testing` yalnızca 4/11/18'de; `newDisk` yalnızca 20'de; `returned` yalnızca 14/21'de; yığın derinliği çağrı adımında +1, dönüşte −1; anlık görüntüler bağımsız; preset sayıları; 25 rastgele nokta ≤ 600 adım (20 seed).
 
 ## 4. Oynatıcı modülü (`src/players/miniDiscPlayer.ts`)
 

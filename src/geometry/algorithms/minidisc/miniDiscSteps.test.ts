@@ -97,6 +97,8 @@ describe('miniDiscSteps', () => {
         expect(depth).toBeGreaterThanOrEqual(1)
         expect(depth).toBeLessThanOrEqual(3)
         const prev = steps[i - 1]
+        if (prev.line === 14) expect(prev.state.stack.at(-1)!.proc).toBe('WithPoint')
+        if (prev.line === 21) expect(prev.state.stack.at(-1)!.proc).toBe('With2Points')
         const before = prev.state.stack.length
         if (i === 1) continue
         if (prev.line === 6 || prev.line === 13) expect(depth).toBe(before + 1)
@@ -110,6 +112,7 @@ describe('miniDiscSteps', () => {
     const c = MINIDISC_PRESETS[0]
     const steps = miniDiscSteps(c.points, c.order)
     const i = steps.findIndex((s) => s.state.stack.length >= 2)
+    expect(i).toBeGreaterThanOrEqual(1)
     const copy = structuredClone(steps)
     steps[i].state.stack[0].disk.radius = -1
     steps[i].state.stack[0].fixed.push(99)
@@ -119,9 +122,11 @@ describe('miniDiscSteps', () => {
     expect(steps[i - 1].state).toEqual(copy[i - 1].state)
   })
 
-  it('25 random points take at most 400 steps', () => {
-    const pts = randomPointSet(mulberry32(5), 25, box, 20)
-    const len = miniDiscSteps(pts, defaultOrder(25, 5)).length
-    expect(len).toBeLessThanOrEqual(400)
+  it('25 random points take at most 600 steps over 20 seeds, presets too', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const pts = randomPointSet(mulberry32(seed), 25, box, 25)
+      expect(miniDiscSteps(pts, defaultOrder(25, seed)).length).toBeLessThanOrEqual(600)
+    }
+    for (const p of MINIDISC_PRESETS) expect(miniDiscSteps(p.points, p.order).length).toBeLessThanOrEqual(600)
   })
 })

@@ -66,6 +66,17 @@ export const algorithms: AlgorithmEntry[] = [
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {
+    slug: 'artGallery',
+    path: '/algorithms/artGallery',
+    name: 'Art Gallery Problem',
+    thumbnail: '/images/artGallery_tn.png',
+    summary: 'Guard any simple polygon with at most ⌊n/3⌋ cameras: triangulate, 3-colour the vertices, and use the smallest colour class.',
+    content: () => import('./content/algorithms/artGallery/index.mdx'),
+    demoCode: () => import('./content/algorithms/artGallery/demo.js?raw').then(raw),
+    player: () => import('./players/artGalleryPlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+  },
+  {
     slug: 'delaunay',
     path: '/algorithms/delaunay',
     name: 'Delaunay Triangulation',

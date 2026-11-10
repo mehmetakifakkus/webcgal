@@ -26,6 +26,7 @@ import { createTriangulationDrawing, makeMonotone, triangulate } from './triangu
 import { circumcircle as circumcircleApi, createDelaunayDrawing, delaunay } from './delaunay'
 import { createVoronoiDrawing, voronoi, voronoiCells } from './voronoi'
 import { createKdTreeDrawing, kdTree, rangeQuery } from './kdTree'
+import { artGallery, createArtGalleryDrawing, visibilityPolygon } from './artGallery'
 import type { Scene } from './scene'
 import { createTextPointClass, type TextPoint } from './TextPoint'
 import { Vector } from './Vector'
@@ -62,6 +63,8 @@ export const API_NAMES = [
   'voronoi', 'drawVoronoi', 'voronoiCells',
   // kd-tree (points are an array of points; leaves and query results hold indices into the input)
   'kdTree', 'rangeQuery', 'drawKdTree',
+  // art gallery (polygons are a Polygon or an array of points; cameras and colours refer to the input vertices)
+  'artGallery', 'visibilityPolygon', 'drawArtGallery',
   // environment
   'console', 'document',
   // paper.js
@@ -149,6 +152,7 @@ export function buildApi(
   const { drawTriangulation } = createDelaunayDrawing(ctx)
   const { drawVoronoi } = createVoronoiDrawing(ctx)
   const { drawKdTree } = createKdTreeDrawing(ctx)
+  const { drawArtGallery } = createArtGalleryDrawing(ctx)
   const pts = (points: PointInput[]) => points.map(toPt)
 
   const getCenterAndRadius2 = (p1: PointInput, p2: PointInput) => legacyCircle(circleFrom2(toPt(p1), toPt(p2)))
@@ -249,6 +253,9 @@ export function buildApi(
     kdTree,
     rangeQuery,
     drawKdTree,
+    artGallery,
+    visibilityPolygon,
+    drawArtGallery,
     console: createConsole(output, clearOutput),
     document: options.extraCanvases ? scopedDocument(options.extraCanvases) : document,
     ...(Object.fromEntries(PAPER_CLASSES.map((n) => [n, scope[n as keyof paper.PaperScope]])) as Record<

@@ -21,6 +21,8 @@ const SPLIT_SIZE = 12
 const CORNER_SIZE = 7
 const MAX_POINT_LABELS = 20
 const MAX_NODE_LABELS = 24
+/** Space kept under the deepest row when leaves are labelled, so their labels stay in the area. */
+const LEAF_LABEL_MARGIN = 17
 
 const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
 const fmt = (v: number) => v.toFixed(1)
@@ -56,9 +58,10 @@ function under(id: number, set: Set<number>, byId: Map<number, KdNodeView>): boo
 /**
  * Tree positions (spec §4): leaves in left-to-right order, each internal node at the midpoint
  * of its two children; depth top-down. Computed from `size` alone (the left child holds
- * ⌈size/2⌉ points), so nodes keep their place while the tree is being built.
+ * ⌈size/2⌉ points), so nodes keep their place while the tree is being built. The deepest row
+ * sits at y = TREE.y0 + `bottom`.
  */
-function treeLayout(nodes: KdNodeView[]): Map<number, Pt> {
+function treeLayout(nodes: KdNodeView[], bottom: number): Map<number, Pt> {
   const out = new Map<number, Pt>()
   const root = nodes.find((v) => v.parent === null)
   if (!root) return out
@@ -78,7 +81,7 @@ function treeLayout(nodes: KdNodeView[]): Map<number, Pt> {
     out.set(v.id, {
       x: TREE.x0 + centre(offset, v.size) * ((TREE.x1 - TREE.x0) / leaves),
       // spec: 20 + depth · (320 / max(1, depth)) from the top; the scene is y-up, so from y1 down
-      y: TREE.y1 - v.depth * ((TREE.y1 - TREE.y0) / Math.max(1, depth)),
+      y: TREE.y1 - v.depth * ((TREE.y1 - TREE.y0 - bottom) / Math.max(1, depth)),
     })
   }
   return out
@@ -109,9 +112,13 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
       next.points[k] = q
       return next
     }
-    // the other corner stays; moving one past it swaps their roles
-    const other = k === n ? { x: input.query.x1, y: input.query.y1 } : { x: input.query.x0, y: input.query.y0 }
-    next.query = { x0: Math.min(q.x, other.x), y0: Math.min(q.y, other.y), x1: Math.max(q.x, other.x), y1: Math.max(q.y, other.y) }
+    // the dragged corner stops at the opposite one (which stays put), so a drag keeps its handle
+    // index and x0 ≤ x1, y0 ≤ y1 hold; a zero-width or zero-height rectangle is valid
+    const { x0, y0, x1, y1 } = input.query
+    next.query =
+      k === n
+        ? { x0: Math.min(q.x, x1), y0: Math.min(q.y, y1), x1, y1 }
+        : { x0, y0, x1: Math.max(q.x, x0), y1: Math.max(q.y, y0) }
     return next
   },
   canvas: { width: WIDTH, height: HEIGHT },
@@ -166,7 +173,9 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
     new P.Path.Line({ from: [SEPARATOR_X, PLANE_BOX.y0], to: [SEPARATOR_X, PLANE_BOX.y1], strokeColor: withAlpha(c.ink, 0.25), strokeWidth: 1 })
 
     // tree: edges, then nodes (squares for splits, circles for leaves), then labels
-    const at = treeLayout(s.nodes)
+    // labels are decided on the whole tree (2n − 1 nodes), so they do not vanish halfway through the build
+    const labelled = 2 * points.length - 1 <= MAX_NODE_LABELS
+    const at = treeLayout(s.nodes, labelled ? LEAF_LABEL_MARGIN : 0)
     for (const v of s.nodes)
       if (v.parent !== null && at.has(v.parent))
         new P.Path.Line({ from: pt(at.get(v.parent)!), to: pt(at.get(v.id)!), strokeColor: withAlpha(c.ink, 0.6), strokeWidth: 1 })
@@ -188,9 +197,8 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
     }
     // labels: a leaf's point centred below it; a split's line centred above its square, on a
     // halo that interrupts the incoming edge (siblings and cousins sit ≥ 1.5 leaves apart, so
-    // side labels would run into them); the root's to the right. Decided on the whole tree
-    // (2n − 1 nodes), so labels do not vanish halfway through the build.
-    if (2 * points.length - 1 <= MAX_NODE_LABELS)
+    // side labels would run into them); the root's to its lower right, inside the area
+    if (labelled)
       for (const v of s.nodes) {
         const q = at.get(v.id)!
         if (!v.axis) {
@@ -198,9 +206,8 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
           continue
         }
         const content = `${v.axis} = ${Math.round(v.value!)}`
-        const [x, y, j] = v.parent === null ? [q.x + 9, q.y - 3, 'left'] : [q.x, q.y + 9, 'center']
-        if (v.parent !== null)
-          text(content, x, y, 9, j).set({ fillColor: c.bg, strokeColor: c.bg, strokeWidth: 4, strokeJoin: 'round' })
+        const [x, y, j] = v.parent === null ? [q.x + 9, q.y - 12, 'left'] : [q.x, q.y + 9, 'center']
+        text(content, x, y, 9, j).set({ fillColor: c.bg, strokeColor: c.bg, strokeWidth: 4, strokeJoin: 'round' })
         text(content, x, y, 9, j)
       }
 

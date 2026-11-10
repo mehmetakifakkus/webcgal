@@ -189,15 +189,18 @@ test('Query only starts with the full tree', () => {
 test('moveHandle normalizes', () => {
   const input = textbook()
   const n = input.points.length
-  // lower-left corner past the upper-right one (to the right and above)
+  // a dragged corner stops at the opposite one: the lower-left corner pushed past the upper-right
   const a = kdTreePlayer.moveHandle(input, n, { x: 420, y: 320 })
-  expect(a.query).toEqual({ x0: 370, y0: 280, x1: 420, y1: 320 })
-  // lower-left corner only to the right: y stays
+  expect(a.query).toEqual({ x0: 370, y0: 280, x1: 370, y1: 280 })
+  // lower-left corner only to the right: y follows the cursor
   const b = kdTreePlayer.moveHandle(input, n, { x: 400, y: 150 })
-  expect(b.query).toEqual({ x0: 370, y0: 150, x1: 400, y1: 280 })
+  expect(b.query).toEqual({ x0: 370, y0: 150, x1: 370, y1: 280 })
   // upper-right corner below and left of the lower-left one
   const c = kdTreePlayer.moveHandle(input, n + 1, { x: 40, y: 30 })
-  expect(c.query).toEqual({ x0: 40, y0: 30, x1: 130, y1: 100 })
+  expect(c.query).toEqual({ x0: 130, y0: 100, x1: 130, y1: 100 })
+  // ordinary moves
+  expect(kdTreePlayer.moveHandle(input, n, { x: 60, y: 40 }).query).toEqual({ x0: 60, y0: 40, x1: 370, y1: 280 })
+  expect(kdTreePlayer.moveHandle(input, n + 1, { x: 900, y: 300 }).query).toEqual({ x0: 130, y0: 100, x1: PLANE_BOX.x1, y1: 300 })
   for (const q of [a.query, b.query, c.query]) {
     expect(q.x0).toBeLessThanOrEqual(q.x1)
     expect(q.y0).toBeLessThanOrEqual(q.y1)
@@ -205,13 +208,35 @@ test('moveHandle normalizes', () => {
   expect(a.points).toEqual(input.points)
   expect(a.points[0]).not.toBe(input.points[0])
   expect(input.query).toEqual({ x0: 130, y0: 100, x1: 370, y1: 280 })
-  const steps = kdTreePlayer.computeSteps(a)
-  expect(steps[steps.length - 1].state.reported).toEqual(bruteForceRange(a.points, a.query))
+  const steps = kdTreePlayer.computeSteps(b)
+  expect(steps[steps.length - 1].state.reported).toEqual(bruteForceRange(b.points, b.query))
+})
+
+test('dragging a corner across the other keeps the handle indices stable', () => {
+  const start = textbook()
+  const n = start.points.length
+  // the player keeps the same handle index for the whole drag
+  const drag = (k: number, path: Pt[], fixed: Pt) => {
+    let input = start
+    for (const p of path) {
+      input = kdTreePlayer.moveHandle(input, k, p)
+      const q = input.query
+      expect(q.x0).toBeLessThanOrEqual(q.x1)
+      expect(q.y0).toBeLessThanOrEqual(q.y1)
+      expect(kdTreePlayer.handles(input)[k === n ? n + 1 : n]).toEqual(fixed)
+    }
+    return input.query
+  }
+  const lowerLeft = drag(n, [{ x: 300, y: 250 }, { x: 400, y: 300 }, { x: 410, y: 310 }, { x: 420, y: 320 }, { x: 200, y: 150 }], { x: 370, y: 280 })
+  expect(lowerLeft).toEqual({ x0: 200, y0: 150, x1: 370, y1: 280 })
+  const upperRight = drag(n + 1, [{ x: 200, y: 150 }, { x: 100, y: 60 }, { x: 40, y: 30 }, { x: 300, y: 250 }], { x: 130, y: 100 })
+  expect(upperRight).toEqual({ x0: 130, y0: 100, x1: 300, y1: 250 })
 })
 
 test('tree stays in its area', () => {
   const scene = makeScene()
-  const check = (input: KdInput, inside: (it: paper.Item) => boolean) => {
+  const isText = (it: paper.Item) => it instanceof scene.paper.PointText
+  const check = (input: KdInput) => {
     const steps = kdTreePlayer.computeSteps(input)
     for (const step of [steps[Math.min(5, steps.length - 1)], steps.find((s) => s.line === 9)!, steps[steps.length - 1]]) {
       kdTreePlayer.render(scene, step, input)
@@ -220,23 +245,18 @@ test('tree stays in its area', () => {
       for (const it of tree) {
         expect(it.bounds.left).toBeGreaterThanOrEqual(470)
         expect(it.bounds.right).toBeLessThanOrEqual(770)
-        if (!inside(it)) continue
-        expect(it.bounds.top).toBeGreaterThanOrEqual(10)
-        expect(it.bounds.bottom).toBeLessThanOrEqual(350)
+        // labels within the area proper (y 20–340), shapes within it up to their half size
+        expect(it.bounds.top).toBeGreaterThanOrEqual(isText(it) ? 20 : 10)
+        expect(it.bounds.bottom).toBeLessThanOrEqual(isText(it) ? 340 : 350)
       }
     }
+    return items(scene).filter((it) => isText(it) && it.bounds.left > 465).length
   }
-  // 30 points: no labels, every tree item inside the area
-  for (const seed of [1, 2, 3]) check(seededInput(seed, 30), () => true)
-  // small trees (≤ 24 nodes) are labelled: shapes and edges inside the area, leaf labels just
-  // below the bottom row but on the canvas
-  for (const input of [textbook(), seededInput(4, 12), seededInput(8, 9), seededInput(6, 1)]) {
-    check(input, (it) => !(it instanceof scene.paper.PointText))
-    for (const t of items(scene).filter((it) => it instanceof scene.paper.PointText && it.bounds.left > 465)) {
-      expect(t.bounds.top).toBeGreaterThanOrEqual(0)
-      expect(t.bounds.bottom).toBeLessThanOrEqual(360)
-    }
-  }
+  // 30 points: no labels
+  for (const seed of [1, 2, 3]) expect(check(seededInput(seed, 30))).toBe(0)
+  // small trees (≤ 24 nodes) are labelled
+  for (const input of [textbook(), seededInput(4, 12), seededInput(8, 9), seededInput(6, 1)])
+    expect(check(input)).toBeGreaterThan(0)
 })
 
 test('panels by phase', () => {

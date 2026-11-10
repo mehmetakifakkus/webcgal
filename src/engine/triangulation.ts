@@ -7,7 +7,7 @@ import { isPointInput } from './segments'
 export type PolygonInput = { points: PointInput[] } | PointInput[]
 
 /** Consecutive vertices must be at least this far apart (closer ones make the sweep's comparisons unreliable). */
-const MIN_VERTEX_DISTANCE = 1e-3
+export const MIN_VERTEX_DISTANCE = 1e-3
 
 const describe = (v: unknown) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v)
 

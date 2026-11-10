@@ -34,8 +34,17 @@ export type PlayerModule<S, I> = {
   presets?: { name: string; input: I }[]
   /** The draggable points of `input`, in scene coordinates. */
   handles(input: I): Pt[]
-  /** A copy of `input` with handle `index` moved to `p`; `input` itself is left unchanged. */
-  moveHandle(input: I, index: number, p: Pt): I
+  /**
+   * A copy of `input` with handle `index` moved to `p` (in `mode`, when the module has modes);
+   * `input` itself is left unchanged. Returning `input` itself means the handle stays put.
+   */
+  moveHandle(input: I, index: number, p: Pt, mode?: string): I
+  /**
+   * Called when handle `index` is clicked (pressed and released with less than 3 px of movement)
+   * in `mode`, instead of dragging it: the new input, or `input` itself for no change. Modules
+   * without it get no clicks, and their handles start dragging at the first movement.
+   */
+  clickHandle?(input: I, index: number, mode?: string): I
   /** State panels for the given step, shown under the canvas. */
   panels?(step: Step<S>, input: I): Panel[]
   /** Help line under the step description (default: drag the points, keys). */

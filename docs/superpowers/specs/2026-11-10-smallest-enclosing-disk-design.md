@@ -106,7 +106,7 @@ Her adım `structuredClone`; `current`, `testing`, `newDisk`, `returned` tek ad�
 | 6 / 13 | "Call MiniDiscWithPoint with q = v6" / "Call MiniDiscWith2Points with q₁ = v6, q₂ = v2" |
 | 20 | "D: disc through v6, v2 and v8" (`newDisk`) |
 | 14 / 21 | "Return D (r = 118.2) to MiniDisc" / "… to MiniDiscWithPoint" (`returned`) |
-| 7 | "Done: smallest disc through v2, v5, v7 (r = 128.4), 31 tests, 6 updates" (iki sınır noktasında "through v2 and v5") |
+| 7 | "Done: smallest disc through v2, v5 and v7 (r = 128.4), 31 tests, 6 updates" (iki sınır noktasında "through v2 and v5", tek noktada "through v1") |
 
 Yarıçap bir ondalıkla; etiketler `v1…`. Çağrıdan sonraki ilk adım iç prosedürün başlangıç diski (9 veya 16).
 

@@ -18,7 +18,8 @@
     "thumbnail:triangulation": "node scripts/thumbnail.mjs --slug triangulation --preset \"Textbook polygon\" --step 60",
     "thumbnail:delaunay": "node scripts/thumbnail.mjs --slug delaunay --preset \"Textbook example\" --step 40",
     "thumbnail:voronoi": "node scripts/thumbnail.mjs --slug voronoi --preset \"Textbook example\" --step 37",
-    "thumbnail:smallestEnclosingDisk": "node scripts/thumbnail.mjs --slug smallestEnclosingDisk --preset \"Random example\" --step 32"
+    "thumbnail:smallestEnclosingDisk": "node scripts/thumbnail.mjs --slug smallestEnclosingDisk --preset \"Random example\" --step 32",
+    "thumbnail:kdTree": "node scripts/thumbnail.mjs --slug kdTree --preset \"Textbook example\" --step 46"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

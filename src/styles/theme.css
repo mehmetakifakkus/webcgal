@@ -139,6 +139,14 @@
   --md-outside: #c01c28;
   --md-new: #e66100;
 
+  /* kd-tree player */
+  --kd-x: #1a5fb4;
+  --kd-y: #c01c28;
+  --kd-current: #e66100;
+  --kd-query: #9141ac;
+  --kd-report: #26a269;
+  --kd-pruned: #9aa0a6;
+
   /* names used before the token set (kept for existing component styles) */
   --fg: var(--text);
   --muted: var(--text-muted);
@@ -233,5 +241,13 @@
     --md-inside: #26a269;
     --md-outside: #c01c28;
     --md-new: #e66100;
+
+    /* kd-tree player: same as light (canvas stays white) */
+    --kd-x: #1a5fb4;
+    --kd-y: #c01c28;
+    --kd-current: #e66100;
+    --kd-query: #9141ac;
+    --kd-report: #26a269;
+    --kd-pruned: #9aa0a6;
   }
 }

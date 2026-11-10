@@ -9,6 +9,7 @@ import segmentIntersectionDemo from '../content/algorithms/segmentIntersection/d
 import triangulationDemo from '../content/algorithms/triangulation/demo.js?raw'
 import delaunayDemo from '../content/algorithms/delaunay/demo.js?raw'
 import voronoiDemo from '../content/algorithms/voronoi/demo.js?raw'
+import kdTreeDemo from '../content/algorithms/kdTree/demo.js?raw'
 
 const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
@@ -871,5 +872,128 @@ describe('voronoi api', () => {
     expect(exec(voronoiDemo)).toEqual({ ok: true })
     expect(lines).toHaveLength(1)
     expect(lines[0].text).toMatch(/^\d+ vertex\/vertices, \d+ edge\(s\), \d+ cell\(s\)$/)
+  })
+})
+
+describe('kd-tree api', () => {
+  const errorsOf = (lines: OutputLine[], res: ReturnType<typeof run>) =>
+    [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+
+  test('four points give a read-only tree of size 4', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var t = kdTree([{ x: 10, y: 10 }, { x: 40, y: 30 }, [20, 50], [60, 20]]);
+      var leaves = [];
+      function walk(v) { if ('point' in v) leaves.push(v.point); else { walk(v.left); walk(v.right); } }
+      walk(t.root);
+      console.log(Object.keys(t).sort().join(','), t.size, t.depth, t.root.axis, t.root.value, t.root.left.axis, leaves.join(','),
+        Object.isFrozen(t), Object.isFrozen(t.root), Object.isFrozen(t.root.left.left));
+    `)
+    expect(res).toEqual({ ok: true })
+    // root splits at x = 20 (v1, v3 left of or on it), both children split on y
+    expect(lines).toEqual([{ kind: 'log', text: 'depth,root,size 4 2 x 20 y 0,2,3,1 true true true' }])
+  })
+
+  test('rangeQuery gives the brute-force answer on random point sets', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var bad = 0;
+      for (var trial = 0; trial < 20; trial++) {
+        var n = 1 + trial;
+        var points = Points.createRandom(n);
+        var tree = kdTree(points);
+        var a = { x: getRandomInt(0, 775), y: getRandomInt(0, 360) };
+        var b = { x: getRandomInt(0, 775), y: getRandomInt(0, 360) };
+        // corners in any order: rangeQuery normalizes the rectangle
+        var r = { x0: a.x, y0: a.y, x1: b.x, y1: b.y };
+        var x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
+        var expected = [];
+        points.forEach(function (p, i) { if (p.pos.x >= x0 && p.pos.x <= x1 && p.pos.y >= y0 && p.pos.y <= y1) expected.push(i); });
+        if (rangeQuery(points, tree, r).join(',') !== expected.join(',')) bad++;
+      }
+      console.log(bad);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '0' }])
+  })
+
+  test('the rectangle can be given by two points', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var points = [[100, 100], [250, 150], [300, 250], [450, 120], [600, 300], [220, 330]];
+      var tree = kdTree(points);
+      var a = rangeQuery(points, tree, { x0: 200, y0: 100, x1: 500, y1: 300 });
+      var b = rangeQuery(points, tree, [[500, 300], [200, 100]]);
+      var c = rangeQuery(points, tree, [new Point(200, 300), { x: 500, y: 100 }]);
+      console.log(a.join(','), b.join(','), c.join(','));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1,2,3 1,2,3 1,2,3' }])
+  })
+
+  test('points on the boundary and coincident points are reported', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var points = [[100, 100], [100, 100], [100, 200], [200, 100], [300, 300], [100, 150]];
+      var tree = kdTree(points);
+      console.log(tree.size, rangeQuery(points, tree, { x0: 100, y0: 100, x1: 200, y1: 150 }).join(','),
+        rangeQuery(points, tree, { x0: 100, y0: 100, x1: 100, y1: 100 }).join(','));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '6 0,1,3,5 0,1' }])
+  })
+
+  test('bad input is rejected with a clear message', () => {
+    const p = '[[0, 0], [10, 0], [0, 10]]'
+    for (const [code, msg] of [
+      ["kdTree([[0, 0], 'x'])", 'kdTree: expected an array of points (item 2 is not a point)'],
+      ['kdTree(5)', 'kdTree: expected an array of points'],
+      [`rangeQuery(${p}, kdTree(${p}), 5)`, 'rangeQuery: expected a rectangle {x0, y0, x1, y1} or two points'],
+      [`rangeQuery(${p}, kdTree(${p}), { x0: 0, y0: 0, x1: 'a', y1: 1 })`, 'rangeQuery: expected a rectangle {x0, y0, x1, y1} or two points'],
+      [`rangeQuery(${p}, kdTree(${p}), [[0, 0]])`, 'rangeQuery: expected a rectangle {x0, y0, x1, y1} or two points'],
+      [`rangeQuery(${p}, kdTree([[0, 0], [10, 0]]), [[0, 0], [5, 5]])`, 'rangeQuery: expected the result of kdTree(points) for the same points'],
+      // same size, but the points do not lie on the sides of the tree's split lines
+      [`rangeQuery(${p}, kdTree([[10, 0], [0, 0], [0, 10]]), [[0, 0], [5, 5]])`, 'rangeQuery: expected the result of kdTree(points) for the same points'],
+      [`rangeQuery(${p}, {}, [[0, 0], [5, 5]])`, 'rangeQuery: expected the result of kdTree(points) for the same points'],
+      [`rangeQuery([[0, 0], 3], kdTree(${p}), [[0, 0], [5, 5]])`, 'rangeQuery: expected an array of points (item 2 is not a point)'],
+      [`drawKdTree(${p}, {})`, 'drawKdTree: expected the result of kdTree(points) for the same points'],
+      [`drawKdTree(${p}, kdTree([[0, 0]]))`, 'drawKdTree: expected the result of kdTree(points) for the same points'],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok, code).toBe(false)
+      expect(errorsOf(lines, res).some((l) => l.text.includes(msg)), code).toBe(true)
+    }
+  })
+
+  test('drawKdTree draws one split line per internal node, inside the padded bounding box', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var points = Points.createRandom(10);
+      var tree = kdTree(points);
+      var n = drawables.length;
+      drawKdTree(points, tree, 'red');
+      var added = drawables.slice(n);
+      var xs = points.map(function (p) { return p.pos.x; }), ys = points.map(function (p) { return p.pos.y; });
+      var x0 = Math.min.apply(null, xs) - 10, x1 = Math.max.apply(null, xs) + 10;
+      var y0 = Math.min.apply(null, ys) - 10, y1 = Math.max.apply(null, ys) + 10;
+      var ok = added.every(function (d) {
+        var b = d.bounds;
+        return d.strokeColor.equals(new Color('red')) && (b.width < 1e-6 || b.height < 1e-6) &&
+          b.left >= x0 - 1e-6 && b.right <= x1 + 1e-6 && b.top >= y0 - 1e-6 && b.bottom <= y1 + 1e-6;
+      });
+      var m = drawables.length;
+      drawKdTree([[0, 0]], kdTree([[0, 0]]));
+      console.log(added.length, ok, drawables.length - m);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '9 true 0' }])
+  })
+
+  test('the demo runs', () => {
+    const { exec, lines } = setup()
+    expect(exec(kdTreeDemo)).toEqual({ ok: true })
+    expect(lines).toHaveLength(1)
+    expect(lines[0].text).toMatch(/^\d+ point\(s\) in the range$/)
   })
 })

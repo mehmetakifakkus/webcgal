@@ -3,7 +3,7 @@
 WebCgal is a small teaching site for computational geometry. Each algorithm
 (convex hull, line segment intersection, polygon triangulation, smallest
 enclosing disk, monotone polygons, point-line duality, Delaunay
-triangulation, Voronoi diagram) has a page with an explanation, a runnable demo and, for some, a step-by-step
+triangulation, Voronoi diagram, kd-tree range search) has a page with an explanation, a runnable demo and, for some, a step-by-step
 player. The demos are written in PaperScript, so you can edit them and see the
 result immediately.
 
@@ -29,6 +29,11 @@ Live site: https://mehmetakifakkus.github.io/webcgal/ (also https://webcgal.netl
   de Berg §4.7: MiniDisc with its three nested procedures shown step by step)
   has the panels Call stack / Order / Disc, presets (including a deliberately
   bad order), and draggable points that keep the order.
+  The kd-tree player (`/algorithms/kdTree`, de Berg §5.2: building the tree by
+  alternating median splits and the rectangular range query) has the modes
+  Build and query / Build only / Query only, shows the plane and the tree side
+  by side, has the panels Node / Query / Reported, presets, and draggable
+  points and query-rectangle corners.
 - Live PaperScript editor on every algorithm page: edit the demo and run it.
 - Playground: a free canvas with templates; the code is saved in the browser.
 - API documentation of the helper objects and functions (`Polygon`,
@@ -60,6 +65,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 - `src/geometry/algorithms/delaunay/` - Delaunay triangulation (inCircle/symbolic vertices, triangle mesh, randomized incremental algorithm, verifier, step recorder, presets)
 - `src/geometry/algorithms/voronoi/` - Voronoi diagram (clipping helpers, dual construction with circumcenter merging, cells, verifier, step recorder, presets)
 - `src/geometry/algorithms/minidisc/` - smallest enclosing disk (MiniDisc core with recorder, minimality verifier, step generator, presets)
+- `src/geometry/algorithms/kdtree/` - kd-tree (construction and range search with recorders, verifier, step generator, presets)
 - `src/engine/` - PaperScript runtime and the API exposed to user code (`api.ts`)
 - `src/engine/__fixtures__/legacy/` - code of the old site, kept to prove it still runs
 - `src/components/` - shared React components (editor, runner, player, layout)
@@ -67,7 +73,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 - `src/players/` - step players of the algorithms
 - `src/content/` - MDX content: algorithms, API docs, playground templates
 - `src/registry.ts` - the list of algorithms; menu, cards and routes derive from it
-- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`node scripts/thumbnail.mjs --slug <slug> --preset "<name>" --step <n>`; `npm run thumbnail:segmentIntersection`, `npm run thumbnail:triangulation`, `npm run thumbnail:delaunay`, `npm run thumbnail:voronoi` and `npm run thumbnail:smallestEnclosingDisk` regenerate those thumbnails)
+- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`node scripts/thumbnail.mjs --slug <slug> --preset "<name>" --step <n>`; `npm run thumbnail:segmentIntersection`, `npm run thumbnail:triangulation`, `npm run thumbnail:delaunay`, `npm run thumbnail:voronoi`, `npm run thumbnail:smallestEnclosingDisk` and `npm run thumbnail:kdTree` regenerate those thumbnails)
 - `tests/e2e/` - Playwright tests
 
 ## Adding a new algorithm
@@ -114,7 +120,7 @@ To run the e2e smoke test against the live sub-path site (tests that need the
 e2e debug hook are skipped there):
 
 ```bash
-BASE_URL=https://mehmetakifakkus.github.io/webcgal/ npx playwright test tests/e2e/smoke.spec.ts tests/e2e/smallestEnclosingDisk.spec.ts --trace off
+BASE_URL=https://mehmetakifakkus.github.io/webcgal/ npx playwright test tests/e2e/smoke.spec.ts tests/e2e/smallestEnclosingDisk.spec.ts tests/e2e/kdTree.spec.ts --trace off
 ```
 
 ## License

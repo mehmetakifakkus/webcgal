@@ -18,7 +18,10 @@ export function isMinimalDisk(points: Pt[], disk: Circle | null): { ok: boolean;
   }
   if (r <= tol) return { ok: true }
 
-  const on = points.filter((p) => Math.abs(distance(c, p) - r) <= tol)
+  // Coincident boundary points count once: three copies of one point surround nothing.
+  const on: Pt[] = []
+  for (const p of points)
+    if (Math.abs(distance(c, p) - r) <= tol && !on.some((q) => distance(p, q) <= tol)) on.push(p)
   for (let a = 0; a < on.length; a++)
     for (let b = a + 1; b < on.length; b++) {
       const mid = { x: (on[a].x + on[b].x) / 2, y: (on[a].y + on[b].y) / 2 }

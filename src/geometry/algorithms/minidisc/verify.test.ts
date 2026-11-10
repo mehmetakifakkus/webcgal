@@ -66,3 +66,17 @@ describe('bruteForceDisk', () => {
     expect(obtuse.radius).toBeCloseTo(5, 9)
   })
 })
+
+describe('isMinimalDisk coincident boundary points', () => {
+  it('rejects a disc whose boundary holds only coincident points', () => {
+    const res = isMinimalDisk(P([[0, 0], [0, 0], [0, 0]]), disk(5, 0, 5))
+    expect(res.ok).toBe(false)
+    expect(res.reason).toMatch(/not minimal/)
+  })
+
+  it('rejects the same set plus an interior point', () => {
+    const res = isMinimalDisk(P([[0, 0], [0, 0], [0, 0], [3, 0]]), disk(5, 0, 5))
+    expect(res.ok).toBe(false)
+    expect(res.reason).toMatch(/not minimal/)
+  })
+})

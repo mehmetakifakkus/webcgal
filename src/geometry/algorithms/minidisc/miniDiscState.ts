@@ -5,7 +5,7 @@ import type { Circle } from '../../types'
 /** One active call of MiniDisc, MiniDiscWithPoint or MiniDiscWith2Points. */
 export type Frame = {
   proc: 'MiniDisc' | 'WithPoint' | 'With2Points'
-  /** [] | [q] | [q1, q2] (q2 = new point, q1 = the outer call's q). */
+  /** [] | [q] | [q, p_j], stored in that order: fixed[1] is the book's q₁ (the new point p_j), fixed[0] the book's q₂ (the outer call's q). */
   fixed: number[]
   /** This call's P: order[0..prefix). */
   prefix: number

@@ -147,6 +147,16 @@
   --kd-report: #26a269;
   --kd-pruned: #9aa0a6;
 
+  /* art gallery player */
+  --ag-c0: #c01c28;
+  --ag-c1: #26a269;
+  --ag-c2: #1a5fb4;
+  --ag-diag: #9aa0a6;
+  --ag-dual: #5e5c64;
+  --ag-current: #e66100;
+  --ag-view: #f5c211;
+  --ag-uncovered: #c01c28;
+
   /* names used before the token set (kept for existing component styles) */
   --fg: var(--text);
   --muted: var(--text-muted);
@@ -249,5 +259,15 @@
     --kd-query: #9141ac;
     --kd-report: #26a269;
     --kd-pruned: #9aa0a6;
+
+    /* art gallery player: same as light (canvas stays white) */
+    --ag-c0: #c01c28;
+    --ag-c1: #26a269;
+    --ag-c2: #1a5fb4;
+    --ag-diag: #9aa0a6;
+    --ag-dual: #5e5c64;
+    --ag-current: #e66100;
+    --ag-view: #f5c211;
+    --ag-uncovered: #c01c28;
   }
 }

@@ -10,7 +10,7 @@ const LEGACY_PATHS = [
 ]
 
 /** Pages added after the migration (not on the legacy site). */
-const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation', '/algorithms/delaunay', '/algorithms/voronoi', '/algorithms/kdTree']
+const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation', '/algorithms/delaunay', '/algorithms/voronoi', '/algorithms/kdTree', '/algorithms/artGallery']
 
 describe('registry', () => {
   test('paths are legacy paths', () => {
@@ -25,12 +25,16 @@ describe('registry', () => {
     expect(algorithms.map((a) => a.path).slice(1, 3)).toEqual(['/algorithms/segmentIntersection', '/algorithms/triangulation'])
   })
 
-  test('Delaunay Triangulation follows Polygon Triangulation in the menu', () => {
-    expect(algorithms.map((a) => a.path).slice(2, 4)).toEqual(['/algorithms/triangulation', '/algorithms/delaunay'])
+  test('Art Gallery Problem follows Polygon Triangulation in the menu', () => {
+    expect(algorithms.map((a) => a.path).slice(2, 5)).toEqual([
+      '/algorithms/triangulation',
+      '/algorithms/artGallery',
+      '/algorithms/delaunay',
+    ])
   })
 
   test('Voronoi Diagram follows Delaunay Triangulation in the menu', () => {
-    expect(algorithms.map((a) => a.path).slice(3, 6)).toEqual([
+    expect(algorithms.map((a) => a.path).slice(4, 7)).toEqual([
       '/algorithms/delaunay',
       '/algorithms/voronoi',
       '/algorithms/smallestEnclosingDisk',
@@ -38,7 +42,7 @@ describe('registry', () => {
   })
 
   test('kd-Tree Range Search follows Smallest Enclosing Disk in the menu', () => {
-    expect(algorithms.map((a) => a.path).slice(5, 8)).toEqual([
+    expect(algorithms.map((a) => a.path).slice(6, 9)).toEqual([
       '/algorithms/smallestEnclosingDisk',
       '/algorithms/kdTree',
       '/algorithms/L-monoton',
@@ -52,6 +56,18 @@ describe('registry', () => {
       name: 'kd-Tree Range Search',
       thumbnail: '/images/kdTree_tn.png',
       summary: 'Build a kd-tree by alternating median splits and answer a rectangular range query, step by step.',
+      canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+    })
+    expect(a?.player).toBeTypeOf('function')
+  })
+
+  test('the art gallery page has a step player and one 775x360 canvas', () => {
+    const a = findAlgorithm('/algorithms/artGallery')
+    expect(a).toMatchObject({
+      slug: 'artGallery',
+      name: 'Art Gallery Problem',
+      thumbnail: '/images/artGallery_tn.png',
+      summary: 'Guard any simple polygon with at most ⌊n/3⌋ cameras: triangulate, 3-colour the vertices, and use the smallest colour class.',
       canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
     })
     expect(a?.player).toBeTypeOf('function')

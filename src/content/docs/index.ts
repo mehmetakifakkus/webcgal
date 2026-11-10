@@ -13,6 +13,7 @@ import triangulateExample from './examples/triangulate.js?raw'
 import delaunayExample from './examples/delaunay.js?raw'
 import voronoiExample from './examples/voronoi.js?raw'
 import kdTreeExample from './examples/kdTree.js?raw'
+import artGalleryExample from './examples/artGallery.js?raw'
 
 export type DocCategory = 'objects' | 'drawing_functions' | 'polygon_functions' | 'points_functions' | 'misc_functions'
 
@@ -91,6 +92,12 @@ export const docs: DocEntry[] = [
     category: 'misc_functions',
     content: () => import('./kdTree.mdx'),
     example: kdTreeExample,
+  },
+  {
+    name: 'artGallery',
+    category: 'misc_functions',
+    content: () => import('./artGallery.mdx'),
+    example: artGalleryExample,
   },
   { name: 'loop', category: 'misc_functions', content: () => import('./loop.mdx') },
   { name: 'mouseDown', category: 'misc_functions', content: () => import('./mouseDown.mdx'), example: mouseDownExample },

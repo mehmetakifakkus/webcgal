@@ -10,6 +10,8 @@ import triangulationDemo from '../content/algorithms/triangulation/demo.js?raw'
 import delaunayDemo from '../content/algorithms/delaunay/demo.js?raw'
 import voronoiDemo from '../content/algorithms/voronoi/demo.js?raw'
 import kdTreeDemo from '../content/algorithms/kdTree/demo.js?raw'
+import artGalleryDemo from '../content/algorithms/artGallery/demo.js?raw'
+import { GALLERY_PRESETS } from '../geometry/algorithms/artGallery/presets'
 
 const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
@@ -1017,5 +1019,192 @@ describe('kd-tree api', () => {
     expect(exec(kdTreeDemo)).toEqual({ ok: true })
     expect(lines).toHaveLength(1)
     expect(lines[0].text).toMatch(/^\d+ point\(s\) in the range$/)
+  })
+})
+
+describe('art gallery api', () => {
+  const errorsOf = (lines: OutputLine[], res: ReturnType<typeof run>) =>
+    [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+  /** A preset's polygon as a `[[x, y], …]` literal for user code. */
+  const preset = (name: string) => JSON.stringify(GALLERY_PRESETS.find((p) => p.name === name)!.polygon.map((q) => [q.x, q.y]))
+  const L = '[[100, 40], [700, 40], [700, 160], [300, 160], [300, 320], [100, 320]]'
+
+  test('a square needs one camera; the result is read-only', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var r = artGallery([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }]);
+      console.log(Object.keys(r).sort().join(','), r.cameras.join(','), r.colors.join(','), r.triangles.length,
+        Object.isFrozen(r), Object.isFrozen(r.cameras), Object.isFrozen(r.colors), Object.isFrozen(r.triangles),
+        Object.isFrozen(r.triangles[0]));
+    `)
+    expect(res).toEqual({ ok: true })
+    // the first triangle holds v1 (colours 0, 1, 2 in index order); the fourth vertex gets v2's colour
+    expect(lines).toEqual([{ kind: 'log', text: 'cameras,colors,triangles 0 0,1,2,1 2 true true true true true' }])
+  })
+
+  test('the presets get their pinned camera counts, Comb four', () => {
+    const { exec, lines } = setup()
+    const res = exec(
+      GALLERY_PRESETS.map((p) => `console.log(artGallery(${preset(p.name)}).cameras.length);`).join('\n'),
+    )
+    expect(res).toEqual({ ok: true })
+    expect(lines.map((l) => l.text)).toEqual(GALLERY_PRESETS.map((p) => String(p.expected.cameras)))
+    expect(GALLERY_PRESETS[0]).toMatchObject({ name: 'Comb', expected: { cameras: 4 } })
+  })
+
+  test('a valid 3-colouring: every triangle has three colours and one camera', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var p = ${preset('Textbook polygon')};
+      var r = artGallery(p);
+      var ok = r.triangles.every(function (t) {
+        var c = t.map(function (i) { return r.colors[i]; }).sort().join(',');
+        return c === '0,1,2' && t.filter(function (i) { return r.cameras.indexOf(i) >= 0; }).length === 1;
+      });
+      console.log(r.triangles.length, r.colors.length, ok, r.cameras.length <= Math.floor(p.length / 3));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '12 14 true true' }])
+  })
+
+  test('a clockwise polygon keeps the input indices', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var ccw = ${preset('Textbook polygon')};
+      var n = ccw.length;
+      var cw = ccw.slice().reverse();
+      var a = artGallery(ccw), b = artGallery(cw);
+      var f = function (i) { return n - 1 - i; };
+      var cams = a.cameras.map(f).sort(function (x, y) { return x - y; }).join(',');
+      var cols = a.colors.map(function (_, i) { return a.colors[f(i)]; }).join(',');
+      var tris = a.triangles.map(function (t) { return t.map(f).join(' '); }).join(',');
+      console.log(b.cameras.join(',') === cams, b.colors.join(',') === cols,
+        b.triangles.map(function (t) { return t.join(' '); }).join(',') === tris);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: 'true true true' }])
+  })
+
+  test('accepts a Polygon, TextPoints, paper Points, {x, y} and [x, y]', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var poly = new Polygon('L');
+      ${L}.forEach(function (q) { poly.addPoint(q); });
+      var a = artGallery(poly);
+      var b = artGallery(${L}.map(function (q) { return new TextPoint(q[0], q[1]); }));
+      var c = artGallery(${L}.map(function (q) { return new Point(q[0], q[1]); }));
+      var d = artGallery(${L}.map(function (q) { return { x: q[0], y: q[1] }; }));
+      var e = artGallery(${L});
+      console.log([a, b, c, d, e].map(function (r) { return r.cameras.join(' '); }).join(','));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toHaveLength(1)
+    const [first, ...rest] = lines[0].text.split(',')
+    expect(first.split(' ')).toHaveLength(2)
+    expect(rest).toEqual([first, first, first, first])
+  })
+
+  test('visibilityPolygon: a convex room is seen whole, an L-shaped one in part', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var show = function (vs) { return vs.map(function (q) { return Math.round(q.x) + ' ' + Math.round(q.y); }).join(','); };
+      var sq = visibilityPolygon([[0, 0], [100, 0], [100, 100], [0, 100]], 0);
+      var l = visibilityPolygon(${L}, 1);
+      // the same corner of the clockwise L is vertex 4
+      var cw = visibilityPolygon(${L}.slice().reverse(), 4);
+      console.log(show(sq));
+      console.log(show(l));
+      console.log(show(cw) === show(l), sq[0] instanceof Point, Object.isFrozen(l));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([
+      { kind: 'log', text: '0 0,100 0,100 100,0 100' },
+      // the ray past the reflex corner (300, 160) ends on the left wall at (100, 220)
+      { kind: 'log', text: '700 40,700 160,300 160,100 220,100 40' },
+      { kind: 'log', text: 'true true true' },
+    ])
+  })
+
+  test('drawArtGallery draws a region and a camera per camera', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var p = ${preset('Comb')};
+      var r = artGallery(p);
+      var n = drawables.length;
+      drawArtGallery(p, r, 'orange');
+      var added = drawables.slice(n);
+      var k = r.cameras.length;
+      var regions = added.slice(0, k), icons = added.slice(k);
+      var orange = new Color('orange');
+      var regionsOk = regions.every(function (d) { return d.closed && d.fillColor.alpha === 0.2 && d.fillColor.red === orange.red; });
+      var iconsOk = icons.every(function (d, i) {
+        var c = p[r.cameras[i]];
+        return Math.round(d.bounds.width) === 10 && Math.abs(d.position.x - c[0]) < 1e-6 && Math.abs(d.position.y - c[1]) < 1e-6 &&
+          d.fillColor.equals(orange);
+      });
+      var m = drawables.length;
+      drawArtGallery(p, { cameras: [] });
+      var none = drawables.length - m;
+      drawArtGallery(p, { cameras: [0] });
+      console.log(k, added.length, regionsOk, iconsOk, none, drawables.length - m, drawables[m + 1].fillColor.equals(new Color('black')));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '4 8 true true 0 2 true' }])
+  })
+
+  test('a non-simple polygon is rejected', () => {
+    const bowtie = '[[0, 0], [100, 100], [100, 0], [0, 100]]'
+    for (const [code, msg] of [
+      [`artGallery(${bowtie})`, 'artGallery: the polygon must be simple (no crossing edges)'],
+      [`visibilityPolygon(${bowtie}, 0)`, 'visibilityPolygon: the polygon must be simple (no crossing edges)'],
+      [`drawArtGallery(${bowtie}, { cameras: [0] })`, 'drawArtGallery: the polygon must be simple (no crossing edges)'],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok, code).toBe(false)
+      expect(errorsOf(lines, res).some((l) => l.text.includes(msg)), code).toBe(true)
+    }
+  })
+
+  test('bad input is rejected with a clear message', () => {
+    const sq = '[[0, 0], [100, 0], [100, 100], [0, 100]]'
+    for (const [code, msg] of [
+      ["artGallery([[0, 0], 'x', [0, 10]])", 'artGallery: expected a Polygon or an array of points (item 2 is not a point)'],
+      ['artGallery(5)', 'artGallery: expected a Polygon or an array of points'],
+      ['artGallery([[0, 0], [1, 0]])', 'artGallery: the polygon needs at least 3 vertices'],
+      // two consecutive vertices closer than 0.001
+      ['artGallery([[0, 0], [100, 0], [100, 0.0005], [0, 100]])', 'artGallery: vertices must be at least 0.001 apart'],
+      ['visibilityPolygon([[0, 0], [100, 0], [100, 0.0005], [0, 100]], 0)', 'visibilityPolygon: vertices must be at least 0.001 apart'],
+      ['drawArtGallery([[0, 0], [100, 0], [100, 0.0005], [0, 100]], { cameras: [0] })', 'drawArtGallery: vertices must be at least 0.001 apart'],
+      // v3 almost on v5 (not consecutive): passes the simplicity test, but the triangulation breaks down
+      [
+        'artGallery([[82, 2], [3, 37], [20.99999967183551, -38.999999773744904], [-20, -24], [21, -39]])',
+        'artGallery: the polygon is too degenerate to triangulate (vertices closer than about 0.001 apart)',
+      ],
+      [`visibilityPolygon([[0, 0], 3, [0, 10]], 0)`, 'visibilityPolygon: expected a Polygon or an array of points (item 2 is not a point)'],
+      [`visibilityPolygon(${sq}, 4)`, 'visibilityPolygon: vertex index out of range'],
+      [`visibilityPolygon(${sq}, -1)`, 'visibilityPolygon: vertex index out of range'],
+      [`visibilityPolygon(${sq}, 1.5)`, 'visibilityPolygon: vertex index out of range'],
+      [`visibilityPolygon(${sq}, '1')`, 'visibilityPolygon: vertex index out of range'],
+      [`visibilityPolygon(${sq})`, 'visibilityPolygon: vertex index out of range'],
+      [`drawArtGallery([[0, 0], [0, 10], {}], { cameras: [0] })`, 'drawArtGallery: expected a Polygon or an array of points (item 3 is not a point)'],
+      [`drawArtGallery(${sq})`, 'drawArtGallery: expected the result of artGallery(polygon) for the same polygon'],
+      [`drawArtGallery(${sq}, {})`, 'drawArtGallery: expected the result of artGallery(polygon) for the same polygon'],
+      [`drawArtGallery(${sq}, { cameras: [4] })`, 'drawArtGallery: expected the result of artGallery(polygon) for the same polygon'],
+      [`drawArtGallery(${sq}, { cameras: [1, 1] })`, 'drawArtGallery: expected the result of artGallery(polygon) for the same polygon'],
+      [`drawArtGallery(${sq}, artGallery(${L}))`, 'drawArtGallery: expected the result of artGallery(polygon) for the same polygon'],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok, code).toBe(false)
+      expect(errorsOf(lines, res).some((l) => l.text.includes(msg)), code).toBe(true)
+    }
+  })
+
+  test('the demo runs', () => {
+    const { exec, lines } = setup()
+    expect(exec(artGalleryDemo)).toEqual({ ok: true })
+    expect(lines).toHaveLength(1)
+    expect(lines[0].text).toMatch(/^\d+ camera\(s\) for \d+ vertices$/)
   })
 })

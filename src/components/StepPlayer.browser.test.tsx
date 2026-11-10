@@ -395,3 +395,176 @@ test('no alert for modules without validate', async () => {
   expect(screen.getByRole('alert').query()).toBeNull()
   expect(screen.getByLabelText('Mode').query()).toBeNull()
 })
+
+// clickHandle: a press and release with < 3 px movement on a handle is a click
+const CLICK_POINTS: Pt[] = [
+  { x: 150, y: 120 },
+  { x: 350, y: 260 },
+  { x: 550, y: 140 },
+]
+const CLICK_PRESET: Pt[] = [
+  { x: 200, y: 100 },
+  { x: 400, y: 280 },
+  { x: 600, y: 120 },
+]
+type ClickInput = { pts: Pt[]; on: number[] }
+function makeClickModule() {
+  const computeSteps = vi.fn((input: ClickInput, mode?: string) =>
+    [0, 1].map((k): Step<{ k: number }> => ({ description: `on [${input.on.join(',')}] ${mode} ${k}`, line: k, state: { k } })),
+  )
+  const moveHandle = vi.fn((input: ClickInput, k: number, p: Pt, _mode?: string): ClickInput => ({
+    pts: input.pts.map((q, i) => (i === k ? p : q)),
+    on: input.on,
+  }))
+  const clickHandle = vi.fn(
+    (input: ClickInput, k: number, _mode?: string): ClickInput => ({
+      pts: input.pts,
+      on: input.on.includes(k) ? input.on.filter((i) => i !== k) : [...input.on, k].sort((a, b) => a - b),
+    }),
+  )
+  const module: PlayerModule<{ k: number }, ClickInput> = {
+    modes: [
+      { id: 'a', label: 'Mode A' },
+      { id: 'b', label: 'Mode B' },
+    ],
+    computeSteps,
+    render: () => {},
+    pseudocode: ['first', 'second'],
+    randomInput: () => ({ pts: CLICK_POINTS, on: [] }),
+    presets: [{ name: 'Click preset', input: { pts: CLICK_PRESET, on: [] } }],
+    handles: (input) => input.pts,
+    moveHandle,
+    clickHandle,
+  }
+  return { module, computeSteps, moveHandle, clickHandle }
+}
+function canvasAt(screen: Awaited<ReturnType<typeof render>>) {
+  const canvas = screen.getByLabelText('Drawing canvas')
+  const r = (canvas.element() as HTMLCanvasElement).getBoundingClientRect()
+  // scene coordinates are y-up; the default canvas is 775 x 360 scene units
+  const at = (p: Pt, dx = 0, dy = 0) => ({ x: (p.x * r.width) / 775 + dx, y: ((360 - p.y) * r.height) / 360 + dy })
+  return { canvas, at }
+}
+
+test('a click on a handle calls clickHandle and recomputes', async () => {
+  const { module, computeSteps, moveHandle, clickHandle } = makeClickModule()
+  const screen = await render(<StepPlayer module={module} />)
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), 'Mode B')
+  await screen.getByRole('button', { name: 'Next' }).click()
+  await expect.element(screen.getByText('Step 2 / 2')).toBeVisible()
+  const { canvas, at } = canvasAt(screen)
+  await userEvent.pointer([
+    { target: canvas, coords: at(CLICK_POINTS[1]) },
+    { keys: '[MouseLeft>]' },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.element(screen.getByText('on [1] b 0')).toBeVisible()
+  expect(clickHandle).toHaveBeenCalledTimes(1)
+  expect(clickHandle.mock.lastCall![1]).toBe(1)
+  // the module learns the mode it is clicked in
+  expect(clickHandle.mock.lastCall![2]).toBe('b')
+  expect(computeSteps.mock.lastCall![0].on).toEqual([1])
+  expect(computeSteps.mock.lastCall![1]).toBe('b')
+  await expect.element(screen.getByText('Step 1 / 2')).toBeVisible()
+  // a wobble of under 3 px is still a click, and the handle does not move
+  await userEvent.pointer([
+    { target: canvas, coords: at(CLICK_POINTS[2]) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at(CLICK_POINTS[2], 1.5, 1) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.element(screen.getByText('on [1,2] b 0')).toBeVisible()
+  expect(moveHandle).not.toHaveBeenCalled()
+  expect(computeSteps.mock.lastCall![0].pts).toEqual(CLICK_POINTS)
+  // a click away from every handle does nothing
+  const calls = computeSteps.mock.calls.length
+  await userEvent.pointer([
+    { target: canvas, coords: at({ x: 700, y: 330 }) },
+    { keys: '[MouseLeft>]' },
+    { keys: '[/MouseLeft]' },
+  ])
+  await pause(100)
+  expect(clickHandle).toHaveBeenCalledTimes(2)
+  expect(computeSteps.mock.calls.length).toBe(calls)
+})
+
+test('a drag of ≥ 3 px does not call clickHandle', async () => {
+  const { module, computeSteps, moveHandle, clickHandle } = makeClickModule()
+  const screen = await render(<StepPlayer module={module} />)
+  const { canvas, at } = canvasAt(screen)
+  const from = CLICK_POINTS[0]
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at(from, 4, 0) },
+    { target: canvas, coords: at({ x: from.x + 60, y: from.y + 30 }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(() => computeSteps.mock.lastCall![0].pts[0].x).toBeCloseTo(from.x + 60, 0)
+  expect(computeSteps.mock.lastCall![0].pts[0].y).toBeCloseTo(from.y + 30, 0)
+  expect(moveHandle).toHaveBeenCalled()
+  expect(moveHandle.mock.lastCall![3]).toBe('a')
+  expect(clickHandle).not.toHaveBeenCalled()
+  expect(computeSteps.mock.lastCall![0].on).toEqual([])
+})
+
+test('players without clickHandle keep their behaviour', async () => {
+  const { fakeSegmentModule, computeSteps, moveHandle } = makeSegmentModule()
+  const screen = await render(<StepPlayer module={fakeSegmentModule} />)
+  await screen.getByRole('button', { name: 'Next' }).click()
+  await expect.element(screen.getByText('Step 2 / 3')).toBeVisible()
+  const { canvas, at } = canvasAt(screen)
+  const from = RANDOM_SEGMENTS[0].a
+  const calls = computeSteps.mock.calls.length
+  // a click on a handle leaves the input (and the step) as it is
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { keys: '[/MouseLeft]' },
+  ])
+  await pause(100)
+  expect(computeSteps.mock.calls.length).toBe(calls)
+  expect(moveHandle).not.toHaveBeenCalled()
+  await expect.element(screen.getByText('Step 2 / 3')).toBeVisible()
+  // the smallest movement still drags at once
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at(from, 1, 0) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(() => moveHandle.mock.calls.length).toBeGreaterThan(0)
+  await expect.element(screen.getByText('Step 1 / 3')).toBeVisible()
+})
+
+test('a click keeps the preset selection; a drag clears it', async () => {
+  const { module, computeSteps, clickHandle } = makeClickModule()
+  const screen = await render(<StepPlayer module={module} />)
+  const select = screen.getByLabelText('Preset')
+  const value = () => (select.element() as HTMLSelectElement).value
+  await userEvent.selectOptions(select, 'Click preset')
+  expect(value()).toBe('0')
+  await screen.getByRole('button', { name: 'Next' }).click()
+  await expect.element(screen.getByText('Step 2 / 2')).toBeVisible()
+  const { canvas, at } = canvasAt(screen)
+  await userEvent.pointer([
+    { target: canvas, coords: at(CLICK_PRESET[1]) },
+    { keys: '[MouseLeft>]' },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.element(screen.getByText('on [1] a 0')).toBeVisible()
+  expect(clickHandle).toHaveBeenCalledTimes(1)
+  // the steps are recomputed and start over, but the room is still the preset
+  await expect.element(screen.getByText('Step 1 / 2')).toBeVisible()
+  expect(computeSteps.mock.lastCall![0].pts).toEqual(CLICK_PRESET)
+  expect(value()).toBe('0')
+  // moving a handle changes the geometry: the placeholder shows again
+  const from = CLICK_PRESET[0]
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: from.x + 40, y: from.y + 40 }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(value).toBe('')
+})

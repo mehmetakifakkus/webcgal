@@ -3,7 +3,7 @@ import { BASE_PATH } from './base';
 
 const items = [
   'Polygon', 'TextPoint', 'Points', 'clearScreen', 'clearLog', 'draw', 'createPolygon', 'createRandomPolygon',
-  'createRandom', 'sort', 'shuffle', 'animate', 'findIntersections', 'triangulate', 'delaunay', 'voronoi', 'kdTree', 'loop', 'mouseDown', 'getCenterAndRadius',
+  'createRandom', 'sort', 'shuffle', 'animate', 'findIntersections', 'triangulate', 'delaunay', 'voronoi', 'kdTree', 'artGallery', 'loop', 'mouseDown', 'getCenterAndRadius',
 ];
 
 function collectErrors(page: Page) {
@@ -125,13 +125,13 @@ test('internal MDX links navigate in the app; external ones open a new tab', asy
   await expect(external).toHaveAttribute('rel', 'noopener noreferrer');
 });
 
-test('20 pages, "Try it" on exactly 14 of them', async ({ page }) => {
-  expect(items).toHaveLength(20);
+test('21 pages, "Try it" on exactly 15 of them', async ({ page }) => {
+  expect(items).toHaveLength(21);
   let withExample = 0;
   for (const item of items) {
     await page.goto(`documentation/${item}`);
     await expect(page.getByRole('heading', { level: 1, name: item, exact: true })).toBeVisible();
     withExample += await page.getByRole('link', { name: 'Try it' }).count();
   }
-  expect(withExample).toBe(14);
+  expect(withExample).toBe(15);
 });

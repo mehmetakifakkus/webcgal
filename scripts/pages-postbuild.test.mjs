@@ -22,7 +22,7 @@ describe('route collection', () => {
     const routes = collectRoutes();
     expect(sorted(routes)).toEqual(sorted(expected));
     expect(new Set(routes).size).toBe(routes.length);
-    expect(routes).toEqual(expect.arrayContaining(['/algorithms/kdTree', '/algorithms/duality', '/algorithms/duality/dualLine', '/documentation/kdTree']));
+    expect(routes).toEqual(expect.arrayContaining(['/algorithms/kdTree', '/algorithms/artGallery', '/algorithms/duality', '/algorithms/duality/dualLine', '/documentation/kdTree']));
     for (const legacy of Object.keys(LEGACY_REDIRECTS)) expect(routes).not.toContain(legacy);
     expect(routes).not.toContain('/');
   });
@@ -63,7 +63,7 @@ describe('running the script', () => {
       expect(readFileSync(join(dir, `${r}.html`), 'utf8'), r).toBe(index);
       expect(readFileSync(join(dir, r, 'index.html'), 'utf8'), r).toBe(index);
     }
-    for (const f of ['algorithms/kdTree.html', 'algorithms/kdTree/index.html', 'documentation/kdTree.html', 'playground.html'])
+    for (const f of ['algorithms/kdTree.html', 'algorithms/kdTree/index.html', 'algorithms/artGallery.html', 'algorithms/artGallery/index.html', 'documentation/kdTree.html', 'playground.html'])
       expect(existsSync(join(dir, f)), f).toBe(true);
     expect(readFileSync(join(dir, '404.html'), 'utf8')).toBe(index);
     expect(existsSync(join(dir, '.nojekyll'))).toBe(true);

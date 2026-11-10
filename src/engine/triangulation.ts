@@ -7,7 +7,7 @@ import { isPointInput } from './segments'
 export type PolygonInput = { points: PointInput[] } | PointInput[]
 
 /** Consecutive vertices must be at least this far apart (closer ones make the sweep's comparisons unreliable). */
-const MIN_VERTEX_DISTANCE = 1e-3
+export const MIN_VERTEX_DISTANCE = 1e-3
 
 const describe = (v: unknown) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v)
 
@@ -36,11 +36,15 @@ export function toPolygon(input: unknown, fn: string): Pt[] {
   return pts
 }
 
-/** The geometry's triangulation with the API's messages (`fn` names the API function). */
-function run(input: unknown, fn: string): TriangulationResult {
+/**
+ * The geometry's triangulation with the API's messages (`fn` names the API function), and the
+ * validated polygon. Rejects what `toPolygon` rejects, fewer than 3 vertices, a polygon that is
+ * not simple and one too degenerate to triangulate.
+ */
+export function checkedTriangulation(input: unknown, fn: string): { polygon: Pt[]; result: TriangulationResult } {
   const polygon = toPolygon(input, fn)
   try {
-    return triangulateOf(polygon)
+    return { polygon, result: triangulateOf(polygon) }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     if (msg === 'polygon must be simple') throw new Error(`${fn}: the polygon must be simple (no crossing edges)`)
@@ -49,6 +53,8 @@ function run(input: unknown, fn: string): TriangulationResult {
     throw new Error(`${fn}: the polygon is too degenerate to triangulate (vertices closer than about 0.001 apart)`)
   }
 }
+
+const run = (input: unknown, fn: string): TriangulationResult => checkedTriangulation(input, fn).result
 
 /** Triangulates a simple polygon (either orientation); every index refers to the input order. */
 export const triangulate = (input: PolygonInput): TriangulationResult => run(input, 'triangulate')

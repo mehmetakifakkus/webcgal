@@ -14,6 +14,7 @@ const pages = [
   { path: 'algorithms/convexHull', name: 'convexHull', heading: 'Convex Hull' },
   { path: 'algorithms/segmentIntersection', name: 'segmentIntersection', heading: 'Line Segment Intersection' },
   { path: 'algorithms/triangulation', name: 'triangulation', heading: 'Polygon Triangulation' },
+  { path: 'algorithms/artGallery', name: 'artGallery', heading: 'Art Gallery Problem' },
   { path: 'algorithms/delaunay', name: 'delaunay', heading: 'Delaunay Triangulation' },
   { path: 'algorithms/voronoi', name: 'voronoi', heading: 'Voronoi Diagram' },
   { path: 'algorithms/smallestEnclosingDisk', name: 'smallestEnclosingDisk', heading: 'Smallest Enclosing Disk' },

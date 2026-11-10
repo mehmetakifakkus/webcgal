@@ -15,6 +15,8 @@ const DEFAULT_CANVAS = { width: 775, height: 360 }
 const DEFAULT_HINT = 'Drag the points to change the input. Keys: ← → to step, Space to play or pause.'
 /** Grab radius in CSS pixels (and at least this many scene units). */
 const GRAB = 12
+/** A press and release on a handle moving less than this many CSS pixels is a click (modules with clickHandle). */
+const CLICK_SLOP = 3
 /** Radius of the handles drawn for an invalid input when the module has no renderInvalid. */
 const HANDLE_RADIUS = 4
 
@@ -37,6 +39,9 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   /** The selected mode's id; kept when the input changes. */
   const [mode, setMode] = useState<string | undefined>(() => module.modes?.[0]?.id)
   const inputRef = useRef(input)
+  /** The mode for the canvas handlers, which are not set up again when it changes. */
+  const modeRef = useRef(mode)
+  modeRef.current = mode
   /** The last input that passed `validate`: a drag that ends on an invalid input reverts to it. */
   const lastValidRef = useRef(input)
   const presetId = useId()
@@ -132,14 +137,19 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
     if (!scene) return
     const view = scene.paper.view
     let dragging = -1
+    // with clickHandle, a pressed handle only starts dragging once it has moved CLICK_SLOP px
+    let pressed = -1
+    let pressedAt: paper.Point | null = null
+    let slop = 0
     let raf = 0
     const toPt = (p: paper.Point): Pt => ({ x: p.x, y: scene.height - p.y }) // the layer is y-flipped
     view.onMouseDown = (e: paper.MouseEvent) => {
       const q = toPt(e.point)
       // the canvas is scaled down on narrow screens: convert the radius to scene units
       const shown = (view.element as HTMLCanvasElement).clientWidth
+      const unitsPerPx = shown > 0 ? view.viewSize.width / shown : 1
       let best = -1
-      let bestD = GRAB * Math.max(1, shown > 0 ? view.viewSize.width / shown : 1)
+      let bestD = GRAB * Math.max(1, unitsPerPx)
       module.handles(inputRef.current).forEach((p, i) => {
         const d = Math.hypot(p.x - q.x, p.y - q.y)
         if (d <= bestD) {
@@ -147,13 +157,24 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
           bestD = d
         }
       })
-      dragging = best
+      if (module.clickHandle) {
+        dragging = -1
+        pressed = best
+        pressedAt = e.point.clone()
+        slop = CLICK_SLOP * unitsPerPx
+      } else dragging = best
     }
     view.onMouseDrag = (e: paper.MouseEvent) => {
+      if (pressed >= 0) {
+        if (!pressedAt || e.point.getDistance(pressedAt) < slop) return // still a click
+        dragging = pressed
+        pressed = -1
+      }
       if (dragging < 0) return
       const q = toPt(e.point)
       const clamped = { x: Math.max(0, Math.min(width, q.x)), y: Math.max(0, Math.min(height, q.y)) }
-      const next = module.moveHandle(inputRef.current, dragging, clamped)
+      const next = module.moveHandle(inputRef.current, dragging, clamped, modeRef.current)
+      if (next === inputRef.current) return // the module keeps the handle where it is
       // the handle follows the mouse even onto an invalid input (the alert shows); release reverts
       if ((module.validate?.(next) ?? null) === null) lastValidRef.current = next
       inputRef.current = next
@@ -167,6 +188,21 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
         })
     }
     view.onMouseUp = () => {
+      if (pressed >= 0) {
+        const k = pressed
+        pressed = -1
+        const current = inputRef.current
+        const next = module.clickHandle?.(current, k, modeRef.current) ?? current
+        if (next === current) return
+        // a click changes what is placed on the input (e.g. cameras), not its geometry: the loaded
+        // preset stays selected
+        inputRef.current = next
+        if ((module.validate?.(next) ?? null) === null) lastValidRef.current = next
+        setInput(next)
+        setIndex(0)
+        setPlaying(false)
+        return
+      }
       const wasDragging = dragging >= 0
       dragging = -1
       if (wasDragging && (module.validate?.(inputRef.current) ?? null) !== null) {

@@ -1,6 +1,6 @@
 import type { Scene } from '../engine/scene'
 import { randomPointSet } from '../geometry/algorithms/delaunay/verify'
-import { defaultOrder, label, minidisc } from '../geometry/algorithms/minidisc/minidisc'
+import { defaultOrder, label, listLabels, minidisc } from '../geometry/algorithms/minidisc/minidisc'
 import { miniDiscSteps } from '../geometry/algorithms/minidisc/miniDiscSteps'
 import type { Frame, MiniDiscState } from '../geometry/algorithms/minidisc/miniDiscState'
 import { MINIDISC_PRESETS } from '../geometry/algorithms/minidisc/presets'
@@ -16,14 +16,8 @@ const CURRENT_RADIUS = 7
 const RING_RADIUS = 9
 
 function randomInput(): MiniDiscInput {
-  const points = randomPointSet(Math.random, 12, { x0: 93, y0: 43, x1: 682, y1: 317 }, 25)
+  const points = randomPointSet(Math.random, 12, { x0: 272, y0: 65, x1: 502, y1: 295 }, 25)
   return { points, order: defaultOrder(12, Math.floor(Math.random() * 1e9)) }
-}
-
-/** "v1", "v1 and v2", "v1, v2 and v3". */
-function listLabels(ids: number[]): string {
-  const ls = ids.map(label)
-  return ls.length <= 1 ? ls.join('') : `${ls.slice(0, -1).join(', ')} and ${ls[ls.length - 1]}`
 }
 
 const innermost = (s: MiniDiscState): Frame | undefined => s.stack[s.stack.length - 1]

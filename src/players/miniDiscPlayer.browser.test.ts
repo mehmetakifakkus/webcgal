@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import paper from 'paper'
 import { createScene, type Scene } from '../engine/scene'
 import { minidisc } from '../geometry/algorithms/minidisc/minidisc'
@@ -31,18 +31,47 @@ const preset = (name: string) => {
   return { points: p.points, order: p.order }
 }
 
+function mulberry32(seed: number) {
+  let a = seed
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
 test('random input: 12 points, pairwise ≥ 25, order is a permutation', () => {
   for (let k = 0; k < 20; k++) {
     const { points, order } = miniDiscPlayer.randomInput()
     expect(points).toHaveLength(12)
     for (const p of points) {
-      expect(p.x).toBeGreaterThanOrEqual(93)
-      expect(p.x).toBeLessThanOrEqual(682)
-      expect(p.y).toBeGreaterThanOrEqual(43)
-      expect(p.y).toBeLessThanOrEqual(317)
+      expect(p.x).toBeGreaterThanOrEqual(272)
+      expect(p.x).toBeLessThanOrEqual(502)
+      expect(p.y).toBeGreaterThanOrEqual(65)
+      expect(p.y).toBeLessThanOrEqual(295)
     }
     for (let i = 0; i < 12; i++) for (let j = i + 1; j < 12; j++) expect(distance(points[i], points[j])).toBeGreaterThanOrEqual(25)
     expect([...order].sort((a, b) => a - b)).toEqual([...Array(12).keys()])
+  }
+})
+
+test('random input: the final disc fits the canvas (r ≤ 165, margin ≥ 10)', () => {
+  const rng = mulberry32(20261110)
+  const spy = vi.spyOn(Math, 'random').mockImplementation(rng)
+  try {
+    for (let k = 0; k < 20; k++) {
+      const input = miniDiscPlayer.randomInput()
+      const steps = miniDiscPlayer.computeSteps(input)
+      const d = steps[steps.length - 1].state.disk!
+      expect(d.radius).toBeLessThanOrEqual(165)
+      expect(d.center.x - d.radius).toBeGreaterThanOrEqual(10)
+      expect(d.center.x + d.radius).toBeLessThanOrEqual(775 - 10)
+      expect(d.center.y - d.radius).toBeGreaterThanOrEqual(10)
+      expect(d.center.y + d.radius).toBeLessThanOrEqual(360 - 10)
+    }
+  } finally {
+    spy.mockRestore()
   }
 })
 
@@ -210,6 +239,34 @@ test('call stack rows, literally (Bad order, v2 tested inside the innermost call
     'MiniDiscWithPoint(q = v4) · j = 3 of 3',
     'MiniDiscWith2Points(q₁ = v3, q₂ = v4) · k = 2 of 2',
   ])
+})
+
+test('line-18 step: tested prefix filled, untested hollow, fixed points ringed', () => {
+  const scene = makeScene()
+  const input = preset('Bad order')
+  const step = miniDiscPlayer.computeSteps(input).find((s) => s.line === 18 && s.state.stack.length === 3)!
+  expect(step).toBeDefined()
+  miniDiscPlayer.render(scene, step, input)
+  const f = step.state.stack[2]
+  const at = (q: { x: number; y: number }, r: number) =>
+    circles(scene).filter(
+      (p) => Math.abs(p.bounds.center.x - q.x) < 1e-6 && Math.abs(p.bounds.center.y - q.y) < 1e-6 && Math.abs(p.bounds.width / 2 - r) < 1e-6,
+    )
+  const tested = new Set(step.state.order.slice(0, Math.min(f.index + 1, f.prefix)))
+  expect(tested.size).toBeGreaterThan(0)
+  expect(tested.size).toBeLessThan(input.points.length)
+  input.points.forEach((q, i) => {
+    if (i === step.state.current) return
+    const dot = at(q, 4)
+    expect(dot, `v${i + 1}`).toHaveLength(1)
+    expect(dot[0].fillColor!.toCSS(true), `v${i + 1}`).toBe(tested.has(i) ? '#1c1e21' : '#ffffff')
+  })
+  expect(f.fixed.length).toBe(2)
+  for (const i of f.fixed) {
+    const ring = at(input.points[i], 9)
+    expect(ring).toHaveLength(1)
+    expect(ring[0].strokeColor!.toCSS(true)).toBe('#9141ac')
+  }
 })
 
 test('presets expose six names', () => {

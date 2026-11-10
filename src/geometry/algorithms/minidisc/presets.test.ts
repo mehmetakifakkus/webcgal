@@ -23,6 +23,7 @@ describe('MINIDISC_PRESETS', () => {
       const r = minidisc(p.points, p.order)
       expect(isMinimalDisk(p.points, r.disk)).toEqual({ ok: true })
       expect(r.boundary).toHaveLength(p.expected.boundary)
+      expect([...r.boundary].sort((a, b) => a - b)).toEqual(p.expected.boundaryIndices)
       expect(Number(r.disk!.radius.toFixed(1))).toBe(p.expected.radius)
       expect(r.tests).toBe(p.expected.tests)
       expect(r.updates).toBe(p.expected.updates)

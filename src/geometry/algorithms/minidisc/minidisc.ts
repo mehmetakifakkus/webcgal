@@ -78,16 +78,17 @@ const copyFrame = (f: Frame): Frame => ({ ...f, fixed: [...f.fixed], disk: copyC
 const fmtR = (r: number) => r.toFixed(1)
 
 /** "v1", "v1 and v2", "v1, v2 and v3". */
-function listLabels(ids: number[]): string {
+export function listLabels(ids: number[]): string {
   const ls = ids.map(label)
   return ls.length <= 1 ? ls.join('') : `${ls.slice(0, -1).join(', ')} and ${ls[ls.length - 1]}`
 }
 
 /**
  * Smallest enclosing disc by the randomized incremental algorithm of de Berg et al. §4.7,
- * run literally: MiniDisc, MiniDiscWithPoint and MiniDiscWith2Points all work on prefixes of
- * the single permutation `order` (normalized; default `defaultOrder(n)`), nothing is
- * reshuffled. `record` receives one call per step (lines of the spec §3.1 pseudocode).
+ * The three procedures follow the book, except that one shared permutation `order`
+ * (normalized; default `defaultOrder(n)`) replaces MiniDiscWithPoint's own fresh permutation
+ * (the book notes that one permutation computed once is enough): MiniDisc, MiniDiscWithPoint
+ * and MiniDiscWith2Points all work on prefixes of it, nothing is reshuffled. `record` receives one call per step (lines of the spec §3.1 pseudocode).
  *
  * The update counted for an inner call (lines 6 / 13) is recorded with its return step
  * (lines 14 / 21); the outer frame takes the returned disc right after that step.

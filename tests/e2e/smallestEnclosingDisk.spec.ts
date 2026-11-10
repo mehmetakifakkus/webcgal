@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { label, minidisc } from '../../src/geometry/algorithms/minidisc/minidisc'
+import { label } from '../../src/geometry/algorithms/minidisc/minidisc'
 import { MINIDISC_PRESETS } from '../../src/geometry/algorithms/minidisc/presets'
 
 const PATH = 'algorithms/smallestEnclosingDisk'
@@ -21,11 +21,9 @@ const listLabels = (ids: number[]) => {
   return ls.length <= 1 ? ls.join('') : `${ls.slice(0, -1).join(', ')} and ${ls[ls.length - 1]}`
 }
 
-/** The done description a preset ends with: totals from `expected`, boundary labels from a run of `minidisc`. */
-function doneText({ points, order, expected: e }: (typeof MINIDISC_PRESETS)[number]) {
-  const { boundary } = minidisc(points, order)
-  expect(boundary).toHaveLength(e.boundary)
-  return `Done: smallest disc through ${listLabels(boundary)} (r = ${e.radius.toFixed(1)}), ${e.tests} tests, ${e.updates} updates`
+/** The done description a preset ends with, built from the pinned `expected` values only. */
+function doneText({ expected: e }: (typeof MINIDISC_PRESETS)[number]) {
+  return `Done: smallest disc through ${listLabels(e.boundaryIndices)} (r = ${e.radius.toFixed(1)}), ${e.tests} tests, ${e.updates} updates`
 }
 
 /** Scene position (y-up) of the k-th point: the points are drawn last, in input order (no current point). */

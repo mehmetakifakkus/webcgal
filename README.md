@@ -114,7 +114,7 @@ To run the e2e smoke test against the live sub-path site (tests that need the
 e2e debug hook are skipped there):
 
 ```bash
-BASE_URL=https://mehmetakifakkus.github.io/webcgal/ npx playwright test tests/e2e/smoke.spec.ts --trace off
+BASE_URL=https://mehmetakifakkus.github.io/webcgal/ npx playwright test tests/e2e/smoke.spec.ts tests/e2e/smallestEnclosingDisk.spec.ts --trace off
 ```
 
 ## License

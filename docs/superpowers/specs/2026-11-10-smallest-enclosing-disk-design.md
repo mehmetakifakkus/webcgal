@@ -7,7 +7,7 @@
 
 ## 1. Amaç ve bağlam
 
-de Berg et al. §4.7'nin (*Smallest Enclosing Discs*) rastgele artımlı algoritması üç iç içe prosedürüyle (MiniDisc, MiniDiscWithPoint, MiniDiscWith2Points) adım adım gösterilecek. Sayfa bugün tek cümlelik bir MDX ve bir kod demosundan ibaret; `src/geometry/algorithms/smallestEnclosingDisk.ts` alt çağrılarda noktaları yeniden karıştırıyor (kitapta tek permütasyon tüm seviyelerde kullanılır).
+de Berg et al. §4.7'nin (*Smallest Enclosing Discs*) rastgele artımlı algoritması üç iç içe prosedürüyle (MiniDisc, MiniDiscWithPoint, MiniDiscWith2Points) adım adım gösterilecek. Sayfa bugün tek cümlelik bir MDX ve bir kod demosundan ibaret; `src/geometry/algorithms/smallestEnclosingDisk.ts` alt çağrılarda noktaları yeniden karıştırıyor (kitapta MiniDiscWithPoint kendi taze rastgele permütasyonunu hesaplar; kitap, başta bir kez hesaplanan tek permütasyonun yeterli olduğunu da not eder, sayfa bu tek sırayı her üç seviyede kullanır).
 
 **Kullanıcı kararları:**
 - Tam özyineleme gösterilir: her nokta testi, her çağrı ve dönüş ayrı adım; "Call stack" paneli.
@@ -36,7 +36,7 @@ de Berg et al. §4.7'nin (*Smallest Enclosing Discs*) rastgele artımlı algorit
 - **Eşdoğrusal q₁, q₂, r:** kitap bu durumun oluşmadığını kanıtlar; güvenlik için mevcut "en uzak çiftin çap diski" yedeği korunur.
 - **Sıra normalizasyonu:** Delaunay ile aynı kural (geçersiz ve tekrarlanan indeksler atılır, eksikler artan sırayla sona eklenir). `defaultOrder(n, seed = n)`: mulberry32 permütasyonu (`delaunay.ts`'teki `mulberry32` yeniden kullanılır).
 - **Dejenere:** n = 0 → `disk: null`; n = 1 → yarıçap 0, `boundary: [0]`; yinelenen noktalar serbest.
-- `src/geometry/algorithms/smallestEnclosingDisk.ts`: `smallestEnclosingDisk(points, random)` tek permütasyon çekip `minidisc` çağıran ince sarmalayıcı olur (n = 0'da eski `{center:(0,0), radius:0}` davranışı korunur). `circleFrom2`, `circumcircle` yerinde kalır; mevcut testleri değişmez.
+- `src/geometry/algorithms/smallestEnclosingDisk.ts`: `smallestEnclosingDisk(points, random)` tek permütasyon çekip `minidisc` çağıran ince sarmalayıcı olur (n = 0'da eski `{center:(0,0), radius:0}` davranışı korunur). `circleFrom2`, `circumcircle` `minidisc.ts`'e taşınır ve `smallestEnclosingDisk.ts`'ten yeniden dışa aktarılır; mevcut testleri değişmez.
 
 ### 2.2 Doğrulayıcı (`verify.ts`)
 - `isMinimalDisk(points, disk): { ok: boolean; reason?: string }`: tüm noktalar içeride; sınırdaki noktalar (|d − r| ≤ 1e-7 · max(1, r)) ya çap oluşturan bir çift içerir ya da merkez, sınırdaki üç noktanın üçgeninin içindedir (kapalı). Mesajlar "outside", "not minimal".
@@ -77,7 +77,7 @@ de Berg et al. §4.7'nin (*Smallest Enclosing Discs*) rastgele artımlı algorit
 ```ts
 type Frame = {
   proc: 'MiniDisc' | 'WithPoint' | 'With2Points';
-  fixed: number[];        // [] | [q] | [q1, q2] (q2 = yeni nokta, q1 = dış çağrının q'su)
+  fixed: number[];        // [] | [q] | [q, p_j]: fixed[1] kitabın q₁'i (yeni nokta), fixed[0] kitabın q₂'si (dış çağrının q'su)
   prefix: number;         // bu çağrının P'si: order[0..prefix)
   index: number;          // döngüde sıradaki konum (order indeksi)
   disk: Circle;
@@ -125,17 +125,17 @@ Yarıçap bir ondalıkla; etiketler `v1…`. Çağrıdan sonraki ilk adım iç p
 ## 4. Oynatıcı modülü (`src/players/miniDiscPlayer.ts`)
 
 `PlayerModule<MiniDiscState, MiniDiscInput>`, `MiniDiscInput = { points: Pt[]; order: number[] }` (`types.ts`).
-- `randomInput()`: `randomPointSet(Math.random, 12, {x0: 93, y0: 43, x1: 682, y1: 317}, 25)`, `order = defaultOrder(12, Math.floor(Math.random()*1e9))`. `validate` yok. `handles = points`; `moveHandle` noktayı taşır, `order` korunur. `canvas` 775×360.
+- `randomInput()`: `randomPointSet(Math.random, 12, {x0: 272, y0: 65, x1: 502, y1: 295}, 25)`, `order = defaultOrder(12, Math.floor(Math.random()*1e9))`. `validate` yok. `handles = points`; `moveHandle` noktayı taşır, `order` korunur. `canvas` 775×360.
 - `hint`: "Drag the points to change the input; the order stays. Keys: ← → to step, Space to play or pause."
 - **Render** (`scene.clear()` her çağrıda): en içteki çağrının ön ekindeki test edilmiş noktalar dolu, diğerleri içi boş; `current` r = 7; sabit sınır noktaları (en içteki çerçevenin `fixed`'i) `--md-fixed` halka; dış çerçevelerin diskleri ince kesikli `--md-outer`; güncel disk 2px `--md-disk`, hafif dolgu; `testing` noktası içerideyse `--md-inside`, dışarıdaysa `--md-outside`; `newDisk` 3px `--md-new`; `returned` 3px `--md-new` kesikli; done'da son disk 3px, `boundary` noktaları halkalı. Etiketler `v1…`.
-- **Paneller:** "Call stack" (`MiniDisc · i = 7 of 12`, `MiniDiscWithPoint(q = v7) · j = 3 of 6`, `MiniDiscWith2Points(q₁ = v7, q₂ = v3) · k = 1 of 2`; en içteki `active`; boş "Not started"), "Order" (permütasyon sırasıyla `v4` satırları; `current` `active`; en içteki çerçevenin sabit noktaları `new`; diğerleri vurgusuz), "Disc" (`centre (387.0, 180.0)`, `radius 140.0`, `defined by v2, v5, v7`, `tests 31 · updates 6`; boş "No disc yet").
+- **Paneller:** "Call stack" (`MiniDisc · i = 7 of 12`, `MiniDiscWithPoint(q = v7) · j = 3 of 6`, `MiniDiscWith2Points(q₁ = v3, q₂ = v7) · k = 1 of 2`; en içteki `active`; boş "Not started"), "Order" (permütasyon sırasıyla `v4` satırları; `current` `active`; en içteki çerçevenin sabit noktaları `new`; diğerleri vurgusuz), "Disc" (`centre (387.0, 180.0)`, `radius 140.0`, `defined by v2, v5 and v7`, `tests 31 · updates 6`; boş "No disc yet").
 - **Renkler** (`theme.css`, açık/koyu aynı): `--md-disk #1a5fb4`, `--md-outer #9aa0a6`, `--md-fixed #9141ac`, `--md-inside #26a269`, `--md-outside #c01c28`, `--md-new #e66100`.
 - **Testler (browser):** rastgele girdi kuralları; render saf; test adımında nokta rengi sonuca uyar; çağrı içindeki adımda kesikli dış çember sayısı = `stack.length − 1`; done diski `minidisc().disk` ile aynı; `moveHandle` sırayı korur; paneller faz faz; altı preset adı.
 
 ## 5. Sayfa, testler ve yayın
 
 - **Registry:** `smallestEnclosingDisk` girdisine `player`; canvas 775×360; `summary 'Find the smallest disc containing a point set by randomized incremental construction, step by step.'`; küçük görsel yeniden üretilir (`thumbnail:smallestEnclosingDisk`, preset "Random example", son adım). Yol ve eski `/smallestEnclosingDisk` yönlendirmesi değişmez.
-- **İçerik (MDX):** problem ve tekliği; artımlı fikir (yeni nokta dışarıdaysa yeni diskin sınırındadır, Lemma 4.14); üç prosedürün nedeni (sabit sınır noktaları); rastgele sıranın beklenen O(n) süresi ve "Bad order" karşı örneği; kitap cümlesi "This page follows section 4.7, *Smallest Enclosing Discs*, of Computational Geometry: Algorithms and Applications, 3rd ed., by de Berg et al."; etkileşim ipuçları; mevcut Wikipedia bağlantısı korunur.
+- **İçerik (MDX):** problem ve tekliği; artımlı fikir (yeni nokta dışarıdaysa yeni diskin sınırındadır, Lemma 4.13; Lemma 4.14 aynı ifadeyi verilen bir R kümesi için genelleştirir); üç prosedürün nedeni (sabit sınır noktaları); rastgele sıranın beklenen O(n) süresi ve "Bad order" karşı örneği; kitap cümlesi "This page follows section 4.7, *Smallest Enclosing Discs*, of Computational Geometry: Algorithms and Applications, 3rd ed., by de Berg et al."; etkileşim ipuçları; mevcut Wikipedia bağlantısı korunur.
 - **API:** değişmez; `demo.js` aynen kalır (canvas boyutu registry'den gelir).
 - **Testler:** e2e `smallestEnclosingDisk.spec.ts` (sayfa "Call stack" paneliyle Step sekmesinde açılır; her preset `expected`'tan üretilen done metnine ulaşır; sürükleme oynatıcıyı yeniden başlatır; Code demosu çalışır); `visual.spec` sayfa; mevcut eski URL yönlendirme testi geçer.
 - **e2e alt yol desteği:** `BASE_URL` bir alt yol içerdiğinde (`https://…/webcgal/`) testlerdeki `/…` yolları bu alt yola göre çözülür (Playwright `baseURL` sonunda `/`, testlerde yardımcı ya da göreli yollar); kök adreste davranış değişmez.

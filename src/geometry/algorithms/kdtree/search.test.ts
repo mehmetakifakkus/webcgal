@@ -157,7 +157,7 @@ describe('searchKdTree recorder', () => {
     expect(steps.map((s) => [s.line, s.description])).toEqual([
       [16, 'region(lc) intersects R → descend'],
       [16, 'region(lc) intersects R → descend'],
-      [11, 'Leaf v1 lies outside R'],
+      [12, 'Leaf v1 lies outside R'],
       [20, 'region(rc) intersects R → descend'],
       [12, 'Leaf v3 lies in R → report'],
       [20, 'region(rc) intersects R → descend'],
@@ -192,7 +192,7 @@ describe('searchKdTree recorder', () => {
       [16, 'region(lc) intersects R → descend'],
       [12, 'Leaf v1 lies in R → report'],
       [20, 'region(rc) intersects R → descend'],
-      [11, 'Leaf v3 lies outside R'],
+      [12, 'Leaf v3 lies outside R'],
       [19, 'region(rc) is disjoint from R → skip'],
       [20, 'Done: 1 point reported, 4 nodes visited, 0 subtrees reported whole, 1 subtree skipped'],
     ])

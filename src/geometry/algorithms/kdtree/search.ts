@@ -43,7 +43,7 @@ const ascending = (a: number, b: number) => a - b
  * (ReportSubtree), a child whose region intersects R is searched, and a child whose region
  * misses R is skipped. R and the regions are closed.
  *
- * `record` gets, per call: line 12 / 11 for a leaf (reported / outside R); for each child
+ * `record` gets, per call: line 12 for a leaf (reported or outside R); for each child
  * line 14 / 18 (reported whole), 16 / 20 (descend) or 15 / 19 (skipped); and a final line 20 "Done".
  */
 export function searchKdTree(points: Pt[], tree: KdTree, R: Box, record?: KdRecorder): KdSearchResult {
@@ -100,7 +100,7 @@ export function searchKdTree(points: Pt[], tree: KdTree, R: Box, record?: KdReco
       if (inRect(points[v.point], R)) {
         report([v.point])
         emit(12, `Leaf ${label(v.point)} lies in R → report`, { current: v.id, newlyReported: [v.point] })
-      } else emit(11, `Leaf ${label(v.point)} lies outside R`, { current: v.id })
+      } else emit(12, `Leaf ${label(v.point)} lies outside R`, { current: v.id })
       return
     }
     child(v, v.left, 'lc')

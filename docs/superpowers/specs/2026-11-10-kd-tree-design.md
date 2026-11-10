@@ -113,7 +113,7 @@ Koordinatlar bir ondalıkla; tekil/çoğul biçimler ("1 point", "1 node", "1 su
 
 ### 3.5 Presetler (`presets.ts`)
 `KD_PRESETS: { name; input: { points; query }; expected: { reported; visited; inside; pruned; nodes; depth } }[]` (koordinatlar sabit; `expected` uygulamada hesaplanıp sabitlenir):
-1. "Textbook example": (60,280),(110,90),(150,200),(200,320),(240,60),(280,170),(330,260),(370,110),(410,300),(430,40); query {x0:130, y0:80, x1:350, y1:280}.
+1. "Textbook example": (60,280),(110,90),(150,200),(200,320),(240,60),(280,170),(330,260),(370,110),(410,300),(430,40); query {x0:130, y0:100, x1:370, y1:280} (the original {130,80,350,280} contains no region fully inside R).
 2. "Square grid 4×4": x ∈ {80,180,280,380} × y ∈ {60,140,220,300}, satır satır; query {150,100,330,260}.
 3. "Clusters": (80,90),(100,140),(120,70),(140,120),(90,170),(150,160),(130,100),(340,230),(360,290),(390,250),(410,300),(350,270),(400,220),(380,320); query {60,50,170,190}.
 4. "Points on a diagonal": (40 + 50k, 40 + 38k), k = 0..7; query {120,100,300,260}.

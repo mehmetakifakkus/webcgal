@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { DELAUNAY_PRESETS } from '../../src/geometry/algorithms/delaunay/presets'
 
-const PATH = '/algorithms/delaunay'
+const PATH = 'algorithms/delaunay'
 
 function collectErrors(page: Page) {
   const errors: string[] = []

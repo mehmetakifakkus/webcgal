@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
-const baseURL = process.env.BASE_URL ?? 'http://localhost:4173';
+// Ends with '/', so that the tests' relative paths ('algorithms', './') resolve under a sub-path such as /webcgal/
+const baseURL = (process.env.BASE_URL ?? 'http://localhost:4173').replace(/\/?$/, '/');
 
 export default defineConfig({
   testDir: 'tests/e2e',

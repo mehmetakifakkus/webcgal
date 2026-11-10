@@ -4,6 +4,7 @@
 // then: npm run thumbnail:segmentIntersection   (BASE_URL overrides http://localhost:4173)
 // Options (defaults: the Line Segment Intersection thumbnail):
 //   --slug <slug>       page /algorithms/<slug>, written to public/images/<slug>_tn.png
+//                       (smallestEnclosingDisk keeps the old site's file name, smallestDisk_tn.png)
 //   --preset <name>     preset to select
 //   --step <n>          step to show, 1-based (clamped to the last step); default: the middle step
 //   --pad <f>           scale factor (0 < f ≤ 1) on top of the cover scale, leaving a margin around the
@@ -30,7 +31,9 @@ if (STEP !== undefined && !(Number.isInteger(STEP) && STEP >= 1)) throw new Erro
 if (!(PAD > 0 && PAD <= 1)) throw new Error(`thumbnail: --pad must be a number in (0, 1], got '${args.pad}'`);
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4173';
-const OUT = fileURLToPath(new URL(`../public/images/${SLUG}_tn.png`, import.meta.url));
+// the file name of the card image (the registry's `thumbnail`), where it differs from the slug
+const IMAGE = { smallestEnclosingDisk: 'smallestDisk' }[SLUG] ?? SLUG;
+const OUT = fileURLToPath(new URL(`../public/images/${IMAGE}_tn.png`, import.meta.url));
 // the size of the other thumbnails
 const WIDTH = 413;
 const HEIGHT = 232;

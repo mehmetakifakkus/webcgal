@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { VORONOI_PRESETS } from '../../src/geometry/algorithms/voronoi/presets'
 
-const PATH = '/algorithms/voronoi'
+const PATH = 'algorithms/voronoi'
 
 function collectErrors(page: Page) {
   const errors: string[] = []

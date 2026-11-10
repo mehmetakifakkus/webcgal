@@ -11,10 +11,25 @@ import type { GalleryCoverage } from './galleryState'
 const SIDE_RAY = 1e-7
 /** Slack for angle comparisons with the interior wedge (radians). */
 const ANGLE_TOL = 1e-10
-/** Relative slack along an edge for ray hits (parameter units). */
+/**
+ * Relative slack along an edge for hits of a ray aimed exactly at a vertex (parameter
+ * units): such a ray must stop at a vertex it passes through.
+ */
 const EDGE_TOL = 1e-9
+/**
+ * Absolute slack along an edge for side-ray hits (distance units). A side ray passes the
+ * vertex it was cast beside at 1e-7·d (d its distance from the camera, ≥ 1e-3 for any
+ * sensible input), so this slack has to stay far below that, or the ray would be stopped
+ * at the vertex instead of passing it; it only has to absorb rounding (~1e-13 at canvas
+ * scale).
+ */
+const SIDE_EDGE_SLACK = 1e-11
 /** Minimal distance of a ray hit from the camera. */
 const MIN_HIT = 1e-9
+/** Consecutive output points closer than this are merged. */
+const MERGE_TOL = 1e-6
+/** An output point this close to the segment between its neighbours is dropped. */
+const COLLINEAR_TOL = 1e-9
 
 const TWO_PI = 2 * Math.PI
 const normAngle = (a: number) => ((a % TWO_PI) + TWO_PI) % TWO_PI
@@ -37,9 +52,13 @@ export function sees(polygon: Polygon, a: Pt, b: Pt): boolean {
   const param = (p: Pt) => dot(subtract(p, a), r) / len2
   const ts = [0, 1]
   const ab = { a, b }
+  const [lx, hx] = [Math.min(a.x, b.x) - GEOM_TOL, Math.max(a.x, b.x) + GEOM_TOL]
+  const [ly, hy] = [Math.min(a.y, b.y) - GEOM_TOL, Math.max(a.y, b.y) + GEOM_TOL]
   for (let i = 0; i < n; i++) {
     const p = polygon[i]
     const q = polygon[(i + 1) % n]
+    // bounding boxes apart: no contact (a cheap filter before the exact test)
+    if (Math.max(p.x, q.x) < lx || Math.min(p.x, q.x) > hx || Math.max(p.y, q.y) < ly || Math.min(p.y, q.y) > hy) continue
     const x = segmentIntersection(ab, { a: p, b: q })
     if (!x) continue
     if (x.kind === 'overlap') {
@@ -66,7 +85,10 @@ export function sees(polygon: Polygon, a: Pt, b: Pt): boolean {
  * vertex. Casts a ray towards every other vertex and two side rays rotated by ±1e-7 rad;
  * keeps the rays inside the interior angle at v and takes each ray's nearest boundary hit
  * (edges collinear with the ray and hits at the camera itself are ignored, so the two
- * edges at v never stop a ray); the hits sorted by angle form the boundary. O(n²).
+ * edges at v never stop a ray); the hits sorted by angle form the boundary. Side rays
+ * only count hits strictly on an edge, so one cast beside a vertex passes it. Points closer
+ * than 1e-6 are merged and points on the segment between their neighbours dropped, which
+ * keeps the result simple. O(n²).
  * Either orientation; `v` indexes the input.
  */
 export function visibilityPolygon(input: Polygon, v: number): Pt[] {
@@ -98,22 +120,47 @@ export function visibilityPolygon(input: Polygon, v: number): Pt[] {
         delta === 0
           ? { x: (w.x - o.x) / len, y: (w.y - o.y) / len }
           : { x: Math.cos(theta + delta), y: Math.sin(theta + delta) }
-      const p = castRay(polygon, o, d)
+      const p = castRay(polygon, o, d, delta !== 0)
       if (p) hits.push({ rel, p })
     }
   }
   hits.sort((s, t) => s.rel - t.rel)
 
+  // Merge clusters of nearly equal points (side-ray hits next to a vertex hit), keeping a
+  // polygon vertex where the cluster has one, and drop points lying on the segment between
+  // their neighbours (several rays hitting one edge a few 1e-6 apart): both kinds of
+  // near-degenerate edges would make the result fail a simplicity test. The camera stays first.
+  const isVertex = (p: Pt) => polygon.some((q) => q.x === p.x && q.y === p.y)
   const out: Pt[] = [{ ...o }]
   for (const { p } of hits) {
     const last = out[out.length - 1]
-    if (distance(last, p) > MIN_HIT) out.push(p)
+    if (distance(last, p) <= MERGE_TOL) {
+      if (out.length > 1 && !isVertex(last) && isVertex(p)) out[out.length - 1] = p
+      continue
+    }
+    while (out.length > 2 && between(out[out.length - 2], out[out.length - 1], p)) out.pop()
+    out.push(p)
   }
+  while (out.length > 1 && distance(out[out.length - 1], o) <= MERGE_TOL) out.pop()
+  while (out.length > 2 && between(out[out.length - 2], out[out.length - 1], o)) out.pop()
   return out
 }
 
-/** Nearest hit of the ray o + t·d (d a unit vector, t > 0) with the polygon boundary. */
-function castRay(polygon: Polygon, o: Pt, d: Pt): Pt | null {
+/** True when b lies on the segment ac, within COLLINEAR_TOL of it. */
+function between(a: Pt, b: Pt, c: Pt): boolean {
+  const r = subtract(c, a)
+  const len = Math.hypot(r.x, r.y)
+  if (len <= MERGE_TOL) return false
+  const w = subtract(b, a)
+  const u = dot(w, r) / (len * len)
+  return u > 0 && u < 1 && Math.abs(crossVec(r, w)) / len <= COLLINEAR_TOL
+}
+
+/**
+ * Nearest hit of the ray o + t·d (d a unit vector, t > 0) with the polygon boundary.
+ * `side` marks a side ray, whose hits are accepted strictly (see SIDE_EDGE_SLACK).
+ */
+function castRay(polygon: Polygon, o: Pt, d: Pt, side: boolean): Pt | null {
   const n = polygon.length
   let best = Infinity
   for (let i = 0; i < n; i++) {
@@ -125,7 +172,8 @@ function castRay(polygon: Polygon, o: Pt, d: Pt): Pt | null {
     const w0 = subtract(p, o)
     const t = crossVec(w0, e) / denom
     const s = crossVec(w0, d) / denom
-    if (s < -EDGE_TOL || s > 1 + EDGE_TOL || t <= MIN_HIT) continue
+    const slack = side ? SIDE_EDGE_SLACK / le : EDGE_TOL
+    if (s < -slack || s > 1 + slack || t <= MIN_HIT) continue
     best = Math.min(best, t)
   }
   if (best === Infinity) return null

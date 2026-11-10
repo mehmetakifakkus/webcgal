@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pt } from '../../types'
-import { distance, dot, subtract } from '../../primitives'
+import { distance, segmentIntersection } from '../../primitives'
 import { mulberry32 } from '../delaunay/delaunay'
 import { isSimple, signedArea } from '../triangulation/polygon'
 import { TRIANGULATION_PRESETS } from '../triangulation/presets'
@@ -26,17 +26,66 @@ const COLLINEAR = [
   P([0, 0], [150, 0], [300, 0], [300, 100], [200, 100], [200, 200], [100, 200], [100, 300], [0, 300], [0, 150]),
 ]
 
-function distToSegment(p: Pt, a: Pt, b: Pt): number {
-  const r = subtract(b, a)
-  const len2 = dot(r, r)
-  const u = len2 === 0 ? 0 : Math.min(1, Math.max(0, dot(subtract(p, a), r) / len2))
-  return distance(p, { x: a.x + u * r.x, y: a.y + u * r.y })
+const COMB = P(
+  [0, 0], [400, 0], [400, 200], [350, 200], [350, 50], [300, 50], [300, 200], [250, 200], [250, 50],
+  [200, 50], [200, 200], [150, 200], [150, 50], [100, 50], [100, 200], [50, 200], [50, 50], [0, 50],
+)
+const SPIRAL = P(
+  [0, 0], [300, 0], [300, 300], [60, 300], [60, 60], [240, 60], [240, 240], [120, 240], [120, 120],
+  [180, 120], [180, 180], [150, 180], [150, 150], [140, 150], [140, 200], [220, 200], [220, 80],
+  [80, 80], [80, 280], [280, 280], [280, 20], [0, 20],
+)
+
+/** A random simple polygon (not star-shaped in general): random points untangled by 2-opt moves. */
+function twoOptPolygon(rng: () => number, n: number): Pt[] {
+  let p: Pt[] = Array.from({ length: n }, () => ({ x: Math.round(rng() * 700), y: Math.round(rng() * 330) }))
+  for (let iter = 0; iter < 10000; iter++) {
+    let found = false
+    outer: for (let i = 0; i < n; i++) {
+      for (let j = i + 2; j < n; j++) {
+        if (i === 0 && j === n - 1) continue
+        if (segmentIntersection({ a: p[i], b: p[i + 1] }, { a: p[j], b: p[(j + 1) % n] })) {
+          p = [...p.slice(0, i + 1), ...p.slice(i + 1, j + 1).reverse(), ...p.slice(j + 1)]
+          found = true
+          break outer
+        }
+      }
+    }
+    if (!found) break
+  }
+  return p
 }
 
-function distToBoundary(p: Pt, poly: Pt[]): number {
-  let d = Infinity
-  for (let i = 0; i < poly.length; i++) d = Math.min(d, distToSegment(p, poly[i], poly[(i + 1) % poly.length]))
-  return d
+/** Collinear polygons, 50 random star polygons, 20 random 2-opt polygons, a comb and a spiral. */
+function samplingPolygons(rng: () => number): Pt[][] {
+  const stars: Pt[][] = []
+  while (stars.length < 50) {
+    const p = randomStarPolygon(rng, 3 + Math.floor(rng() * 28), 387, 180, 20 + rng() * 60, 160)
+    if (isSimple(p)) stars.push(p)
+  }
+  const tangled: Pt[][] = []
+  while (tangled.length < 20) {
+    const p = twoOptPolygon(rng, 8 + Math.floor(rng() * 17))
+    if (isSimple(p)) tangled.push(p)
+  }
+  return [...COLLINEAR, ...stars, ...tangled, COMB, SPIRAL]
+}
+
+/** Whether p lies within `tol` of the polygon boundary (squared distances, for speed). */
+function nearBoundary(p: Pt, poly: Pt[], tol = 1e-6): boolean {
+  const t2 = tol * tol
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i]
+    const b = poly[(i + 1) % poly.length]
+    const rx = b.x - a.x
+    const ry = b.y - a.y
+    const len2 = rx * rx + ry * ry
+    const u = len2 === 0 ? 0 : Math.min(1, Math.max(0, ((p.x - a.x) * rx + (p.y - a.y) * ry) / len2))
+    const dx = p.x - a.x - u * rx
+    const dy = p.y - a.y - u * ry
+    if (dx * dx + dy * dy < t2) return true
+  }
+  return false
 }
 
 describe('sees', () => {
@@ -108,31 +157,51 @@ describe('visibilityPolygon', () => {
     expect(() => visibilityPolygon(L_SHAPE, -1)).toThrow(/out of range/)
   })
 
+  it('regression: a side ray passes a vertex close to the camera', () => {
+    // v6 = (200,200) is 1 unit below the camera v5; the side ray beside it must reach the floor.
+    const poly = P([0, 0], [400, 0], [400, 400], [200, 400], [200, 201], [200, 200], [0, 300])
+    const vis = visibilityPolygon(poly, 4)
+    expect(signedArea(vis)).toBeCloseTo(80000, 1)
+    expect(isSimple(vis)).toBe(true)
+    expect(sees(poly, poly[4], { x: 300, y: 50 })).toBe(true)
+    expect(pointInPolygon({ x: 300, y: 50 }, vis)).toBe(true)
+    for (const gap of [0.01, 0.1, 10]) {
+      const q = P([0, 0], [400, 0], [400, 400], [200, 400], [200, 200 + gap], [200, 200], [0, 300])
+      expect(signedArea(visibilityPolygon(q, 4))).toBeCloseTo(80000, 1)
+    }
+  })
+
+  it('visibility polygons are simple, CCW and start at the camera', () => {
+    const bad: string[] = []
+    samplingPolygons(mulberry32(31)).forEach((poly, i) => {
+      expect(isSimple(poly)).toBe(true)
+      for (let v = 0; v < poly.length; v++) {
+        const vis = visibilityPolygon(poly, v)
+        if (!isSimple(vis) || signedArea(vis) <= 0 || vis[0].x !== poly[v].x || vis[0].y !== poly[v].y) {
+          bad.push(`polygon ${i}, v${v + 1}`)
+        }
+      }
+    })
+    expect(bad).toEqual([])
+  })
+
   it('visibility matches sampling', () => {
     const rng = mulberry32(31)
-    const polys: Pt[][] = [...COLLINEAR]
-    while (polys.length < COLLINEAR.length + 50) {
-      const n = 3 + Math.floor(rng() * 28)
-      const p = randomStarPolygon(rng, n, 387, 180, 20 + rng() * 60, 160)
-      if (isSimple(p)) polys.push(p)
-    }
+    const polys = samplingPolygons(rng)
     let checked = 0
     const mismatches: string[] = []
     for (const poly of polys) {
-      expect(isSimple(poly)).toBe(true)
       const xs = poly.map((p) => p.x)
       const ys = poly.map((p) => p.y)
       const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]
       for (let v = 0; v < poly.length; v++) {
         const vis = visibilityPolygon(poly, v)
-        expect(vis[0]).toEqual(poly[v])
-        expect(signedArea(vis)).toBeGreaterThan(0)
         let k = 0
         for (let attempt = 0; k < 200 && attempt < 5000; attempt++) {
           const s = { x: x0 + rng() * (x1 - x0), y: y0 + rng() * (y1 - y0) }
           if (!pointInPolygon(s, poly)) continue
           k++
-          if (distToBoundary(s, poly) < 1e-6 || distToBoundary(s, vis) < 1e-6) continue
+          if (nearBoundary(s, poly) || nearBoundary(s, vis)) continue
           if (sees(poly, poly[v], s) !== pointInPolygon(s, vis)) {
             mismatches.push(`polygon ${polys.indexOf(poly)}, v${v + 1}, (${s.x}, ${s.y})`)
           }
@@ -141,7 +210,7 @@ describe('visibilityPolygon', () => {
       }
     }
     expect(mismatches).toEqual([])
-    expect(checked).toBeGreaterThan(100000)
+    expect(checked).toBeGreaterThan(150000)
   })
 })
 

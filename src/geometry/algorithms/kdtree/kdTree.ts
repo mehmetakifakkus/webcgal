@@ -103,7 +103,10 @@ export function buildKdTree(points: Pt[], box: Box = PLANE_BOX, record?: KdRecor
     views.push({ id, parent, side, depth, region: copyBox(region), axis, value, size: P.length })
 
     const names = P.length <= 10 ? [...P].sort((a, b) => a - b).map(label).join(', ') : `${P.length} points`
-    const tie = points[P2[0]][axis] === value ? ` — ties broken by ${axis === 'x' ? 'y' : 'x'}` : ''
+    // a tie across the line: by the other coordinate, or by number when the two points coincide
+    const other = axis === 'x' ? 'y' : 'x'
+    const [a, b] = [points[P1[P1.length - 1]], points[P2[0]]]
+    const tie = b[axis] !== value ? '' : b[other] === a[other] ? ' — coincident points ordered by number' : ` — ties broken by ${other}`
     emit(
       axis === 'x' ? 4 : 5,
       `Split ${names} at ${axis} = ${fmt(value)} (median): ${P1.length} left, ${P2.length} right${tie}`,

@@ -19,6 +19,8 @@ const POINT_RADIUS = 4
 const LEAF_RADIUS = 5
 const SPLIT_SIZE = 12
 const CORNER_SIZE = 7
+/** Least distance between the two corner handles in each direction (see cornerHandles). */
+const CORNER_GAP = 1
 const MAX_POINT_LABELS = 20
 const MAX_NODE_LABELS = 24
 /** Space kept under the deepest row when leaves are labelled, so their labels stay in the area. */
@@ -32,6 +34,23 @@ const clamp = (p: Pt): Pt => ({
   x: Math.min(PLANE_BOX.x1, Math.max(PLANE_BOX.x0, p.x)),
   y: Math.min(PLANE_BOX.y1, Math.max(PLANE_BOX.y0, p.y)),
 })
+/**
+ * The two corner handles. StepPlayer grabs the last handle among equally near ones, so when the
+ * rectangle has collapsed (zero width and/or height) the lower-left handle is reported 1 unit
+ * down / left of the upper-right one in each collapsed direction; the nearer handle then wins and
+ * either corner can be grabbed again. At the box's lower-left edge the upper-right one moves
+ * up / right instead. The query itself is unchanged.
+ */
+function cornerHandles(query: KdInput['query']): [Pt, Pt] {
+  const lo = clamp({ x: query.x0, y: query.y0 })
+  const hi = clamp({ x: query.x1, y: query.y1 })
+  for (const a of ['x', 'y'] as const) {
+    if (hi[a] - lo[a] >= CORNER_GAP) continue
+    if (hi[a] - CORNER_GAP >= (a === 'x' ? PLANE_BOX.x0 : PLANE_BOX.y0)) lo[a] = hi[a] - CORNER_GAP
+    else hi[a] = lo[a] + CORNER_GAP
+  }
+  return [lo, hi]
+}
 const copyInput = (input: KdInput): KdInput => ({ points: input.points.map((q) => ({ x: q.x, y: q.y })), query: { ...input.query } })
 
 /** 14 points at least 20 apart, and a rectangle covering 26–39% of the plane box. */
@@ -99,11 +118,7 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
   hint: 'Drag the points or the two corners of the query rectangle. Keys: ← → to step, Space to play or pause.',
   randomInput,
   presets: KD_PRESETS.map(({ name, input }) => ({ name, input: copyInput(input) })),
-  handles: ({ points, query }) => [
-    ...points.map(clamp),
-    clamp({ x: query.x0, y: query.y0 }),
-    clamp({ x: query.x1, y: query.y1 }),
-  ],
+  handles: ({ points, query }) => [...points.map(clamp), ...cornerHandles(query)],
   moveHandle(input, k, p) {
     const next = copyInput(input)
     const n = input.points.length
@@ -170,6 +185,8 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
       if (seg) new P.Path.Line({ from: pt(seg[0]), to: pt(seg[1]), strokeColor: v.axis === 'x' ? c.x : c.y, strokeWidth: 1.5 })
     }
     rect(query, { strokeColor: c.query, strokeWidth: 2, dashArray: [6, 4] })
+    // lines 14–20: the region of the child under test, a thin solid outline (R is dashed)
+    if (s.test) rect(byId.get(s.test.child)!.region, { strokeColor: c.current, strokeWidth: 1 })
     new P.Path.Line({ from: [SEPARATOR_X, PLANE_BOX.y0], to: [SEPARATOR_X, PLANE_BOX.y1], strokeColor: withAlpha(c.ink, 0.25), strokeWidth: 1 })
 
     // tree: edges, then nodes (squares for splits, circles for leaves), then labels
@@ -223,7 +240,8 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
         fillColor: reported.has(i) ? c.report : faded ? withAlpha(c.ink, 0.3) : c.ink,
       })
     })
-    for (const q of [{ x: query.x0, y: query.y0 }, { x: query.x1, y: query.y1 }]) {
+    // the corners are drawn where they are grabbed (cornerHandles)
+    for (const q of cornerHandles(query)) {
       const h = CORNER_SIZE / 2
       rect({ x0: q.x - h, y0: q.y - h, x1: q.x + h, y1: q.y + h }, { fillColor: c.query })
     }

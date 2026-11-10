@@ -223,7 +223,10 @@ test('dragging a corner across the other keeps the handle indices stable', () =>
       const q = input.query
       expect(q.x0).toBeLessThanOrEqual(q.x1)
       expect(q.y0).toBeLessThanOrEqual(q.y1)
-      expect(kdTreePlayer.handles(input)[k === n ? n + 1 : n]).toEqual(fixed)
+      // the corner that is not dragged stays put; its handle too, up to the 1-unit gap that
+      // separates coinciding corner handles
+      expect(k === n ? { x: q.x1, y: q.y1 } : { x: q.x0, y: q.y0 }).toEqual(fixed)
+      expect(distance(kdTreePlayer.handles(input)[k === n ? n + 1 : n], fixed)).toBeLessThanOrEqual(Math.SQRT2 + 1e-9)
     }
     return input.query
   }
@@ -231,6 +234,91 @@ test('dragging a corner across the other keeps the handle indices stable', () =>
   expect(lowerLeft).toEqual({ x0: 200, y0: 150, x1: 370, y1: 280 })
   const upperRight = drag(n + 1, [{ x: 200, y: 150 }, { x: 100, y: 60 }, { x: 40, y: 30 }, { x: 300, y: 250 }], { x: 130, y: 100 })
   expect(upperRight).toEqual({ x0: 130, y0: 100, x1: 300, y1: 250 })
+})
+
+/** The handle StepPlayer grabs at `q`: the nearest within 12 units, the last of equally near ones. */
+function grab(input: KdInput, q: Pt): number {
+  let best = -1
+  let bestD = 12
+  kdTreePlayer.handles(input).forEach((p, i) => {
+    const d = distance(p, q)
+    if (d <= bestD) {
+      best = i
+      bestD = d
+    }
+  })
+  return best
+}
+
+test('a rectangle collapsed at a corner of the plane box can be regrown', () => {
+  const start = preset('Query covers everything')
+  const n = start.points.length
+  // drag the lower-left corner past the upper-right one, at the box's top-right corner
+  let input = start
+  for (const p of [{ x: 300, y: 200 }, { x: 455, y: 345 }, { x: 500, y: 400 }]) input = kdTreePlayer.moveHandle(input, n, p)
+  expect(input.query).toEqual({ x0: PLANE_BOX.x1, y0: PLANE_BOX.y1, x1: PLANE_BOX.x1, y1: PLANE_BOX.y1 })
+  const [lo, hi] = kdTreePlayer.handles(input).slice(-2)
+  // the two corner handles are told apart, both inside the box
+  expect(hi).toEqual({ x: PLANE_BOX.x1, y: PLANE_BOX.y1 })
+  expect(lo).toEqual({ x: PLANE_BOX.x1 - 1, y: PLANE_BOX.y1 - 1 })
+  for (const p of [lo, hi]) expect(inBox(p)).toBe(true)
+  // a press on the corner itself takes the upper-right handle; down-left of it, the lower-left one
+  expect(grab(input, { x: 455, y: 345 })).toBe(n + 1)
+  expect(grab(input, { x: 450, y: 340 })).toBe(n)
+  expect(grab(input, lo)).toBe(n)
+  // the lower-left corner dragged down-left regrows the rectangle
+  let k = grab(input, { x: 450, y: 340 })
+  for (const p of [{ x: 400, y: 300 }, { x: 200, y: 150 }]) input = kdTreePlayer.moveHandle(input, k, p)
+  expect(input.query).toEqual({ x0: 200, y0: 150, x1: 455, y1: 345 })
+  expect(kdTreePlayer.handles(input).slice(-2)).toEqual([{ x: 200, y: 150 }, { x: 455, y: 345 }])
+  const steps = kdTreePlayer.computeSteps(input)
+  expect(steps[steps.length - 1].state.reported).toEqual(bruteForceRange(input.points, input.query))
+
+  // collapsed in x only: only x is separated
+  const thin = kdTreePlayer.moveHandle(start, n, { x: 470, y: 100 })
+  expect(thin.query).toEqual({ x0: 455, y0: 100, x1: 455, y1: 345 })
+  expect(kdTreePlayer.handles(thin).slice(-2)).toEqual([{ x: 454, y: 100 }, { x: 455, y: 345 }])
+
+  // collapsed at the box's lower-left corner: the upper-right handle moves up / right instead
+  let low = kdTreePlayer.moveHandle(start, n + 1, { x: 0, y: 0 })
+  expect(low.query).toEqual({ x0: 15, y0: 15, x1: 15, y1: 15 })
+  expect(kdTreePlayer.handles(low).slice(-2)).toEqual([{ x: 15, y: 15 }, { x: 16, y: 16 }])
+  expect(grab(low, { x: 15, y: 15 })).toBe(n)
+  k = grab(low, { x: 20, y: 20 })
+  expect(k).toBe(n + 1)
+  low = kdTreePlayer.moveHandle(low, k, { x: 120, y: 90 })
+  expect(low.query).toEqual({ x0: 15, y0: 15, x1: 120, y1: 90 })
+
+  // the corner squares are drawn at the handles
+  const scene = makeScene()
+  kdTreePlayer.render(scene, kdTreePlayer.computeSteps(thin)[0], thin)
+  for (const c of kdTreePlayer.handles(thin).slice(-2))
+    expect(paths(scene).filter((p) => near(p.bounds.center.x, c.x) && near(p.bounds.center.y, c.y) && near(p.bounds.width, 7))).toHaveLength(1)
+})
+
+test('the region of the child under test is outlined', () => {
+  const scene = makeScene()
+  const input = textbook()
+  const steps = kdTreePlayer.computeSteps(input)
+  const outlines = () =>
+    paths(scene).filter((p) => p.strokeColor?.toCSS(true) === '#e66100' && p.strokeWidth === 1 && !p.fillColor)
+  const tested = steps.filter((s) => s.state.test)
+  expect(tested.length).toBeGreaterThan(0)
+  for (const step of tested) {
+    expect(step.line).toBeGreaterThanOrEqual(14)
+    expect(step.line).toBeLessThanOrEqual(20)
+    kdTreePlayer.render(scene, step, input)
+    const region = step.state.nodes.find((v) => v.id === step.state.test!.child)!.region
+    const found = outlines()
+    expect(found).toHaveLength(1)
+    expect(found[0].dashArray).toEqual([])
+    const b = found[0].bounds
+    expect([b.left, b.top, b.right, b.bottom].map((v) => +v.toFixed(6))).toEqual([region.x0, region.y0, region.x1, region.y1])
+  }
+  for (const step of steps.filter((s) => !s.state.test)) {
+    kdTreePlayer.render(scene, step, input)
+    expect(outlines()).toHaveLength(0)
+  }
 })
 
 test('tree stays in its area', () => {

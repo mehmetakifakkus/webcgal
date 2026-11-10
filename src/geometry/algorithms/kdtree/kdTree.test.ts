@@ -196,6 +196,17 @@ describe('buildKdTree recorder', () => {
     expect(r2.steps[1].description).toBe('Split v1, v2 at y = 5.0 (median): 1 left, 1 right — ties broken by x')
   })
 
+  it('coincident points across the line are ordered by number', () => {
+    const { steps, rec } = record()
+    buildKdTree(P([[100, 100], [300, 200], [100, 100], [50, 300]]), PLANE_BOX, rec)
+    // x order: v4 (50), v1 = v3 (100, 100), v2 (300) → v4, v1 | v3, v2: v1 and v3 coincide
+    expect(steps[0].description).toBe('Split v1, v2, v3, v4 at x = 100.0 (median): 2 left, 2 right — coincident points ordered by number')
+    // the secondary coordinate differs: the existing note stays
+    const r2 = record()
+    buildKdTree(P([[100, 100], [100, 200], [100, 300], [100, 400]]), PLANE_BOX, r2.rec)
+    expect(r2.steps[0].description).toBe('Split v1, v2, v3, v4 at x = 100.0 (median): 2 left, 2 right — ties broken by y')
+  })
+
   it('more than 10 points are counted, not listed', () => {
     const { steps, rec } = record()
     const pts = Array.from({ length: 14 }, (_, i) => ({ x: 20 + 30 * i, y: 100 + ((i * 37) % 200) }))

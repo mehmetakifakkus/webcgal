@@ -6,7 +6,8 @@ import StepPlayer from '../components/StepPlayer'
 import { createScene, type Scene } from '../engine/scene'
 import { GALLERY_PRESETS } from '../geometry/algorithms/artGallery/presets'
 import { GALLERY_PSEUDOCODE } from '../geometry/algorithms/artGallery/pseudocode'
-import { isSimple } from '../geometry/algorithms/triangulation/polygon'
+import { isSimple, signedArea } from '../geometry/algorithms/triangulation/polygon'
+import { pointInPolygon } from '../geometry/algorithms/triangulation/verify'
 import type { ArtGalleryInput, Pt } from '../geometry/types'
 import themeCss from '../styles/theme.css?raw'
 import artGalleryPlayer from './artGalleryPlayer'
@@ -61,9 +62,84 @@ test('random input is a simple polygon with 10–16 vertices', () => {
       expect(p.x).toBeLessThanOrEqual(760)
       expect(p.y).toBeGreaterThanOrEqual(15)
       expect(p.y).toBeLessThanOrEqual(345)
+      // a star of radii 60–150 around the centre, stretched 2.2× horizontally
+      const r = Math.hypot((p.x - 387) / 2.2, p.y - 180)
+      expect(r).toBeGreaterThanOrEqual(60 - 1e-9)
+      expect(r).toBeLessThanOrEqual(150 + 1e-9)
     }
   }
   expect(sizes.size).toBeGreaterThan(3)
+})
+
+const distToSegment = (p: Pt, a: Pt, b: Pt) => {
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy)))
+  return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy)
+}
+const onBoundary = (p: Pt, poly: Pt[]) => poly.some((a, i) => distToSegment(p, a, poly[(i + 1) % poly.length]) < 1e-6)
+
+test('dual-tree arcs stay inside the room (centroid → diagonal midpoint → centroid)', () => {
+  const scene = makeScene()
+  for (const preset of GALLERY_PRESETS) {
+    const input = presetInput(preset.name)
+    const poly = input.polygon
+    const steps = artGalleryPlayer.computeSteps(input, 'fisk')
+    const step = steps[steps.length - 1]
+    artGalleryPlayer.render(scene, step, input)
+    const arcs = items(scene).filter(
+      (c): c is paper.Path => c instanceof scene.paper.Path && !c.closed && !!c.dashArray && c.dashArray.length > 0,
+    )
+    expect(arcs, preset.name).toHaveLength(step.state.dualEdges.length)
+    for (const arc of arcs) {
+      expect(arc.segments, preset.name).toHaveLength(3)
+      const pts = arc.segments.map((g) => ({ x: g.point.x, y: g.point.y }))
+      for (let k = 0; k < 2; k++)
+        for (let t = 0; t <= 10; t++) {
+          const p = { x: pts[k].x + ((pts[k + 1].x - pts[k].x) * t) / 10, y: pts[k].y + ((pts[k + 1].y - pts[k].y) * t) / 10 }
+          expect(pointInPolygon(p, poly) || onBoundary(p, poly), `${preset.name} (${p.x}, ${p.y})`).toBe(true)
+        }
+    }
+  }
+})
+
+test('vertex labels sit outside the room, clear of their walls, inside the canvas', () => {
+  const scene = makeScene()
+  const star = presetInput('Star')
+  const rooms = [
+    ...GALLERY_PRESETS.map((p) => ({ name: p.name, input: presetInput(p.name) })),
+    { name: 'Star (clockwise)', input: { polygon: [...star.polygon].reverse(), cameras: [] } },
+  ]
+  expect(signedArea(rooms[rooms.length - 1].input.polygon)).toBeLessThan(0)
+  for (const { name, input } of rooms) {
+    const poly = input.polygon
+    const n = poly.length
+    artGalleryPlayer.render(scene, artGalleryPlayer.computeSteps(input, 'fisk')[0], input)
+    const labels = items(scene).filter((c): c is paper.PointText => c instanceof scene.paper.PointText)
+    expect(labels, name).toHaveLength(n)
+    labels.forEach((text, i) => {
+      expect(text.content).toBe(`v${i + 1}`)
+      expect(text.fontSize).toBe(13)
+      expect(text.fillColor?.toCSS(true)).toBe('#1c1e21')
+      // the glyphs' centre, 0.36 em above the baseline (the text's flipped matrix sits on the baseline)
+      const anchor = { x: text.bounds.center.x, y: text.matrix.ty + 0.36 * 13 }
+      expect(text.matrix.d).toBe(-1)
+      const where = `${name} v${i + 1} (${anchor.x.toFixed(1)}, ${anchor.y.toFixed(1)})`
+      expect(!pointInPolygon(anchor, poly) || onBoundary(anchor, poly), where).toBe(true)
+      expect(distToSegment(anchor, poly[(i + n - 1) % n], poly[i]), where).toBeGreaterThan(4)
+      expect(distToSegment(anchor, poly[i], poly[(i + 1) % n]), where).toBeGreaterThan(4)
+      // the glyphs (0.72 em tall) keep clear of the corner's disc, square or ring
+      const gap = Math.hypot(
+        Math.max(0, Math.abs(anchor.x - poly[i].x) - text.bounds.width / 2),
+        Math.max(0, Math.abs(anchor.y - poly[i].y) - 0.36 * 13),
+      )
+      expect(gap, where).toBeGreaterThanOrEqual(7.9)
+      expect(text.bounds.left, where).toBeGreaterThanOrEqual(0)
+      expect(text.bounds.right, where).toBeLessThanOrEqual(775)
+      expect(text.bounds.top, where).toBeGreaterThanOrEqual(0)
+      expect(text.bounds.bottom, where).toBeLessThanOrEqual(360)
+    })
+  }
 })
 
 test('modes, dimmed lines, pseudocode, hint and colours', () => {

@@ -4,7 +4,7 @@ Places cameras so that they see a whole polygon (a room): Fisk's construction tr
 artGallery(polygon)
 ```
 
-`polygon` is a `Polygon` object, an array of `TextPoint` objects, or an array of `Point` objects, `{ x, y }` objects or `[x, y]` arrays, in either orientation. Errors are thrown for a polygon that is not simple ("artGallery: the polygon must be simple (no crossing edges)"), for fewer than three vertices, for two consecutive vertices closer than 0.001 and for other input ("artGallery: expected a Polygon or an array of points (item N is not a point)"). The result is read-only and refers to vertices by their 0-based index in the input order:
+`polygon` is a `Polygon` object, an array of `TextPoint` objects, or an array of `Point` objects, `{ x, y }` objects or `[x, y]` arrays, in either orientation. Errors are thrown for a polygon that is not simple ("artGallery: the polygon must be simple (no crossing edges)"), for fewer than three vertices, for two consecutive vertices closer than 0.001 and for other input ("artGallery: expected a Polygon or an array of points (item N is not a point)", or "artGallery: expected a Polygon or an array of points (got &lt;type&gt;)" when the argument is neither a `Polygon` nor an array). The result is read-only and refers to vertices by their 0-based index in the input order:
 
 - `cameras`: the camera vertices, in ascending order.
 - `colors`: the colour (0, 1 or 2) of each vertex.

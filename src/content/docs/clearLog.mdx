@@ -5,3 +5,14 @@ clearLog();
 for(var i=0; i < polygon.points.length; i++) // access each polygon point
     print(polygon.points[i])
 ```
+
+### print(...values)
+
+Writes one line to the output panel: the values, separated by spaces, as `console.log` shows them.
+
+`printLog(...values)` is the same function as `print`.
+
+```js
+print('hello', 42, [1, 2]); // hello 42 [1, 2]
+printLog(new Point(1, 2));   // { x: 1, y: 2 }
+```

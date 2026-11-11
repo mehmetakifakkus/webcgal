@@ -1,0 +1,29 @@
+Computes the convex hull of a point set, the smallest convex polygon that contains all of them. The algorithm is explained on the [Convex Hull](/algorithms/convexHull) page.
+
+```js
+convexHull(points)
+convexHullPts(points)
+isLeftTurn(list)
+```
+
+### convexHull(points)
+
+`points` is an array of `TextPoint` objects (for example from `Points.createRandom(n)`). It returns the `TextPoint` objects on the hull as an array, starting at the leftmost point and going clockwise, and closed: the first point is repeated at the end, so `hull.length - 1` is the number of corners. Points that lie on a hull edge but are not corners, and duplicate points, are not part of the result. The result can be passed to `drawLines(hull)` to draw the outline.
+
+### convexHullPts(points)
+
+The same hull for any point form (`TextPoint`, `Point`, `{ x, y }` object or `[x, y]` array). It returns plain `{ x, y }` objects in the same order, but not closed: the first point is not repeated.
+
+### isLeftTurn(list)
+
+`list` is an array of points. Only the last three points are looked at; `isLeftTurn` returns `true` when they make a left turn and `false` otherwise (a right turn, or three points on a line). The convex hull code of the original WebCgal library used it to decide which points to drop.
+
+Note: left is meant with y pointing up, which is how the canvas is drawn (the origin is the bottom-left corner), so a turn that looks like a left turn on the canvas, such as `[[0, 0], [100, 0], [100, 100]]`, returns `true`. The list needs at least three points.
+
+```js
+var points = Points.createRandom(20);
+var hull = convexHull(points);
+drawLines(hull);
+hull.forEach(function (p) { p.path.fillColor = 'red'; });
+console.log((hull.length - 1) + ' of ' + points.length + ' points on the hull');
+```

@@ -7,3 +7,9 @@ polygon.draw();
 clearScreen(); // clears all objects drawed before
 polygon = createRandomPolygon();
 ```
+
+It removes what the WebCgal functions drew (points, lines, circles, polygons and the drawings of the algorithm functions). Paper.js items you create yourself, such as `new Path.Rectangle(...)`, stay, and so do the coordinate system of `drawCoordinateSystem()` and what a `Vector`'s `draw()` drew.
+
+### clear()
+
+`clear()` is the same function as `clearScreen()`.

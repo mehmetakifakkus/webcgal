@@ -13,6 +13,8 @@ import triangulateExample from './examples/triangulate.js?raw'
 import delaunayExample from './examples/delaunay.js?raw'
 import voronoiExample from './examples/voronoi.js?raw'
 import kdTreeExample from './examples/kdTree.js?raw'
+import vectorExample from './examples/Vector.js?raw'
+import getRandomIntExample from './examples/getRandomInt.js?raw'
 import artGalleryExample from './examples/artGallery.js?raw'
 
 export type DocCategory = 'objects' | 'drawing_functions' | 'polygon_functions' | 'points_functions' | 'misc_functions'
@@ -39,6 +41,7 @@ export const docs: DocEntry[] = [
   { name: 'Polygon', category: 'objects', content: () => import('./Polygon.mdx'), example: polygonExample },
   { name: 'TextPoint', category: 'objects', content: () => import('./TextPoint.mdx'), example: textPointExample },
   { name: 'Points', category: 'objects', content: () => import('./Points.mdx') },
+  { name: 'Vector', category: 'objects', content: () => import('./Vector.mdx'), example: vectorExample },
   { name: 'clearScreen', category: 'drawing_functions', content: () => import('./clearScreen.mdx') },
   { name: 'clearLog', category: 'drawing_functions', content: () => import('./clearLog.mdx') },
   { name: 'draw', category: 'drawing_functions', content: () => import('./draw.mdx'), example: drawExample },
@@ -62,6 +65,12 @@ export const docs: DocEntry[] = [
   },
   { name: 'sort', category: 'points_functions', content: () => import('./sort.mdx') },
   { name: 'shuffle', category: 'points_functions', content: () => import('./shuffle.mdx') },
+  {
+    name: 'getRandomInt',
+    category: 'points_functions',
+    content: () => import('./getRandomInt.mdx'),
+    example: getRandomIntExample,
+  },
   { name: 'animate', category: 'points_functions', content: () => import('./animate.mdx'), example: animateExample },
   {
     name: 'findIntersections',

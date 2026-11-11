@@ -1,0 +1,10 @@
+var v1 = new Vector(100, 50);
+var v2 = new Vector(40, 100);
+var sum = add(v1, v2);
+drawLine(origin, v1);
+drawLine(origin, v2);
+drawLine(origin, sum);
+v1.draw();
+v2.draw();
+new Vector(sum.x, sum.y).draw();
+console.log('sum (' + sum.x + ', ' + sum.y + ') · dot ' + dotProduct(v1, v2) + ' · cross ' + crossProduct(v1, v2));

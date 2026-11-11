@@ -29,6 +29,8 @@ const newItems = [
   { name: 'voronoi', category: 'misc_functions' },
   { name: 'kdTree', category: 'misc_functions' },
   { name: 'artGallery', category: 'misc_functions' },
+  { name: 'Vector', category: 'objects' },
+  { name: 'getRandomInt', category: 'points_functions' },
 ] as const
 const dir = new URL('.', import.meta.url).pathname
 
@@ -39,7 +41,7 @@ describe('documentation entries', () => {
       expect(findDoc(name)?.category, name).toBe(category)
     }
     expect(docs).toHaveLength(legacyItems.length + newItems.length)
-    expect(docs).toHaveLength(21)
+    expect(docs).toHaveLength(23)
   })
 
   test('findIntersections is documented with an example', () => {
@@ -84,6 +86,21 @@ describe('documentation entries', () => {
     expect(readFileSync(`${dir}artGallery.mdx`, 'utf8')).toContain(entry!.example!.trim())
   })
 
+  test('Vector and getRandomInt are documented with an example', () => {
+    for (const [name, category] of [
+      ['Vector', 'objects'],
+      ['getRandomInt', 'points_functions'],
+    ] as const) {
+      const entry = findDoc(name)
+      expect(entry?.category, name).toBe(category)
+      expect(entry?.example?.trim().length, name).toBeGreaterThan(0)
+      expect(readFileSync(`${dir}${name}.mdx`, 'utf8'), name).toContain(entry!.example!.trim())
+    }
+    const names = docs.map((d) => d.name)
+    expect(names.indexOf('Vector')).toBe(names.indexOf('Points') + 1)
+    expect(names.indexOf('getRandomInt')).toBe(names.indexOf('shuffle') + 1)
+  })
+
   test('names are unique and case-sensitive', () => {
     expect(new Set(docs.map((d) => d.name)).size).toBe(docs.length)
     expect(findDoc('polygon')).toBeUndefined()
@@ -104,7 +121,7 @@ describe('documentation entries', () => {
 
   test('no link_to left in any MDX file', () => {
     const files = readdirSync(dir).filter((f) => f.endsWith('.mdx'))
-    expect(files).toHaveLength(21)
+    expect(files).toHaveLength(23)
     for (const f of files) expect(readFileSync(dir + f, 'utf8'), f).not.toContain('link_to(')
   })
 
@@ -129,13 +146,6 @@ const ALLOWED_UNDOCUMENTED: readonly string[] = [
 ]
 /** Names not documented yet; the task that documents a name removes it here. */
 const PENDING: string[] = [
-  'Vector',
-  'add',
-  'subtract',
-  'dotProduct',
-  'crossProduct',
-  'getRandomInt',
-  'range',
   'isMonotone',
   'monotoneDirections',
   'convexHull',
@@ -160,10 +170,15 @@ const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 /** The MDX text without the lines of fenced code blocks (fences included). */
 function proseLines(mdx: string): string[] {
   const out: string[] = []
-  let inFence = false
+  let fence: { char: string; length: number } | null = null
   for (const line of mdx.split('\n')) {
-    if (/^\s*(```|~~~)/.test(line)) inFence = !inFence
-    else if (!inFence) out.push(line)
+    const m = /^\s*(`{3,}|~{3,})/.exec(line)
+    if (fence === null) {
+      if (m) fence = { char: m[1][0], length: m[1].length }
+      else out.push(line)
+    } else if (m && m[1][0] === fence.char && m[1].length >= fence.length && /^\s*[`~]+\s*$/.test(line)) {
+      fence = null
+    }
   }
   return out
 }
@@ -176,7 +191,7 @@ function proseLines(mdx: string): string[] {
  */
 function isDocumentedIn(name: string, mdx: string): boolean {
   const n = escapeRegExp(name)
-  const definition = new RegExp(`^(#{1,6} +|- +)?\`?(${n}\\(|${n}\\.)`)
+  const definition = new RegExp(`^(#{1,6} +|- +)?\`?(${n}\\(|${n}\\.[A-Za-z_$])`)
   const lines = proseLines(mdx)
   if (lines.some((l) => definition.test(l))) return true
   return VALUE_NAMES.includes(name) && lines.some((l) => l.includes(`\`${name}\``))
@@ -210,6 +225,13 @@ describe('API coverage', () => {
     expect(isDocumentedIn('drawLine', '### Points.drawLine(p1, p2)')).toBe(false)
     expect(isDocumentedIn('drawLines', '### Points.drawLines(points)')).toBe(false)
     expect(isDocumentedIn('createRandom', '- `Segments.createRandom(n)` creates')).toBe(false)
+    // a code block closes only on a fence of the same character, at least as long
+    expect(isDocumentedIn('drawLine', '```js\n~~~\n### drawLine(a)\n```')).toBe(false)
+    expect(isDocumentedIn('drawLine', '````js\n```\n### drawLine(a)\n````')).toBe(false)
+    expect(isDocumentedIn('drawLine', '```js\nx\n```\n### drawLine(a)')).toBe(true)
+    // prose that merely ends a sentence with the name is not a definition
+    expect(isDocumentedIn('add', 'add. This adds two points.')).toBe(false)
+    expect(isDocumentedIn('add', '- `add.apply(null, args)` calls it')).toBe(true)
     // a longer name with the same prefix is not a definition
     expect(isDocumentedIn('drawLine', '### drawLines(points)')).toBe(false)
     // values: inline code counts, prose and code blocks do not

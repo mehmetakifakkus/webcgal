@@ -1,0 +1,40 @@
+A vector is a point used as an arrow from the origin. `Vector` is a subclass of the paper.js `Point`, so it has every `Point` method (`add`, `subtract`, `multiply`, `length`, `angle`, ...) and PaperScript operators such as `v1 + v2` work on it. Four helper functions on this page do the usual vector arithmetic.
+
+```js
+new Vector(x, y)
+```
+
+### Vector.draw()
+
+`draw()` draws a red circle of radius 10 at the tip of the vector and the label "1" next to it. Vector's `draw()` does not draw the arrow itself (use `drawLine(origin, v)` for that), and what it draws is not removed by [clearScreen](/documentation/clearScreen).
+
+### add(p1, p2)
+
+Returns the sum of two points as a paper `Point`. Each argument can be a `TextPoint`, a `Point` (or `Vector`), an `{ x, y }` object or an `[x, y]` array.
+
+### subtract(p1, p2)
+
+Returns `p1 - p2` as a paper `Point`. The arguments are accepted in the same forms as for `add`.
+
+### dotProduct(v1, v2)
+
+Returns the number `v1.x * v2.x + v1.y * v2.y`.
+
+### crossProduct(v1, v2)
+
+Returns the number `v1.x * v2.y - v2.x * v1.y`: positive when `v2` is counter-clockwise from `v1` in a coordinate system with y pointing up, negative when it is clockwise, 0 when the vectors are parallel.
+
+Note: `dotProduct` and `crossProduct` read `.x` and `.y` of their arguments, so they need `{ x, y }` objects (points or vectors); arrays are not converted.
+
+```js
+var v1 = new Vector(100, 50);
+var v2 = new Vector(40, 100);
+var sum = add(v1, v2);
+drawLine(origin, v1);
+drawLine(origin, v2);
+drawLine(origin, sum);
+v1.draw();
+v2.draw();
+new Vector(sum.x, sum.y).draw();
+console.log('sum (' + sum.x + ', ' + sum.y + ') · dot ' + dotProduct(v1, v2) + ' · cross ' + crossProduct(v1, v2));
+```

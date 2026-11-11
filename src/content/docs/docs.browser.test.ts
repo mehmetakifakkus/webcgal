@@ -7,7 +7,10 @@ import { docs } from './index'
  * The one output line each keyed example prints. Random examples must match on every outcome,
  * so each one runs several times.
  */
-const EXAMPLE_OUTPUT: Record<string, RegExp> = {}
+const EXAMPLE_OUTPUT: Record<string, RegExp> = {
+  Vector: /^sum \(-?\d+, -?\d+\) · dot -?\d+ · cross -?\d+$/,
+  getRandomInt: /^\d+ circles$/,
+}
 const RUNS = 5
 
 const scenes: Scene[] = []

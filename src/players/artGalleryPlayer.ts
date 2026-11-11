@@ -7,8 +7,8 @@ import { gallerySteps } from '../geometry/algorithms/artGallery/gallerySteps'
 import { GALLERY_PRESETS } from '../geometry/algorithms/artGallery/presets'
 import { GALLERY_PSEUDOCODE } from '../geometry/algorithms/artGallery/pseudocode'
 import { coverage } from '../geometry/algorithms/artGallery/visibility'
-import { isSimple } from '../geometry/algorithms/triangulation/polygon'
-import { randomStarPolygon } from '../geometry/algorithms/triangulation/verify'
+import { isSimple, signedArea } from '../geometry/algorithms/triangulation/polygon'
+import { pointInPolygon, randomStarPolygon } from '../geometry/algorithms/triangulation/verify'
 import type { ArtGalleryInput, Pt } from '../geometry/types'
 import { cssColor } from './cssColor'
 import type { Panel, PlayerModule } from './types'
@@ -20,6 +20,16 @@ const INVALID_MESSAGE = 'The polygon must be simple (no crossing edges)'
 const MIN_UNCOVERED_AREA = 0.01
 const CAMERA_SIZE = 10
 const LABEL_SIZE = 13
+/** Least distance from a corner to the centre of its label. */
+const LABEL_OFFSET = 13
+/** Least gap between a label's glyphs and its corner: clears the corner's disc (r 6) and camera square. */
+const LABEL_CLEARANCE = 8
+/** Least distance from a label's centre to the corner's two walls. */
+const LABEL_WALL_GAP = 4
+/** Least distance from a label's text box to the canvas edge. */
+const LABEL_MARGIN = 2
+/** Half the height of the glyphs: digits and lower case reach about 0.72 em above the baseline. */
+const GLYPH_HALF_HEIGHT = 0.36 * LABEL_SIZE
 const VIEW_ALPHA = 0.25
 const UNCOVERED_ALPHA = 0.35
 /** The uncovered area's outline: keeps thin slivers along a wall visible over the room's 2 px outline. */
@@ -56,10 +66,15 @@ function validate(input: ArtGalleryInput): string | null {
   return null
 }
 
-/** A random star-shaped room of 10–16 vertices inside the canvas, without cameras. */
+/**
+ * A random star-shaped room of 10–16 vertices filling the canvas, without cameras: a star of
+ * radii 60–150 around the origin, stretched 2.2× horizontally and moved to the canvas centre
+ * (x 57–717, y 30–330).
+ */
 function randomInput(): ArtGalleryInput {
   for (let k = 0; k < 20; k++) {
-    const polygon = randomStarPolygon(Math.random, 10 + Math.floor(Math.random() * 7), 387, 180, 40, 150)
+    const star = randomStarPolygon(Math.random, 10 + Math.floor(Math.random() * 7), 0, 0, 60, 150)
+    const polygon = star.map((p) => ({ x: 387 + 2.2 * p.x, y: 180 + p.y }))
     if (validate({ polygon, cameras: [] }) === null) return { polygon, cameras: [] }
   }
   return { polygon: copyPolygon(GALLERY_PRESETS[1].polygon), cameras: [] }
@@ -133,6 +148,66 @@ function colourPanel(s: GalleryState): Panel {
     })
   }
   return { title: 'Colours', empty: 'No vertex coloured yet', rows }
+}
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+
+/** A label's text box: its width, and how far it reaches below and above the glyphs' centre. */
+type LabelBox = { width: number; below: number; above: number }
+
+/**
+ * Where the centre of each corner's label goes (the glyphs' centre, not the text's baseline).
+ * `boxes[i]` is the text box of label i. The label sits at least LABEL_OFFSET out along the outward
+ * bisector of the corner's two walls (the sum of their outward normals; for walls that double
+ * back, the next wall's normal), further out when its glyphs would touch the corner's mark, and
+ * inside the canvas. When the canvas edge pushes it back onto the mark (a corner near the edge),
+ * the direction turns in steps of 15° (up to 90°) to the first spot that is clear of the mark,
+ * outside the room and away from the two walls. Either orientation.
+ */
+function labelAnchors(poly: Pt[], boxes: LabelBox[]): Pt[] {
+  const n = poly.length
+  const sign = signedArea(poly) >= 0 ? 1 : -1
+  // outward normal of the wall a → b of a CCW (y-up) polygon, unit length
+  const normal = (a: Pt, b: Pt) => {
+    const len = Math.hypot(b.x - a.x, b.y - a.y) || 1
+    return { x: (sign * (b.y - a.y)) / len, y: (-sign * (b.x - a.x)) / len }
+  }
+  const wallDistance = (p: Pt, a: Pt, b: Pt) => {
+    const dx = b.x - a.x
+    const dy = b.y - a.y
+    const t = clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy || 1), 0, 1)
+    return Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy)
+  }
+  return poly.map((q, i) => {
+    const prev = poly[(i + n - 1) % n]
+    const next = poly[(i + 1) % n]
+    const n1 = normal(prev, q)
+    const n2 = normal(q, next)
+    const sum = { x: n1.x + n2.x, y: n1.y + n2.y }
+    const len = Math.hypot(sum.x, sum.y)
+    const d = len < 1e-9 ? n2 : { x: sum.x / len, y: sum.y / len }
+    const { width, below, above } = boxes[i]
+    const halfWidth = width / 2
+    const place = (dir: Pt, t: number): Pt => ({
+      x: clamp(q.x + t * dir.x, LABEL_MARGIN + halfWidth, WIDTH - LABEL_MARGIN - halfWidth),
+      y: clamp(q.y + t * dir.y, LABEL_MARGIN + below, HEIGHT - LABEL_MARGIN - above),
+    })
+    // the gap between the glyphs' box and the corner
+    const gap = (a: Pt) =>
+      Math.hypot(Math.max(0, Math.abs(a.x - q.x) - halfWidth), Math.max(0, Math.abs(a.y - q.y) - GLYPH_HALF_HEIGHT))
+    for (const deg of [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90]) {
+      const r = (deg * Math.PI) / 180
+      const dir = { x: d.x * Math.cos(r) - d.y * Math.sin(r), y: d.x * Math.sin(r) + d.y * Math.cos(r) }
+      for (let t = LABEL_OFFSET; t <= 3 * LABEL_OFFSET; t += 0.5) {
+        const a = place(dir, t)
+        if (gap(a) < LABEL_CLEARANCE) continue
+        if (!pointInPolygon(a, poly) && wallDistance(a, prev, q) > LABEL_WALL_GAP && wallDistance(a, q, next) > LABEL_WALL_GAP)
+          return a
+        break
+      }
+    }
+    return place(d, LABEL_OFFSET)
+  })
 }
 
 function drawPlainPolygon(scene: Scene, poly: Pt[], color: string) {
@@ -231,15 +306,19 @@ const artGalleryPlayer: PlayerModule<GalleryState, ArtGalleryInput> = {
         new P.Path({ segments: [pt(poly[a]), pt(poly[b])], strokeColor: c.diag, strokeWidth: 1 })
       }
 
-    // the dual tree, from line 2 on: arcs between the triangles' centroids, a node per triangle
+    // the dual tree, from line 2 on: a node per triangle, an arc per shared diagonal, bent at the
+    // diagonal's midpoint so that each half stays inside its own triangle
     if (!sandbox && s.phase !== 'triangulate') {
-      for (const [i, j] of s.dualEdges)
+      for (const [i, j] of s.dualEdges) {
+        const [a, b] = s.triangles[i].filter((v) => s.triangles[j].includes(v))
+        const mid = { x: (poly[a].x + poly[b].x) / 2, y: (poly[a].y + poly[b].y) / 2 }
         new P.Path({
-          segments: [pt(centroid(s.triangles[i])), pt(centroid(s.triangles[j]))],
+          segments: [pt(centroid(s.triangles[i])), pt(mid), pt(centroid(s.triangles[j]))],
           strokeColor: c.dual,
           strokeWidth: DUAL_WIDTH,
           dashArray: [5, 3],
         })
+      }
       s.triangles.forEach((t, i) => {
         const active = i === s.current
         new P.Path.Circle({
@@ -290,14 +369,19 @@ const artGalleryPlayer: PlayerModule<GalleryState, ArtGalleryInput> = {
       new P.Path.Rectangle({ center: pt(poly[v]), size: [CAMERA_SIZE, CAMERA_SIZE], fillColor: fill, strokeColor: c.ink, strokeWidth: 1.5 })
     }
 
-    // labels (the layer is y-flipped: flip back so that they read upright); below a corner near the top
-    poly.forEach((q, i) => {
-      new P.PointText({
-        matrix: new P.Matrix(1, 0, 0, -1, q.x + 8, q.y + 8 + LABEL_SIZE > HEIGHT ? q.y - 8 - LABEL_SIZE : q.y + 8),
-        content: label(i),
-        fontSize: LABEL_SIZE,
-        fillColor: c.ink,
-      })
+    // labels outside their corners, the glyphs centred on the anchor: the baseline goes
+    // GLYPH_HALF_HEIGHT below it (the layer is y-flipped: the text is flipped back to read upright).
+    // The text boxes are measured at the origin, unflipped: y from −ascent to +descent.
+    const texts = poly.map(
+      (_, i) => new P.PointText({ content: label(i), fontSize: LABEL_SIZE, fillColor: c.ink, justification: 'center' }),
+    )
+    const boxes = texts.map(({ bounds: b }) => ({
+      width: b.width,
+      below: b.bottom + GLYPH_HALF_HEIGHT,
+      above: -b.top - GLYPH_HALF_HEIGHT,
+    }))
+    labelAnchors(poly, boxes).forEach((a, i) => {
+      texts[i].matrix = new P.Matrix(1, 0, 0, -1, a.x, a.y - GLYPH_HALF_HEIGHT)
     })
   },
 

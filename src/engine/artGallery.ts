@@ -34,6 +34,8 @@ const checkedPolygon = (input: unknown, fn: string): Pt[] => checkedTriangulatio
  * Either orientation; every index refers to the input.
  */
 export function artGallery(input: PolygonInput): ApiArtGallery {
+  // the validation triangulates once and fisk triangulates again, deliberately: the second run
+  // costs next to nothing, and passing the first one in would change fisk's signature
   const polygon = checkedPolygon(input, 'artGallery')
   let r: ReturnType<typeof fisk>
   try {

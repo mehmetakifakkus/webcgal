@@ -26,7 +26,7 @@ Item names are case-sensitive URL segments, as for the existing items. "Category
 | `Vector` | `objects`, after `Points` | `Vector`, `add`, `subtract`, `dotProduct`, `crossProduct` | — |
 | `getRandomInt` | `points_functions`, after `shuffle` | `getRandomInt`, `range` | — |
 | `isMonotone` | `polygon_functions`, after `createRandomPolygon` | `isMonotone`, `monotoneDirections` | `/algorithms/L-monoton` |
-| `convexHull` | `misc_functions`, after `findIntersections` (first algorithm item: hull comes first in the book) | `convexHull`, `convexHullPts`, `isLeftTurn` | `/algorithms/convexHull` |
+| `convexHull` | `misc_functions`, first (before `findIntersections`: hull comes first in the book) | `convexHull`, `convexHullPts`, `isLeftTurn` | `/algorithms/convexHull` |
 | `findStabber` | `misc_functions`, after `kdTree` | `dualPoint`, `dualLine`, `findStabber` | `/algorithms/duality` |
 | `smallestEnclosingDisk` | `misc_functions`, before `getCenterAndRadius` | `smallestEnclosingDisk`, `miniDisc`, `inCircle` | `/algorithms/smallestEnclosingDisk` |
 | `getTextPoint` | `misc_functions`, last | `getTextPoint`, `origin`, `drawables`, `convertToRealCoord` | — |
@@ -38,6 +38,7 @@ Item names are case-sensitive URL segments, as for the existing items. "Category
 - `draw`: headings `drawLine(p1, p2)`, `drawLines(points)` (the global forms; same behaviour as the `Points.` forms already documented, stated once) and `drawCoordinateSystem()` (axes through the origin, a dotted grid every 50 units over x 0–1000 and y 0–500, and the label "(0,0)").
 - `clearLog`: heading `print(...values)`, with `printLog` named as the same function.
 - `clearScreen`: one sentence naming `clear()` as the same function.
+- `getCenterAndRadius`: headings for `getCenterAndRadius2(p1, p2)` and `getCenterAndRadius3(p1, p2, p3)`, which today appear only inside code blocks.
 
 Totals: 28 items, 22 with "Try it" (all 7 new items have an example).
 
@@ -91,7 +92,7 @@ The exact wording may change in the plan as long as each example has one line pi
 
 ## 7. Tests
 
-- Coverage (node, `src/content/docs/docs.test.ts`): for every name in `API_NAMES` except an explicit allow-list (`PAPER_CLASSES`, `project`, `view`, `tool`, `paper`, `console`, `document`, `polygon`, `colors`), the name is an item name, or appears in some item's MDX as a heading containing `name(` or `.name(`, or, for the non-functions `origin` and `drawables`, as inline code. The test reads the MDX files as text.
+- Coverage (node, `src/content/docs/docs.test.ts`): for every name in `API_NAMES` except an explicit allow-list (`PAPER_CLASSES`, `project`, `view`, `tool`, `paper`, `console`, `document`, `polygon`, `colors`), the name is an item name, or some item's MDX has a definition line for it (a heading, list item or paragraph that starts with `name(`, `name.` or `Object.name(`, as the existing items do), or, for the non-functions `origin` and `drawables`, it appears as inline code. Mentions in prose or code blocks do not count. The test reads the MDX files as text.
 - Counts: 28 items, 22 "Try it" (unit test and `tests/e2e/docs.spec.ts`), menu order as in section 3.1.
 - Examples (browser, `src/engine/runtime.browser.test.ts` or the docs browser test): each new example runs without error and prints a line matching its regex.
 - Documented facts: runtime tests pin the facts that are easy to get wrong: `range(0, 10, 3)`, the sign of `inCircle`, `miniDisc` vs `smallestEnclosingDisk` centre types, `convexHull` closed vs `convexHullPts` open, `dualPoint(dualLine(p))` equals `p`, `getTextPoint` prefix match, `findStabber` returning `null`.

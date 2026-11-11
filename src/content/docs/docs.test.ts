@@ -31,6 +31,9 @@ const newItems = [
   { name: 'artGallery', category: 'misc_functions' },
   { name: 'Vector', category: 'objects' },
   { name: 'getRandomInt', category: 'points_functions' },
+  { name: 'isMonotone', category: 'polygon_functions' },
+  { name: 'convexHull', category: 'misc_functions' },
+  { name: 'smallestEnclosingDisk', category: 'misc_functions' },
 ] as const
 const dir = new URL('.', import.meta.url).pathname
 
@@ -41,7 +44,7 @@ describe('documentation entries', () => {
       expect(findDoc(name)?.category, name).toBe(category)
     }
     expect(docs).toHaveLength(legacyItems.length + newItems.length)
-    expect(docs).toHaveLength(23)
+    expect(docs).toHaveLength(26)
   })
 
   test('findIntersections is documented with an example', () => {
@@ -101,6 +104,25 @@ describe('documentation entries', () => {
     expect(names.indexOf('getRandomInt')).toBe(names.indexOf('shuffle') + 1)
   })
 
+  test('isMonotone, convexHull and smallestEnclosingDisk are documented with an example', () => {
+    for (const [name, category] of [
+      ['isMonotone', 'polygon_functions'],
+      ['convexHull', 'misc_functions'],
+      ['smallestEnclosingDisk', 'misc_functions'],
+    ] as const) {
+      const entry = findDoc(name)
+      expect(entry?.category, name).toBe(category)
+      expect(entry?.example?.trim().length, name).toBeGreaterThan(0)
+      expect(readFileSync(`${dir}${name}.mdx`, 'utf8'), name).toContain(entry!.example!.trim())
+    }
+    const names = docs.map((d) => d.name)
+    expect(names.indexOf('isMonotone')).toBe(names.indexOf('createRandomPolygon') + 1)
+    expect(names.indexOf('convexHull')).toBe(names.indexOf('findIntersections') - 1)
+    expect(names.indexOf('convexHull')).toBe(names.findIndex((n) => docs.find((d) => d.name === n)?.category === 'misc_functions'))
+    expect(names.indexOf('smallestEnclosingDisk')).toBe(names.indexOf('getCenterAndRadius') - 1)
+    expect(names.indexOf('smallestEnclosingDisk')).toBe(names.indexOf('mouseDown') + 1)
+  })
+
   test('names are unique and case-sensitive', () => {
     expect(new Set(docs.map((d) => d.name)).size).toBe(docs.length)
     expect(findDoc('polygon')).toBeUndefined()
@@ -121,7 +143,7 @@ describe('documentation entries', () => {
 
   test('no link_to left in any MDX file', () => {
     const files = readdirSync(dir).filter((f) => f.endsWith('.mdx'))
-    expect(files).toHaveLength(23)
+    expect(files).toHaveLength(26)
     for (const f of files) expect(readFileSync(dir + f, 'utf8'), f).not.toContain('link_to(')
   })
 
@@ -146,14 +168,6 @@ const ALLOWED_UNDOCUMENTED: readonly string[] = [
 ]
 /** Names not documented yet; the task that documents a name removes it here. */
 const PENDING: string[] = [
-  'isMonotone',
-  'monotoneDirections',
-  'convexHull',
-  'convexHullPts',
-  'isLeftTurn',
-  'smallestEnclosingDisk',
-  'miniDisc',
-  'inCircle',
   'dualPoint',
   'dualLine',
   'findStabber',

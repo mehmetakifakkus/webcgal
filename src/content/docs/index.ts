@@ -15,6 +15,9 @@ import voronoiExample from './examples/voronoi.js?raw'
 import kdTreeExample from './examples/kdTree.js?raw'
 import vectorExample from './examples/Vector.js?raw'
 import getRandomIntExample from './examples/getRandomInt.js?raw'
+import convexHullExample from './examples/convexHull.js?raw'
+import isMonotoneExample from './examples/isMonotone.js?raw'
+import smallestEnclosingDiskExample from './examples/smallestEnclosingDisk.js?raw'
 import artGalleryExample from './examples/artGallery.js?raw'
 
 export type DocCategory = 'objects' | 'drawing_functions' | 'polygon_functions' | 'points_functions' | 'misc_functions'
@@ -58,6 +61,12 @@ export const docs: DocEntry[] = [
     example: createRandomPolygonExample,
   },
   {
+    name: 'isMonotone',
+    category: 'polygon_functions',
+    content: () => import('./isMonotone.mdx'),
+    example: isMonotoneExample,
+  },
+  {
     name: 'createRandom',
     category: 'points_functions',
     content: () => import('./createRandom.mdx'),
@@ -72,6 +81,12 @@ export const docs: DocEntry[] = [
     example: getRandomIntExample,
   },
   { name: 'animate', category: 'points_functions', content: () => import('./animate.mdx'), example: animateExample },
+  {
+    name: 'convexHull',
+    category: 'misc_functions',
+    content: () => import('./convexHull.mdx'),
+    example: convexHullExample,
+  },
   {
     name: 'findIntersections',
     category: 'misc_functions',
@@ -110,6 +125,12 @@ export const docs: DocEntry[] = [
   },
   { name: 'loop', category: 'misc_functions', content: () => import('./loop.mdx') },
   { name: 'mouseDown', category: 'misc_functions', content: () => import('./mouseDown.mdx'), example: mouseDownExample },
+  {
+    name: 'smallestEnclosingDisk',
+    category: 'misc_functions',
+    content: () => import('./smallestEnclosingDisk.mdx'),
+    example: smallestEnclosingDiskExample,
+  },
   {
     name: 'getCenterAndRadius',
     category: 'misc_functions',

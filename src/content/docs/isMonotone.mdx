@@ -1,0 +1,26 @@
+Tests whether a polygon is monotone with respect to a line, and finds all the line directions for which it is. A polygon is monotone with respect to a line if every line perpendicular to it meets the polygon in one connected piece. The idea is explained on the [Monotone Polygons](/algorithms/L-monoton) page.
+
+```js
+isMonotone(polygon, angleDeg)
+monotoneDirections(polygon)
+```
+
+`polygon` is an array of points (`TextPoint`, `Point`, `{ x, y }` or `[x, y]`) or any object with a `points` array, such as a `Polygon` from `createPolygon`. The order of the vertices (clockwise or counter-clockwise) does not matter.
+
+### isMonotone(polygon, angleDeg)
+
+Returns `true` when the polygon is monotone with respect to the line through the origin at `angleDeg` degrees, measured counter-clockwise from the positive x axis (with y pointing up). `isMonotone(polygon, 90)` asks whether the polygon is y-monotone.
+
+### monotoneDirections(polygon)
+
+Returns an array of the angle ranges `[from, to]` in degrees, sorted, within 0 to 180, for which the polygon is monotone. An empty array means that there is no such direction. A range that is a single angle is returned as `[a, a]`. Angle 180 is the same line as angle 0, so a range ending at 180 and one starting at 0 are not merged.
+
+```js
+var polygon = createPolygon('triangle_set');
+polygon.draw();
+var ranges = monotoneDirections(polygon);
+var text = ranges.length === 0 ? 'none' : ranges.map(function (r) {
+  return r[0] === r[1] ? r[0].toFixed(1) : r[0].toFixed(1) + ' to ' + r[1].toFixed(1);
+}).join(', ');
+console.log('monotone directions: ' + text + ' (degrees; y-monotone: ' + isMonotone(polygon, 90) + ')');
+```

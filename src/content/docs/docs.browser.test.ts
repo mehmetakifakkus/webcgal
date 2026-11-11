@@ -10,6 +10,9 @@ import { docs } from './index'
 const EXAMPLE_OUTPUT: Record<string, RegExp> = {
   Vector: /^sum \(-?\d+, -?\d+\) · dot -?\d+ · cross -?\d+$/,
   getRandomInt: /^\d+ circles$/,
+  convexHull: /^\d+ of \d+ points on the hull$/,
+  isMonotone: /^monotone directions: .+$/,
+  smallestEnclosingDisk: /^radius \d+(\.\d+)? · \d+ points inside$/,
 }
 const RUNS = 5
 

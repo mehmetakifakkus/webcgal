@@ -1208,3 +1208,125 @@ describe('art gallery api', () => {
     expect(lines[0].text).toMatch(/^\d+ camera\(s\) for \d+ vertices$/)
   })
 })
+
+/** The documentation (spec §5) states these; they are easy to get wrong when the docs or the code change. */
+describe('documented facts', () => {
+  /** Runs `code` (which defines `out`) and returns JSON.parse of JSON.stringify(out). */
+  function value(code: string): unknown {
+    const { exec, lines } = setup()
+    const res = exec(`${code}\nconsole.log(JSON.stringify(out));`)
+    expect(res, code).toEqual({ ok: true })
+    expect(lines, code).toHaveLength(1)
+    expect(lines[0].kind, code).toBe('log')
+    return JSON.parse(lines[0].text)
+  }
+
+  test('range keeps adding until the last value is at least stop', () => {
+    expect(value('var out = range(0, 10, 3);')).toEqual([0, 3, 6, 9, 12])
+    expect(value('var out = range(0, 3);')).toEqual([0, 1, 2, 3])
+  })
+
+  test('inCircle returns the signed distance to the circle', () => {
+    expect(value('var out = inCircle([0, 0], 5, [3, 0]);')).toBe(-2)
+    expect(value('var out = inCircle([0, 0], 5, [3, 4]);')).toBe(0)
+    expect(value('var out = inCircle([0, 0], 5, [6, 8]);')).toBe(5)
+  })
+
+  test('miniDisc has a paper Point centre, smallestEnclosingDisk a plain {x, y} with the same disc', () => {
+    const r = value(`
+      var pts = [[0, 0], [40, 0], [20, 10], [10, 30], [35, 25]];
+      var m = miniDisc(pts);
+      var s = smallestEnclosingDisk(pts);
+      var out = {
+        miniPoint: m.center instanceof paper.Point && m.center instanceof Point,
+        sedPoint: s.center instanceof paper.Point,
+        sedProto: Object.getPrototypeOf(s.center) === Object.prototype,
+        sedKeys: Object.keys(s.center).sort(),
+        m: [m.center.x, m.center.y, m.radius],
+        s: [s.center.x, s.center.y, s.radius],
+      };
+    `) as { miniPoint: boolean; sedPoint: boolean; sedProto: boolean; sedKeys: string[]; m: number[]; s: number[] }
+    expect(r.miniPoint).toBe(true)
+    expect(r.sedPoint).toBe(false)
+    expect(r.sedProto).toBe(true)
+    expect(r.sedKeys).toEqual(['x', 'y'])
+    for (let i = 0; i < 3; i++) expect(Math.abs(r.m[i] - r.s[i])).toBeLessThan(1e-9)
+    expect(value('var out = smallestEnclosingDisk([]);')).toEqual({ center: { x: 0, y: 0 }, radius: 0 })
+  })
+
+  test('convexHull is closed, convexHullPts is open, in the same order', () => {
+    const r = value(`
+      var pts = [new TextPoint(0, 0), new TextPoint(100, 0), new TextPoint(50, 50), new TextPoint(100, 100),
+        new TextPoint(0, 100), new TextPoint(50, 0)];
+      var h = convexHull(pts);
+      var hp = convexHullPts(pts);
+      var out = {
+        closed: h[0] === h[h.length - 1],
+        hull: h.map(function (tp) { return [tp.pos.x, tp.pos.y]; }),
+        pts: hp.map(function (p) { return [p.x, p.y]; }),
+        plain: hp.every(function (p) { return Object.getPrototypeOf(p) === Object.prototype; }),
+      };
+    `) as { closed: boolean; hull: number[][]; pts: number[][]; plain: boolean }
+    expect(r.closed).toBe(true)
+    expect(r.pts).toHaveLength(r.hull.length - 1)
+    expect(r.pts).toEqual(r.hull.slice(0, -1))
+    expect(r.pts).toHaveLength(4)
+    expect(r.plain).toBe(true)
+  })
+
+  test('dualLine and dualPoint are inverses', () => {
+    expect(value('var out = dualPoint(dualLine([3, 4]));')).toEqual({ x: 3, y: 4 })
+    expect(value('var out = dualLine([2, 5]);')).toEqual({ slope: 2, intercept: -5 })
+  })
+
+  test('findStabber returns null when no line exists, else a line meeting every segment', () => {
+    expect(value('var out = findStabber([[[0, 0], [0, 1]], [[1, 5], [1, 6]], [[2, 0], [2, 1]]]);')).toBeNull()
+    expect(value('var out = findStabber([]);')).toEqual({ slope: 0, intercept: 0 })
+    const segs: [number, number][][] = [
+      [[0, 0], [0, 2]],
+      [[1, 1], [1, 3]],
+      [[2, 2], [2, 4]],
+      [[3, 2], [3, 5]],
+    ]
+    const line = value(`var out = findStabber(${JSON.stringify(segs)});`) as { slope: number; intercept: number }
+    expect(line).not.toBeNull()
+    for (const [[x, y0], [, y1]] of segs) {
+      const y = line.slope * x + line.intercept
+      expect(y, JSON.stringify(line)).toBeGreaterThanOrEqual(Math.min(y0, y1) - 1e-9)
+      expect(y, JSON.stringify(line)).toBeLessThanOrEqual(Math.max(y0, y1) + 1e-9)
+    }
+  })
+
+  test('getTextPoint: an exact name beats an earlier prefix match; unknown names give undefined', () => {
+    const r = value(`
+      var a = new TextPoint(1, 1); a.path.name = 'pa1';
+      var b = new TextPoint(2, 2); b.path.name = 'pa';
+      var c = new TextPoint(3, 3);
+      var out = {
+        exact: getTextPoint('pa') === b,
+        prefix: getTextPoint('p') === a,
+        unnamed: getTextPoint('_p2') === c,
+        unknown: getTextPoint('nope') === undefined,
+      };
+    `)
+    expect(r).toEqual({ exact: true, prefix: true, unnamed: true, unknown: true })
+  })
+
+  test('getRandomInt(min, max) is at least min and below max', () => {
+    expect(value('var out = []; for (var i = 0; i < 20; i++) out.push(getRandomInt(3, 4));')).toEqual(Array(20).fill(3))
+  })
+
+  test('isLeftTurn looks at the last three points, y up', () => {
+    expect(value('var out = isLeftTurn([[0, 0], [1, 0], [1, 1]]);')).toBe(true)
+    expect(value('var out = isLeftTurn([[0, 0], [1, 0], [1, -1]]);')).toBe(false)
+    expect(value('var out = isLeftTurn([[5, 5], [9, 9], [0, 0], [1, 0], [1, 1]]);')).toBe(true)
+  })
+
+  test('convertToRealCoord multiplies by 50', () => {
+    expect(value('var p = convertToRealCoord([1, 2]); var out = [p instanceof Point, p.x, p.y];')).toEqual([true, 50, 100])
+  })
+
+  test('printLog is print and clear is clearScreen', () => {
+    expect(value('var out = [printLog === print, clear === clearScreen];')).toEqual([true, true])
+  })
+})

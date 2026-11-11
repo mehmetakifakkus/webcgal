@@ -20,6 +20,31 @@ var points = Points.createRandom(10);
 Points.drawLines(points);
 ```
 
+### drawLine(p1, p2)
+
+The global form of `Points.drawLine(p1, p2)`; both behave the same. It draws a black line, 2 px wide, from `p1` to `p2`. The points may be `TextPoint` objects, `Point` objects, `{ x, y }` objects or `[x, y]` arrays. `clearScreen()` removes the line.
+
+```js
+drawLine([100, 100], [300, 200]);
+```
+
+### drawLines(points)
+
+The global form of `Points.drawLines(points)`; both behave the same. It draws a line from each point to the next one, so the last point is not joined to the first.
+
+```js
+drawLines([[100, 100], [200, 250], [300, 100]]);
+```
+
+### drawCoordinateSystem()
+
+Draws a coordinate system: the x and y axes through the origin, a dotted grid every 50 units over x 0–1000 and y 0–500, a black dot at the origin and the label "(0,0)". Unlike the other drawing functions, it is not removed by `clearScreen()`.
+
+```js
+drawCoordinateSystem();
+drawLine([0, 0], [200, 150]);
+```
+
 ### drawCircle(\{center, radius\})
 
 Result is like this:

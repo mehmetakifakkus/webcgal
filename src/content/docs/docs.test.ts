@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
+import { API_NAMES, PAPER_CLASSES } from '../../engine/api'
 import { categories, docs, findDoc } from './index'
 
 /** The 15 items of the legacy documentation, with their legacy categories. */
@@ -111,5 +112,106 @@ describe('documentation entries', () => {
     for (const d of docs.filter((x) => x.example !== undefined)) {
       expect(readFileSync(`${dir}${d.name}.mdx`, 'utf8'), d.name).toContain(d.example!.trim())
     }
+  })
+})
+
+/** API names that need no documentation item: paper.js, the environment, and legacy globals. */
+const ALLOWED_UNDOCUMENTED: readonly string[] = [
+  ...PAPER_CLASSES,
+  'project',
+  'view',
+  'tool',
+  'paper',
+  'console',
+  'document',
+  'polygon',
+  'colors',
+]
+/** Names not documented yet; the task that documents a name removes it here. */
+const PENDING: string[] = [
+  'Vector',
+  'add',
+  'subtract',
+  'dotProduct',
+  'crossProduct',
+  'getRandomInt',
+  'range',
+  'isMonotone',
+  'monotoneDirections',
+  'convexHull',
+  'convexHullPts',
+  'isLeftTurn',
+  'smallestEnclosingDisk',
+  'miniDisc',
+  'inCircle',
+  'dualPoint',
+  'dualLine',
+  'findStabber',
+  'getTextPoint',
+  'origin',
+  'drawables',
+  'convertToRealCoord',
+]
+/** Names that are values, not functions: inline code (`origin`) documents them. */
+const VALUE_NAMES = ['origin', 'drawables']
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** The MDX text without the lines of fenced code blocks (fences included). */
+function proseLines(mdx: string): string[] {
+  const out: string[] = []
+  let inFence = false
+  for (const line of mdx.split('\n')) {
+    if (/^\s*(```|~~~)/.test(line)) inFence = !inFence
+    else if (!inFence) out.push(line)
+  }
+  return out
+}
+
+/**
+ * True when `mdx` has a definition line for `name`: a heading, list item or paragraph that starts
+ * with `name(`, `name.` or `Object.name(` (optionally in inline code), as the documentation items do.
+ * For the values `origin` and `drawables`, inline code anywhere outside code blocks counts too.
+ */
+function isDocumentedIn(name: string, mdx: string): boolean {
+  const n = escapeRegExp(name)
+  const definition = new RegExp(`^(#{1,6} +|- +)?\`?(${n}\\(|${n}\\.|[A-Za-z]+\\.${n}\\()`)
+  const lines = proseLines(mdx)
+  if (lines.some((l) => definition.test(l))) return true
+  return VALUE_NAMES.includes(name) && lines.some((l) => l.includes(`\`${name}\``))
+}
+
+const mdxTexts = readdirSync(dir)
+  .filter((f) => f.endsWith('.mdx'))
+  .map((f) => readFileSync(dir + f, 'utf8'))
+const isDocumented = (name: string) => findDoc(name) !== undefined || mdxTexts.some((t) => isDocumentedIn(name, t))
+
+describe('API coverage', () => {
+  test('every API name is documented', () => {
+    const undocumented = API_NAMES.filter(
+      (n) => !ALLOWED_UNDOCUMENTED.includes(n) && !PENDING.includes(n) && !isDocumented(n),
+    )
+    expect(undocumented, 'undocumented API names: ' + undocumented.join(', ')).toEqual([])
+  })
+
+  test('pending names are really undocumented', () => {
+    for (const n of PENDING) expect(API_NAMES as readonly string[], n).toContain(n)
+    expect(PENDING.filter(isDocumented), 'documented, remove from PENDING').toEqual([])
+  })
+
+  test('a prose or code-block mention does not count', () => {
+    expect(isDocumentedIn('drawLine', 'We call drawLine(a, b) here.')).toBe(false)
+    expect(isDocumentedIn('drawLine', '```js\ndrawLine(a, b);\n```')).toBe(false)
+    expect(isDocumentedIn('drawLine', '### drawLine(p1, p2)')).toBe(true)
+    expect(isDocumentedIn('rangeQuery', '- `rangeQuery(points, tree, rect)` returns')).toBe(true)
+    expect(isDocumentedIn('Segments', '- `Segments.createRandom(n)` creates')).toBe(true)
+    expect(isDocumentedIn('createRandom', '- `Segments.createRandom(n)` creates')).toBe(true)
+    // a longer name with the same prefix is not a definition
+    expect(isDocumentedIn('drawLine', '### drawLines(points)')).toBe(false)
+    // values: inline code counts, prose and code blocks do not
+    expect(isDocumentedIn('origin', 'The `origin` is the point (0, 0).')).toBe(true)
+    expect(isDocumentedIn('origin', 'Draws a dot at the origin.')).toBe(false)
+    expect(isDocumentedIn('origin', '```js\nprint(`origin`)\n```')).toBe(false)
+    expect(isDocumentedIn('drawLine', 'Use `drawLine`.')).toBe(false)
   })
 })

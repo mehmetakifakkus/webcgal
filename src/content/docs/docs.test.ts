@@ -170,12 +170,13 @@ function proseLines(mdx: string): string[] {
 
 /**
  * True when `mdx` has a definition line for `name`: a heading, list item or paragraph that starts
- * with `name(`, `name.` or `Object.name(` (optionally in inline code), as the documentation items do.
+ * with `name(` or `name.` (optionally in inline code), as the documentation items do. `Object.name(`
+ * documents `Object`, not a global `name`: `### Points.drawLine(p1, p2)` does not document `drawLine`.
  * For the values `origin` and `drawables`, inline code anywhere outside code blocks counts too.
  */
 function isDocumentedIn(name: string, mdx: string): boolean {
   const n = escapeRegExp(name)
-  const definition = new RegExp(`^(#{1,6} +|- +)?\`?(${n}\\(|${n}\\.|[A-Za-z]+\\.${n}\\()`)
+  const definition = new RegExp(`^(#{1,6} +|- +)?\`?(${n}\\(|${n}\\.)`)
   const lines = proseLines(mdx)
   if (lines.some((l) => definition.test(l))) return true
   return VALUE_NAMES.includes(name) && lines.some((l) => l.includes(`\`${name}\``))
@@ -205,7 +206,10 @@ describe('API coverage', () => {
     expect(isDocumentedIn('drawLine', '### drawLine(p1, p2)')).toBe(true)
     expect(isDocumentedIn('rangeQuery', '- `rangeQuery(points, tree, rect)` returns')).toBe(true)
     expect(isDocumentedIn('Segments', '- `Segments.createRandom(n)` creates')).toBe(true)
-    expect(isDocumentedIn('createRandom', '- `Segments.createRandom(n)` creates')).toBe(true)
+    // Object.name( documents Object only, not a global function of the same name
+    expect(isDocumentedIn('drawLine', '### Points.drawLine(p1, p2)')).toBe(false)
+    expect(isDocumentedIn('drawLines', '### Points.drawLines(points)')).toBe(false)
+    expect(isDocumentedIn('createRandom', '- `Segments.createRandom(n)` creates')).toBe(false)
     // a longer name with the same prefix is not a definition
     expect(isDocumentedIn('drawLine', '### drawLines(points)')).toBe(false)
     // values: inline code counts, prose and code blocks do not

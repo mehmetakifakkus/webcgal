@@ -1,0 +1,37 @@
+Looks up a `TextPoint` by its name. This page also describes `origin`, `drawables` and `convertToRealCoord`.
+
+```js
+getTextPoint(name)
+```
+
+### getTextPoint(name)
+
+Returns the `TextPoint` of this run whose name is `name`; if there is none, the first one (in creation order) whose name starts with `name`; if there is none either, `undefined`. An exact match wins over an earlier point that only matches the beginning.
+
+The name of a `TextPoint` is the name of its circle, `p.path.name`. A new point is named `_p` followed by its id, so the point with id 3 is `_p3` and `getTextPoint('_p3')` finds it. You can give it another name by assigning `p.path.name`.
+
+Note: drawing the point again, which happens when it is dragged or when you call `p.draw()`, creates a new circle and resets the name to `_p` and the id. Set the name again afterwards.
+
+### convertToRealCoord(p)
+
+```js
+convertToRealCoord(p)
+```
+
+Multiplies the point `p` (any point form) by 50 and returns a paper `Point`. It turns a grid position into a canvas position: the grid that `drawCoordinateSystem()` draws has a line every 50 units, so `convertToRealCoord([4, 3])` is the point (200, 150), where the grid lines x = 4 and y = 3 cross. The canvas is drawn with y pointing up and the origin in the bottom-left corner.
+
+### Values
+
+`origin` is the paper `Point` (0, 0), the point where the axes of `drawCoordinateSystem()` cross.
+
+`drawables` is the array of the items that the run has drawn: the circles and labels of `TextPoint`s and what `drawLine`, `drawLines` and `drawCircle` draw. `clearScreen()` removes the items in it from the canvas and empties it. The items of `drawCoordinateSystem()` are not in it.
+
+```js
+drawCoordinateSystem();
+var corner = new TextPoint(convertToRealCoord([4, 3]));
+corner.path.name = 'corner';
+new TextPoint(convertToRealCoord([8, 6]));
+var found = getTextPoint('cor'); // no point is named exactly 'cor', so the first name starting with it wins
+found.path.fillColor = 'red';
+console.log('found ' + found.path.name);
+```

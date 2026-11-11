@@ -18,6 +18,8 @@ import getRandomIntExample from './examples/getRandomInt.js?raw'
 import convexHullExample from './examples/convexHull.js?raw'
 import isMonotoneExample from './examples/isMonotone.js?raw'
 import smallestEnclosingDiskExample from './examples/smallestEnclosingDisk.js?raw'
+import findStabberExample from './examples/findStabber.js?raw'
+import getTextPointExample from './examples/getTextPoint.js?raw'
 import artGalleryExample from './examples/artGallery.js?raw'
 
 export type DocCategory = 'objects' | 'drawing_functions' | 'polygon_functions' | 'points_functions' | 'misc_functions'
@@ -123,6 +125,12 @@ export const docs: DocEntry[] = [
     content: () => import('./artGallery.mdx'),
     example: artGalleryExample,
   },
+  {
+    name: 'findStabber',
+    category: 'misc_functions',
+    content: () => import('./findStabber.mdx'),
+    example: findStabberExample,
+  },
   { name: 'loop', category: 'misc_functions', content: () => import('./loop.mdx') },
   { name: 'mouseDown', category: 'misc_functions', content: () => import('./mouseDown.mdx'), example: mouseDownExample },
   {
@@ -136,6 +144,12 @@ export const docs: DocEntry[] = [
     category: 'misc_functions',
     content: () => import('./getCenterAndRadius.mdx'),
     example: getCenterAndRadiusExample,
+  },
+  {
+    name: 'getTextPoint',
+    category: 'misc_functions',
+    content: () => import('./getTextPoint.mdx'),
+    example: getTextPointExample,
   },
 ]
 

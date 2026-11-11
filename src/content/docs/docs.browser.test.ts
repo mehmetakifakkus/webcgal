@@ -13,6 +13,8 @@ const EXAMPLE_OUTPUT: Record<string, RegExp> = {
   convexHull: /^\d+ of \d+ points on the hull$/,
   isMonotone: /^monotone directions: .+$/,
   smallestEnclosingDisk: /^radius \d+(\.\d+)? · \d+ points inside$/,
+  findStabber: /^(stabber y = .+|no stabbing line)$/,
+  getTextPoint: /^found .+$/,
 }
 const RUNS = 5
 

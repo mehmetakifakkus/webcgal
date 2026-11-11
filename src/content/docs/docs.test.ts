@@ -34,6 +34,8 @@ const newItems = [
   { name: 'isMonotone', category: 'polygon_functions' },
   { name: 'convexHull', category: 'misc_functions' },
   { name: 'smallestEnclosingDisk', category: 'misc_functions' },
+  { name: 'findStabber', category: 'misc_functions' },
+  { name: 'getTextPoint', category: 'misc_functions' },
 ] as const
 const dir = new URL('.', import.meta.url).pathname
 
@@ -44,7 +46,7 @@ describe('documentation entries', () => {
       expect(findDoc(name)?.category, name).toBe(category)
     }
     expect(docs).toHaveLength(legacyItems.length + newItems.length)
-    expect(docs).toHaveLength(26)
+    expect(docs).toHaveLength(28)
   })
 
   test('findIntersections is documented with an example', () => {
@@ -123,6 +125,20 @@ describe('documentation entries', () => {
     expect(names.indexOf('smallestEnclosingDisk')).toBe(names.indexOf('mouseDown') + 1)
   })
 
+  test('findStabber and getTextPoint are documented with an example, in menu order', () => {
+    for (const name of ['findStabber', 'getTextPoint'] as const) {
+      const entry = findDoc(name)
+      expect(entry?.category, name).toBe('misc_functions')
+      expect(entry?.example?.trim().length, name).toBeGreaterThan(0)
+      expect(readFileSync(`${dir}${name}.mdx`, 'utf8'), name).toContain(entry!.example!.trim())
+    }
+    const misc = docs.filter((d) => d.category === 'misc_functions').map((d) => d.name)
+    expect(misc).toEqual([
+      'convexHull', 'findIntersections', 'triangulate', 'delaunay', 'voronoi', 'kdTree', 'artGallery',
+      'findStabber', 'loop', 'mouseDown', 'smallestEnclosingDisk', 'getCenterAndRadius', 'getTextPoint',
+    ])
+  })
+
   test('names are unique and case-sensitive', () => {
     expect(new Set(docs.map((d) => d.name)).size).toBe(docs.length)
     expect(findDoc('polygon')).toBeUndefined()
@@ -143,7 +159,7 @@ describe('documentation entries', () => {
 
   test('no link_to left in any MDX file', () => {
     const files = readdirSync(dir).filter((f) => f.endsWith('.mdx'))
-    expect(files).toHaveLength(26)
+    expect(files).toHaveLength(28)
     for (const f of files) expect(readFileSync(dir + f, 'utf8'), f).not.toContain('link_to(')
   })
 
@@ -165,16 +181,6 @@ const ALLOWED_UNDOCUMENTED: readonly string[] = [
   'document',
   'polygon',
   'colors',
-]
-/** Names not documented yet; the task that documents a name removes it here. */
-const PENDING: string[] = [
-  'dualPoint',
-  'dualLine',
-  'findStabber',
-  'getTextPoint',
-  'origin',
-  'drawables',
-  'convertToRealCoord',
 ]
 /** Names that are values, not functions: inline code (`origin`) documents them. */
 const VALUE_NAMES = ['origin', 'drawables']
@@ -219,14 +225,9 @@ const isDocumented = (name: string) => findDoc(name) !== undefined || mdxTexts.s
 describe('API coverage', () => {
   test('every API name is documented', () => {
     const undocumented = API_NAMES.filter(
-      (n) => !ALLOWED_UNDOCUMENTED.includes(n) && !PENDING.includes(n) && !isDocumented(n),
+      (n) => !ALLOWED_UNDOCUMENTED.includes(n) && !isDocumented(n),
     )
     expect(undocumented, 'undocumented API names: ' + undocumented.join(', ')).toEqual([])
-  })
-
-  test('pending names are really undocumented', () => {
-    for (const n of PENDING) expect(API_NAMES as readonly string[], n).toContain(n)
-    expect(PENDING.filter(isDocumented), 'documented, remove from PENDING').toEqual([])
   })
 
   test('a prose or code-block mention does not count', () => {

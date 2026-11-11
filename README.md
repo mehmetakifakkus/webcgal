@@ -44,6 +44,7 @@ Live site: https://mehmetakifakkus.github.io/webcgal/ (also https://webcgal.netl
 - Playground: a free canvas with templates; the code is saved in the browser.
 - API documentation of the helper objects and functions (`Polygon`,
   `TextPoint`, `Points`, `draw`, `loop`, ...) with a "Try it" link for each.
+  Every API name has documentation, and a unit test enforces it.
 
 ## Development
 

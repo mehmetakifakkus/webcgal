@@ -1,0 +1,41 @@
+Finds a line that meets every one of a set of line segments (a stabber or transversal). The idea behind it, duality, is explained on the [Duality](/algorithms/duality) pages.
+
+```js
+findStabber(segments)
+dualLine(p)
+dualPoint(line)
+```
+
+### findStabber(segments)
+
+`segments` is an array of `[a, b]` pairs, where `a` and `b` are the end points of a segment, each in any point form (`TextPoint`, `Point`, `{ x, y }` or `[x, y]`). It returns a line `{ slope, intercept }`, meaning y = slope·x + intercept, that meets every segment (touching an end point counts), or `null` when no such line exists.
+
+The lines it returns are never vertical. It tries the lines through pairs of end points that have different x values and returns the first one that meets all segments. Without segments, any line works and the result is `{ slope: 0, intercept: 0 }`.
+
+Note: the result is only a line, not a drawing. To draw it, pick two x values and draw a segment between the two points on the line, for example `drawLine([0, line.intercept], [600, line.slope * 600 + line.intercept])`. Check for `null` first.
+
+### dualLine(p)
+
+The dual of the point (a, b) is the line y = a·x − b. It returns `{ slope: a, intercept: -b }`.
+
+### dualPoint(line)
+
+The dual of the line `{ slope: a, intercept: c }` is the point (a, −c). It returns a plain `{ x, y }` object. `dualPoint` undoes `dualLine`, so `dualPoint(dualLine(p))` is the point `p` again. The [Dual Line](/algorithms/duality/dualLine) and [Check Stabber](/algorithms/duality/checkStabber) pages show the dual of a point and of a segment.
+
+```js
+// five vertical segments at fixed x positions, with random heights
+var segments = [];
+for (var x = 100; x <= 500; x += 100) {
+  var low = getRandomInt(80, 260);
+  segments.push([[x, low], [x, low + getRandomInt(30, 120)]]);
+}
+segments.forEach(function (s) { drawLine(s[0], s[1]).strokeColor = 'blue'; });
+var line = findStabber(segments);
+if (line === null) {
+  console.log('no stabbing line');
+} else {
+  drawLine([0, line.intercept], [600, line.slope * 600 + line.intercept]).strokeColor = 'red';
+  var round = function (v) { return Math.round(v * 100) / 100; };
+  console.log('stabber y = ' + round(line.slope) + '·x ' + (line.intercept < 0 ? '- ' : '+ ') + round(Math.abs(line.intercept)));
+}
+```

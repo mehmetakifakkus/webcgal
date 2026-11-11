@@ -2,6 +2,7 @@ Looks up a `TextPoint` by its name. This page also describes `origin`, `drawable
 
 ```js
 getTextPoint(name)
+convertToRealCoord(p)
 ```
 
 ### getTextPoint(name)
@@ -14,17 +15,13 @@ Note: drawing the point again, which happens when it is dragged or when you call
 
 ### convertToRealCoord(p)
 
-```js
-convertToRealCoord(p)
-```
-
 Multiplies the point `p` (any point form) by 50 and returns a paper `Point`. It turns a grid position into a canvas position: the grid that `drawCoordinateSystem()` draws has a line every 50 units, so `convertToRealCoord([4, 3])` is the point (200, 150), where the grid lines x = 4 and y = 3 cross. The canvas is drawn with y pointing up and the origin in the bottom-left corner.
 
 ### Values
 
 `origin` is the paper `Point` (0, 0), the point where the axes of `drawCoordinateSystem()` cross.
 
-`drawables` is the array of the items that the run has drawn: the circles and labels of `TextPoint`s and what `drawLine`, `drawLines` and `drawCircle` draw. `clearScreen()` removes the items in it from the canvas and empties it. The items of `drawCoordinateSystem()` are not in it.
+`drawables` is the array of the items that the run has drawn: the circles and labels of `TextPoint`s, polygons, what `drawLine`, `drawLines` and `drawCircle` draw and the drawings of the algorithm functions. `clearScreen()` removes the items in it from the canvas and empties it. The items of `drawCoordinateSystem()` are not in it.
 
 ```js
 drawCoordinateSystem();

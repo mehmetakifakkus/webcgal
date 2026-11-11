@@ -114,4 +114,28 @@ describe('example output', () => {
     ])
     delete w.__runs
   })
+
+  test('the findStabber example prints both outcomes when Math.random is stubbed', async () => {
+    const code = docs.find((d) => d.name === 'findStabber')!.example!
+    const originalRandom = Math.random
+    try {
+      // every value 0.5: slope 0, intercept 180, no offset, half-length 35 -> five aligned segments around y = 180
+      Math.random = () => 0.5
+      const found = await runInFreshScene(code)
+      expect(outputProblem(found.result, found.lines, /^stabber y = .+$/)).toBeNull()
+      expect(found.lines[0].text).toBe('stabber y = 0·x + 145') // the flat line through the first end points tried
+
+      // alternating offsets -40 / +40 with short half-lengths: segments [120,160], [200,240], [120,160], ...
+      // no line can meet the first three of them, so findStabber returns null
+      const draws = [0.5, 0.5]
+      for (const offset of [0, 0.999, 0, 0.999, 0]) draws.push(offset, 0, 0)
+      let i = 0
+      Math.random = () => draws[i++] ?? 0.5
+      const none = await runInFreshScene(code)
+      expect(outputProblem(none.result, none.lines, /^no stabbing line$/)).toBeNull()
+      expect(i).toBe(draws.length)
+    } finally {
+      Math.random = originalRandom
+    }
+  })
 })

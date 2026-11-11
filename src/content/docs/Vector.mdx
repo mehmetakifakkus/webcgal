@@ -1,4 +1,4 @@
-A vector is a point used as an arrow from the origin. `Vector` is a subclass of the paper.js `Point`, so it has every `Point` method (`add`, `subtract`, `multiply`, `length`, `angle`, ...) and PaperScript operators such as `v1 + v2` work on it. Four helper functions on this page do the usual vector arithmetic.
+A vector is a point used as an arrow from the origin. `Vector` is a subclass of the paper.js `Point`, so it has every `Point` method (`add`, `subtract`, `multiply`, `length`, `angle`, ...) and PaperScript operators such as `v1 + v2` work on it. The result of an operator is a `Point`, not a `Vector`, so it has no `draw()`; wrap it with `new Vector(r.x, r.y)` as the example below does. Four helper functions on this page do the usual vector arithmetic.
 
 ```js
 new Vector(x, y)
@@ -24,15 +24,17 @@ Returns the number `v1.x * v2.x + v1.y * v2.y`.
 
 Returns the number `v1.x * v2.y - v2.x * v1.y`: positive when `v2` is counter-clockwise from `v1` in a coordinate system with y pointing up, negative when it is clockwise, 0 when the vectors are parallel.
 
-Note: `dotProduct` and `crossProduct` read `.x` and `.y` of their arguments, so they need `{ x, y }` objects (points or vectors); arrays are not converted.
+Note: `dotProduct` and `crossProduct` read `.x` and `.y` of their arguments, so they need a paper `Point`, a `Vector` or an `{ x, y }` object. A `TextPoint` (use `p.pos`) and an `[x, y]` array are not converted and give `NaN`.
 
 ```js
-var v1 = new Vector(100, 50);
-var v2 = new Vector(40, 100);
+var v1 = new Vector(300, 80);
+var v2 = new Vector(100, 200);
 var sum = add(v1, v2);
 drawLine(origin, v1);
 drawLine(origin, v2);
-drawLine(origin, sum);
+drawLine(v1, sum); // the other two sides of the parallelogram
+drawLine(v2, sum);
+drawLine(origin, sum).strokeColor = 'red'; // the sum, in red
 v1.draw();
 v2.draw();
 new Vector(sum.x, sum.y).draw();

@@ -1282,6 +1282,8 @@ describe('documented facts', () => {
   test('findStabber returns null when no line exists, else a line meeting every segment', () => {
     expect(value('var out = findStabber([[[0, 0], [0, 1]], [[1, 5], [1, 6]], [[2, 0], [2, 1]]]);')).toBeNull()
     expect(value('var out = findStabber([]);')).toEqual({ slope: 0, intercept: 0 })
+    // only lines through two end points with different x are tried
+    expect(value('var out = findStabber([[[0, 0], [0, 2]], [[0, 1], [0, 3]]]);')).toBeNull()
     const segs: [number, number][][] = [
       [[0, 0], [0, 2]],
       [[1, 1], [1, 3]],

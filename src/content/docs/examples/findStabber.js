@@ -1,8 +1,10 @@
-// five vertical segments at fixed x positions, with random heights
+// five vertical segments around a random line, so a stabbing line usually exists
+var slope = getRandomInt(-10, 11) / 100;
+var intercept = getRandomInt(150, 211);
 var segments = [];
 for (var x = 100; x <= 500; x += 100) {
-  var low = getRandomInt(80, 260);
-  segments.push([[x, low], [x, low + getRandomInt(30, 120)]]);
+  var y = slope * x + intercept + getRandomInt(-40, 41);
+  segments.push([[x, y - getRandomInt(20, 51)], [x, y + getRandomInt(20, 51)]]);
 }
 segments.forEach(function (s) { drawLine(s[0], s[1]).strokeColor = 'blue'; });
 var line = findStabber(segments);

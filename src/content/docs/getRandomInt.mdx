@@ -1,23 +1,20 @@
 Two small helpers for building test data: a random integer and a list of evenly spaced numbers.
 
-### getRandomInt(min, max)
-
 ```js
 getRandomInt(min, max)
-```
-
-Returns a random integer `value` with `min <= value < max` (`max` itself is never returned).
-
-### range(start, stop, step)
-
-```js
 range(start, stop)
 range(start, stop, step)
 ```
 
+### getRandomInt(min, max)
+
+Returns a random integer `value` with `min <= value < max` (for integer `min` and `max`; `max` itself is never returned).
+
+### range(start, stop, step)
+
 Returns the array `[start, start + step, start + 2 * step, ...]`. `step` is 1 when left out. It keeps adding `step` until the last value is at least `stop`.
 
-Note: the last value can therefore pass `stop`: `range(0, 10, 3)` is `[0, 3, 6, 9, 12]`, and `range(0, 3)` is `[0, 1, 2, 3]`.
+Note: the last value can therefore pass `stop`: `range(0, 10, 3)` is `[0, 3, 6, 9, 12]`, and `range(0, 3)` is `[0, 1, 2, 3]`. `step` must be positive: with `step <= 0` and `start < stop` it never ends.
 
 ```js
 var xs = range(60, 700, 80);

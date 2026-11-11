@@ -3,6 +3,7 @@ Computes the smallest disc that contains all the given points. It is the randomi
 ```js
 smallestEnclosingDisk(points)
 miniDisc(points)
+inCircle(center, radius, p)
 ```
 
 `points` is an array of `TextPoint`, `Point`, `{ x, y }` or `[x, y]`. The input is not changed.
@@ -13,13 +14,9 @@ Returns `{ center, radius }`, where `center` is a plain `{ x, y }` object. For a
 
 ### miniDisc(points)
 
-Returns the same disc, but `center` is a paper `Point`. This is the shape that `drawCircle` takes, so `drawCircle(miniDisc(points))` draws the disc.
+Returns the same disc, but `center` is a paper `Point`, the shape of the original WebCgal library. `drawCircle` accepts either form of centre, so `drawCircle(smallestEnclosingDisk(points))` and `drawCircle(miniDisc(points))` both draw the disc.
 
 ### inCircle(center, radius, p)
-
-```js
-inCircle(center, radius, p)
-```
 
 Returns the distance from `p` to `center` minus `radius`: negative when `p` is inside the circle, 0 when it is on the circle and positive when it is outside. `center` and `p` can be any point form.
 
@@ -28,7 +25,7 @@ Note: `inCircle` returns a number, not a boolean. Compare with a small tolerance
 ```js
 var points = Points.createRandom(25, 250, 600, 120, 300);
 var disk = smallestEnclosingDisk(points);
-drawCircle(miniDisc(points));
+drawCircle(disk);
 var inside = points.filter(function (p) { return inCircle(disk.center, disk.radius, p) <= 1e-9; });
 console.log('radius ' + Math.round(disk.radius) + ' · ' + inside.length + ' points inside');
 ```

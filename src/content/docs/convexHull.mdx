@@ -2,6 +2,8 @@ Computes the convex hull of a point set, the smallest convex polygon that contai
 
 ```js
 convexHull(points)
+convexHullPts(points)
+isLeftTurn(list)
 ```
 
 ### convexHull(points)
@@ -10,19 +12,11 @@ convexHull(points)
 
 ### convexHullPts(points)
 
-```js
-convexHullPts(points)
-```
-
 The same hull for any point form (`TextPoint`, `Point`, `{ x, y }` object or `[x, y]` array). It returns plain `{ x, y }` objects in the same order, but not closed: the first point is not repeated.
 
 ### isLeftTurn(list)
 
-```js
-isLeftTurn(list)
-```
-
-`list` is an array of points. Only the last three points are looked at; `isLeftTurn` returns `true` when they make a left turn and `false` otherwise (a right turn, or three points on a line). The legacy convex hull code uses it to decide which points to drop.
+`list` is an array of points. Only the last three points are looked at; `isLeftTurn` returns `true` when they make a left turn and `false` otherwise (a right turn, or three points on a line). The convex hull code of the original WebCgal library used it to decide which points to drop.
 
 Note: left is meant with y pointing up, which is how the canvas is drawn (the origin is the bottom-left corner), so a turn that looks like a left turn on the canvas, such as `[[0, 0], [100, 0], [100, 100]]`, returns `true`. The list needs at least three points.
 

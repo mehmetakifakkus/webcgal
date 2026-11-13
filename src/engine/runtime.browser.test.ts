@@ -1147,6 +1147,18 @@ describe('range tree api', () => {
   })
 
   test('bad input is rejected with a clear message', () => {
+    // 10 001 points on the diagonal and chain(m): a split node per point but the last, its left
+    // child a leaf and its right child the rest; `assoc` of every node a chain of the same shape on y
+    const CHAIN = `
+      var pts = [];
+      for (var i = 0; i < 10001; i++) pts.push([i, i]);
+      function chain(m) {
+        var a = { point: m - 1 };
+        for (var i = m - 2; i >= 0; i--) a = { value: i, left: { point: i }, right: a };
+        var v = { point: m - 1, assoc: { point: m - 1 } };
+        for (var i = m - 2; i >= 0; i--) v = { value: i, left: { point: i, assoc: { point: i } }, right: v, assoc: a };
+        return v;
+      }`
     const p = '[[0, 0], [10, 0], [0, 10]]'
     const R = '[[0, 0], [5, 5]]'
     const tree = (fn: string) => `${fn}: expected the result of rangeTree(points) for the same points`
@@ -1192,6 +1204,12 @@ describe('range tree api', () => {
       ['drawRangeTree(5, rangeTree([]))', 'drawRangeTree: expected an array of points (got number)'],
       [`drawRangeTree(${p}, {})`, tree('drawRangeTree')],
       [`drawRangeTree(${p}, rangeTree([[0, 0]]))`, tree('drawRangeTree')],
+      // deeper than a balanced tree: a chain of 20 001 main nodes for 10 001 points (within the
+      // 2n − 1 node cap), and a valid main tree whose root has a chain as its associated tree
+      [`${CHAIN} rangeTreeQuery(pts, { root: chain(10001), depth: 10000, size: 10001, storage: 20001 }, ${R})`, tree('rangeTreeQuery')],
+      [`${CHAIN} drawRangeTree(pts, { root: chain(10001), depth: 10000, size: 10001, storage: 20001 })`, tree('drawRangeTree')],
+      [`${CHAIN} var t = JSON.parse(JSON.stringify(rangeTree(pts))); t.root.assoc = chain(10001).assoc; rangeTreeQuery(pts, t, ${R})`, tree('rangeTreeQuery')],
+      [`${CHAIN} var t = JSON.parse(JSON.stringify(rangeTree(pts))); t.root.assoc = chain(10001).assoc; drawRangeTree(pts, t)`, tree('drawRangeTree')],
     ]) {
       const { exec, lines } = setup()
       const res = exec(code)
@@ -1210,6 +1228,28 @@ describe('range tree api', () => {
     `)
     expect(res).toEqual({ ok: true })
     expect(lines).toEqual([{ kind: 'log', text: '1,2,3,5' }])
+  })
+
+  test('large trees pass the depth check', () => {
+    const { exec, lines } = setup()
+    // around powers of two (the depth bound ⌈log2 n⌉ steps up after 1024) and up to 2000 points
+    const res = exec(`
+      var out = [];
+      [1023, 1024, 1025, 2000].forEach(function (n) {
+        var points = [];
+        for (var i = 0; i < n; i++) points.push([getRandomInt(0, 775), getRandomInt(0, 360)]);
+        var tree = rangeTree(points);
+        var copy = JSON.parse(JSON.stringify(tree));
+        var expected = [];
+        points.forEach(function (p, i) { if (p[0] >= 100 && p[0] <= 500 && p[1] >= 50 && p[1] <= 250) expected.push(i); });
+        var m = drawables.length;
+        drawRangeTree(points, copy);
+        out.push(tree.depth + ':' + (rangeTreeQuery(points, copy, [[100, 50], [500, 250]]).join(',') === expected.join(',')) + ':' + (drawables.length - m));
+      });
+      console.log(out.join(' '));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '10:true:1022 10:true:1023 11:true:1024 11:true:1999' }])
   })
 
   test('drawRangeTree draws one vertical split line per internal node, over the padded y-extent of the points', () => {

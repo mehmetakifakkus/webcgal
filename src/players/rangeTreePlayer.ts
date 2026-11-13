@@ -322,6 +322,11 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
     const curPoints = new Set(build && current ? current.points : [])
     // the points of the canonical subtree whose associated tree is shown, ringed
     const ringed = new Set(!build && s.assocShown !== null ? nodes[s.assocShown].points : [])
+    // the corner squares (drawn last, below), each with a 1 px pad, in modes with a query phase
+    const h = CORNER_SIZE / 2
+    const corners = s.mode === 'build' ? [] : cornerHandles(query, RT_PLANE)
+    const meetsCorner = (b: paper.Rectangle) =>
+      corners.some((q) => b.left < q.x + h + 1 && b.right > q.x - h - 1 && b.top < q.y + h + 1 && b.bottom > q.y - h - 1)
     if (n <= MAX_POINT_LABELS)
       for (const members of labelGroups(points)) {
         const q = points[members[0]]
@@ -329,7 +334,13 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
         const right = q.x <= RT_PLANE.x1 - 15
         const up = q.y <= RT_PLANE.y1 - 13
         const content = members.length <= 3 ? members.map(pointLabel).join(', ') : `${pointLabel(members[0])} +${members.length - 1}`
-        text(content, q.x + (right ? 6 : -6), q.y + (up ? 5 : -13), 10, right ? 'left' : 'right')
+        const y = q.y + (up ? 5 : -13)
+        const label = text(content, q.x + (right ? 6 : -6), y, 10, right ? 'left' : 'right')
+        // a label on the right that would cover a corner square goes to the left of its point
+        if (right && meetsCorner(label.bounds)) {
+          label.remove()
+          text(content, q.x - 6, y, 10, 'right')
+        }
       }
     points.forEach((q, i) => {
       if (ringed.has(i)) new P.Path.Circle({ center: pt(q), radius: POINT_RADIUS + 3.5, strokeColor: c.canonical, strokeWidth: 1.5 })
@@ -343,11 +354,7 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
       })
     })
     // the corners are drawn where they are grabbed (cornerHandles), in modes with a query phase
-    if (s.mode !== 'build')
-      cornerHandles(query, RT_PLANE).forEach((q, k) => {
-        const h = CORNER_SIZE / 2
-        rect({ x0: q.x - h, y0: q.y - h, x1: q.x + h, y1: q.y + h }, { fillColor: c.ink, name: `corner-${k}` })
-      })
+    corners.forEach((q, k) => rect({ x0: q.x - h, y0: q.y - h, x1: q.x + h, y1: q.y + h }, { fillColor: c.ink, name: `corner-${k}` }))
   },
 
   panels(step, input): Panel[] {

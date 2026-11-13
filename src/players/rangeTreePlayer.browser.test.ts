@@ -550,6 +550,42 @@ test('plane labels of coincident points are merged', () => {
   expect(texts(scene).filter((t) => t.bounds.left > 370 && t.bounds.top >= 250 && /^[vp]\d+$/.test(t.content))).toHaveLength(31)
 })
 
+test('point labels clear the corner squares', () => {
+  const scene = makeScene()
+  const meets = (a: paper.Rectangle, b: paper.Rectangle) =>
+    Math.min(a.right, b.right) > Math.max(a.left, b.left) && Math.min(a.bottom, b.bottom) > Math.max(a.top, b.top)
+  const pointLabels = () => texts(scene).filter((t) => t.bounds.right < 367 && /^p\d+/.test(t.content))
+  const check = (input: RangeTreeInput, mode: string, label: string) => {
+    const steps = rangeTreePlayer.computeSteps(input, mode)
+    for (const step of [steps[0], steps[steps.length - 1]]) {
+      rangeTreePlayer.render(scene, step, input)
+      const corners = named(scene, 'corner-')
+      expect(corners, label).toHaveLength(2)
+      const labels = pointLabels()
+      expect(labels.length, label).toBeGreaterThan(0)
+      for (const t of labels) for (const c of corners) expect(meets(t.bounds, c.bounds), `${label}, ${step.description}: ${t.content} and ${c.name}`).toBe(false)
+    }
+  }
+  for (const p of RT_PRESETS) {
+    check(preset(p.name), 'full', p.name)
+    check(preset(p.name), 'query', `${p.name} (query only)`)
+  }
+  // the two labels that met a corner: Textbook p2 left of its point, Thin vertical strip p8 too
+  const leftOf = (input: RangeTreeInput, k: number) => {
+    rangeTreePlayer.render(scene, rangeTreePlayer.computeSteps(input)[0], input)
+    const t = pointLabels().find((x) => x.content === `p${k + 1}`)!
+    return t.bounds.right <= input.points[k].x - 5
+  }
+  expect(leftOf(textbook(), 1)).toBe(true)
+  expect(leftOf(preset('Thin vertical strip'), 7)).toBe(true)
+  // the others stay to the right of their points
+  rangeTreePlayer.render(scene, rangeTreePlayer.computeSteps(textbook())[0], textbook())
+  for (const t of pointLabels().filter((x) => x.content !== 'p2')) {
+    const k = Number(t.content.slice(1)) - 1
+    expect(t.bounds.left, t.content).toBeGreaterThanOrEqual(textbook().points[k].x + 5)
+  }
+})
+
 test('modes, dimmed lines, presets, canvas, hint and colours', () => {
   const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
   expect(rangeTreePlayer.modes).toEqual([

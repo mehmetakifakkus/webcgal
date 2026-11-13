@@ -72,8 +72,9 @@ const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFin
 /**
  * Checks a `rangeTree(points)` result against `points` and converts it back to a geometry tree.
  * Every node is type-checked first (objects, finite numbers, point indices, an `assoc` at every
- * main-tree node, at most 2m − 1 nodes in a tree of m points, so a hand-made or cyclic object
- * fails cleanly); then `checkRangeTree` verifies, without rebuilding the tree, that every point
+ * main-tree node, at most 2m − 1 nodes and depth at most ⌈log2 m⌉ in a tree of m points, as in a
+ * balanced tree, so a hand-made, cyclic or deep object fails cleanly instead of overflowing the
+ * stack); then `checkRangeTree` verifies, without rebuilding the tree, that every point
  * is in exactly one leaf and in each associated tree on its root path, and the order, balance,
  * split values, `depth` and `storage`.
  */
@@ -85,13 +86,20 @@ function toTree(tree: unknown, points: Pt[], fn: string): RangeTree {
   if (!isObject(tree) || tree.size !== n || !Number.isInteger(tree.depth) || !Number.isInteger(tree.storage)) fail()
   const t = tree as Record<string, unknown>
   const isIndex = (i: unknown): i is number => Number.isInteger(i) && (i as number) >= 0 && (i as number) < n
+  /** The depth of a balanced tree of `m` leaves, ⌈log2 m⌉ (0 for m ≤ 1). */
+  const maxDepth = (m: number) => {
+    let d = 0
+    while (2 ** d < m) d++
+    return d
+  }
 
-  /** An associated tree over `m` points: at most 2m − 1 nodes, ids in pre-order. */
+  /** An associated tree over `m` points: at most 2m − 1 nodes and depth ⌈log2 m⌉, ids in pre-order. */
   const assoc = (root: unknown, m: number): Tree1D => {
     let nextId = 0
     let size = 0
-    const convert = (v: unknown): Tree1DNode => {
-      if (!isObject(v) || nextId >= 2 * m - 1) return fail()
+    const deepest = maxDepth(m)
+    const convert = (v: unknown, depth: number): Tree1DNode => {
+      if (!isObject(v) || nextId >= 2 * m - 1 || depth > deepest) return fail()
       const id = nextId++
       if ('point' in v) {
         if (!isIndex(v.point)) fail()
@@ -99,18 +107,19 @@ function toTree(tree: unknown, points: Pt[], fn: string): RangeTree {
         return { kind: 'leaf', id, point: v.point as number }
       }
       if (!isNum(v.value)) fail()
-      const left = convert(v.left)
-      const right = convert(v.right)
+      const left = convert(v.left, depth + 1)
+      const right = convert(v.right, depth + 1)
       return { kind: 'split', id, value: v.value as number, left, right }
     }
-    const r = convert(root)
+    const r = convert(root, 0)
     return { axis: 'y', root: r, size }
   }
 
   const nodes: RTNode[] = []
   let splits = 0
+  const deepest = maxDepth(n)
   const convert = (v: unknown, depth: number): RTNode => {
-    if (!isObject(v) || nodes.length >= 2 * n - 1) return fail()
+    if (!isObject(v) || nodes.length >= 2 * n - 1 || depth > deepest) return fail()
     const node = { id: nodes.length, depth } as RTNode
     nodes.push(node)
     if ('point' in v) {

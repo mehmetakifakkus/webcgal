@@ -28,6 +28,7 @@ const newItems = [
   { name: 'delaunay', category: 'misc_functions' },
   { name: 'voronoi', category: 'misc_functions' },
   { name: 'kdTree', category: 'misc_functions' },
+  { name: 'rangeTree', category: 'misc_functions' },
   { name: 'artGallery', category: 'misc_functions' },
   { name: 'Vector', category: 'objects' },
   { name: 'getRandomInt', category: 'points_functions' },
@@ -46,7 +47,7 @@ describe('documentation entries', () => {
       expect(findDoc(name)?.category, name).toBe(category)
     }
     expect(docs).toHaveLength(legacyItems.length + newItems.length)
-    expect(docs).toHaveLength(28)
+    expect(docs).toHaveLength(29)
   })
 
   test('findIntersections is documented with an example', () => {
@@ -82,6 +83,13 @@ describe('documentation entries', () => {
     expect(entry?.category).toBe('misc_functions')
     expect(entry?.example?.trim().length).toBeGreaterThan(0)
     expect(readFileSync(`${dir}kdTree.mdx`, 'utf8')).toContain(entry!.example!.trim())
+  })
+
+  test('rangeTree is documented with an example', () => {
+    const entry = findDoc('rangeTree')
+    expect(entry?.category).toBe('misc_functions')
+    expect(entry?.example?.trim().length).toBeGreaterThan(0)
+    expect(readFileSync(`${dir}rangeTree.mdx`, 'utf8')).toContain(entry!.example!.trim())
   })
 
   test('artGallery is documented with an example', () => {
@@ -134,7 +142,7 @@ describe('documentation entries', () => {
     }
     const misc = docs.filter((d) => d.category === 'misc_functions').map((d) => d.name)
     expect(misc).toEqual([
-      'convexHull', 'findIntersections', 'triangulate', 'delaunay', 'voronoi', 'kdTree', 'artGallery',
+      'convexHull', 'findIntersections', 'triangulate', 'delaunay', 'voronoi', 'kdTree', 'rangeTree', 'artGallery',
       'findStabber', 'loop', 'mouseDown', 'smallestEnclosingDisk', 'getCenterAndRadius', 'getTextPoint',
     ])
   })
@@ -159,7 +167,7 @@ describe('documentation entries', () => {
 
   test('no link_to left in any MDX file', () => {
     const files = readdirSync(dir).filter((f) => f.endsWith('.mdx'))
-    expect(files).toHaveLength(28)
+    expect(files).toHaveLength(29)
     for (const f of files) expect(readFileSync(dir + f, 'utf8'), f).not.toContain('link_to(')
   })
 
@@ -182,11 +190,6 @@ const ALLOWED_UNDOCUMENTED: readonly string[] = [
   'polygon',
   'colors',
 ]
-/**
- * TEMPORARY: API names whose documentation item is still to be written (range tree plan, Task 5).
- * Task 5 adds the `rangeTree` docs item and removes this list.
- */
-const AWAITING_DOCS: readonly string[] = ['rangeTree', 'rangeTreeQuery', 'drawRangeTree']
 /** Names that are values, not functions: inline code (`origin`) documents them. */
 const VALUE_NAMES = ['origin', 'drawables']
 
@@ -230,7 +233,7 @@ const isDocumented = (name: string) => findDoc(name) !== undefined || mdxTexts.s
 describe('API coverage', () => {
   test('every API name is documented', () => {
     const undocumented = API_NAMES.filter(
-      (n) => !ALLOWED_UNDOCUMENTED.includes(n) && !AWAITING_DOCS.includes(n) && !isDocumented(n),
+      (n) => !ALLOWED_UNDOCUMENTED.includes(n) && !isDocumented(n),
     )
     expect(undocumented, 'undocumented API names: ' + undocumented.join(', ')).toEqual([])
   })

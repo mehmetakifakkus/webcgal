@@ -19,6 +19,30 @@ const GRAB = 12
 const CLICK_SLOP = 3
 /** Radius of the handles drawn for an invalid input when the module has no renderInvalid. */
 const HANDLE_RADIUS = 4
+/** Canvas text grows by at most this factor when the canvas is shown smaller than its scene size. */
+const MAX_TEXT_SCALE = 1.6
+
+/**
+ * Scales every text of the scene by 1 / s, at most MAX_TEXT_SCALE, where s is the canvas's CSS
+ * width over its width in scene units: on a phone, where the whole canvas is shown small, the
+ * labels stay readable. At s ≥ 1 the modules' sizes are kept. A text keeps its anchor (its point,
+ * with its justification), and its module size is kept in data.baseFontSize, so repeated passes
+ * (after every render and on every resize) do not compound.
+ */
+function scaleCanvasText(scene: Scene) {
+  const view = scene.paper.view
+  const shown = (view.element as HTMLCanvasElement).getBoundingClientRect().width
+  if (!(shown > 0)) return // not laid out (yet)
+  const s = shown / view.viewSize.width
+  const factor = Math.min(Math.max(1, 1 / s), MAX_TEXT_SCALE)
+  for (const item of scene.paper.project.getItems({ class: scene.paper.PointText }) as paper.PointText[]) {
+    const data = item.data as { baseFontSize?: number }
+    data.baseFontSize ??= parseFloat(String(item.fontSize))
+    if (!Number.isFinite(data.baseFontSize)) continue
+    const size = data.baseFontSize * factor
+    if (item.fontSize !== size) item.fontSize = size
+  }
+}
 
 /** Keys are ignored while typing in a form control or the code editor. */
 function isTypingTarget(t: EventTarget | null) {
@@ -87,7 +111,17 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       for (const q of handlesOf(input, mode))
         new P.Path.Circle({ center: new P.Point(q.x, q.y), radius: HANDLE_RADIUS, fillColor: ink })
     }
+    // after the module's render, which stays pure: the module draws at scene sizes
+    scaleCanvasText(scene)
   }, [scene, module, step, input, invalid, handlesOf, mode])
+
+  // the canvas is shown at another size (window resized, phone rotated): scale the text again
+  useEffect(() => {
+    if (!scene || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => scaleCanvasText(scene))
+    observer.observe(scene.paper.view.element)
+    return () => observer.disconnect()
+  }, [scene])
 
   // playback
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest'
+import type paper from 'paper'
 import { render } from 'vitest-browser-react'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import StepPlayer from './StepPlayer'
 import type { PlayerModule } from '../players/types'
 import type { Step } from '../geometry/steps'
@@ -701,3 +702,78 @@ for (const [name, base, height] of [
       expect(moved.points.slice(1)).toEqual(input.points.slice(1))
     }
   })
+
+// canvas text: scaled up (at most 1.6 times) when the canvas is shown smaller than its scene size
+type Shown = { size: number; onScreen: number; point: { x: number; y: number }; scale: number }
+function makeTextModule() {
+  const render = vi.fn((scene: import('../engine/scene').Scene, step: Step<{ k: number }>) => {
+    const P = scene.paper
+    P.activate()
+    scene.clear()
+    // y-flipped back, like the players' labels; a nested one too
+    new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 200, 150), content: `label ${step.state.k}`, fontSize: 12, justification: 'center', name: 'label' })
+    new P.Group([new P.PointText({ point: [400, 100], content: 'small', fontSize: 9, name: 'small' })])
+  })
+  const module: PlayerModule<{ k: number }, Pt[]> = { ...fake, render }
+  return { module, render }
+}
+function shownText(name: string): Shown {
+  const scene = window.__webcgalDebug!.scene
+  const item = scene.paper.project.getItem({ name }) as paper.PointText
+  const canvas = scene.paper.view.element as HTMLCanvasElement
+  const scale = canvas.getBoundingClientRect().width / scene.paper.view.viewSize.width
+  const size = Number(item.fontSize)
+  return { size, onScreen: size * scale, point: { x: item.point.x, y: item.point.y }, scale }
+}
+
+test('canvas text is scaled up on a 320 px wide canvas, at most 1.6 times', async () => {
+  await page.viewport(400, 800)
+  try {
+    const { module, render: renderStep } = makeTextModule()
+    const screen = await render(
+      <div data-testid="box" style={{ width: 320 }}>
+        <StepPlayer module={module} />
+      </div>,
+    )
+    await expect.poll(() => renderStep.mock.calls.length).toBeGreaterThan(0)
+    await expect.poll(() => shownText('label').size).toBeCloseTo(12 * 1.6, 6)
+    const label = shownText('label')
+    expect(label.scale).toBeLessThan(0.45)
+    expect(label.onScreen).toBeGreaterThanOrEqual(7.5)
+    // the anchor stays where the module put it
+    expect(label.point).toEqual({ x: 200, y: 150 })
+    expect(shownText('small').size).toBeCloseTo(9 * 1.6, 6)
+    expect(shownText('small').point).toEqual({ x: 400, y: 100 })
+    // later renders and resizes do not compound
+    for (let k = 0; k < 3; k++) await screen.getByRole('button', { name: 'Next' }).click()
+    await expect.element(screen.getByText('Step 4 / 5')).toBeVisible()
+    await expect.poll(() => (window.__webcgalDebug!.scene.paper.project.getItem({ name: 'label' }) as paper.PointText).content).toBe('label 3')
+    expect(shownText('label').size).toBeCloseTo(12 * 1.6, 6)
+    const box = screen.getByTestId('box').element() as HTMLElement
+    // 620 px: s = 0.8, the factor is 1 / s
+    box.style.width = '620px'
+    await expect.poll(() => shownText('label').scale).toBeCloseTo(0.8, 2)
+    await expect.poll(() => shownText('label').size).toBeCloseTo(12 / shownText('label').scale, 4)
+    expect(shownText('label').onScreen).toBeCloseTo(12, 4)
+    box.style.width = '320px'
+    await expect.poll(() => shownText('label').size).toBeCloseTo(12 * 1.6, 6)
+    box.style.width = '620px'
+    await expect.poll(() => shownText('label').size).toBeCloseTo(12 / shownText('label').scale, 4)
+    expect(shownText('label').point).toEqual({ x: 200, y: 150 })
+    expect(shownText('small').size).toBeCloseTo(9 / shownText('small').scale, 4)
+  } finally {
+    await page.viewport(1280, 800)
+  }
+})
+
+test('canvas text keeps its size on a full-size canvas', async () => {
+  const { module, render: renderStep } = makeTextModule()
+  const screen = await render(<StepPlayer module={module} />)
+  await expect.poll(() => renderStep.mock.calls.length).toBeGreaterThan(0)
+  await screen.getByRole('button', { name: 'Next' }).click()
+  await expect.poll(() => (window.__webcgalDebug!.scene.paper.project.getItem({ name: 'label' }) as paper.PointText).content).toBe('label 1')
+  await pause(100)
+  expect(shownText('label').scale).toBeCloseTo(1, 6)
+  expect(shownText('label').size).toBe(12)
+  expect(shownText('small').size).toBe(9)
+})

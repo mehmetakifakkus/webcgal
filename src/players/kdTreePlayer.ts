@@ -204,13 +204,16 @@ const kdTreePlayer: PlayerModule<KdPlayerState, KdInput> = {
       for (const v of s.nodes) {
         const q = at.get(v.id)!
         if (!v.axis) {
-          text(label(v.point!), q.x, q.y - LEAF_RADIUS - 9, 9, 'center')
+          // below the leaf: enlarged downwards on a small canvas (StepPlayer), clear of the circle
+          text(label(v.point!), q.x, q.y - LEAF_RADIUS - 9, 9, 'center').data.anchor = 'top'
           continue
         }
         const content = `${v.axis} = ${Math.round(v.value!)}`
         const [x, y, j] = v.parent === null ? [q.x + 9, q.y - 12, 'left'] : [q.x, q.y + 9, 'center']
-        text(content, x, y, 9, j).set({ fillColor: c.bg, strokeColor: c.bg, strokeWidth: 4, strokeJoin: 'round' })
-        text(content, x, y, 9, j)
+        // above the square (not the root's, which is beside it): enlarged upwards on a small canvas
+        const anchor = v.parent === null ? undefined : 'bottom'
+        text(content, x, y, 9, j).set({ fillColor: c.bg, strokeColor: c.bg, strokeWidth: 4, strokeJoin: 'round', data: { anchor } })
+        text(content, x, y, 9, j).data.anchor = anchor
       }
 
     // points last (they match handles(input)): reported green, those in skipped regions faded

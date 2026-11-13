@@ -152,8 +152,11 @@ function colourPanel(s: GalleryState): Panel {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
-/** A label's text box: its width, and how far it reaches below and above the glyphs' centre. */
-type LabelBox = { width: number; below: number; above: number }
+/**
+ * A label's text box: its width, how far it reaches below and above the glyphs' centre, and half
+ * the glyphs' height (GLYPH_HALF_HEIGHT at the label's size).
+ */
+type LabelBox = { width: number; below: number; above: number; glyphHalf: number }
 
 /**
  * Where the centre of each corner's label goes (the glyphs' centre, not the text's baseline).
@@ -186,7 +189,7 @@ function labelAnchors(poly: Pt[], boxes: LabelBox[]): Pt[] {
     const sum = { x: n1.x + n2.x, y: n1.y + n2.y }
     const len = Math.hypot(sum.x, sum.y)
     const d = len < 1e-9 ? n2 : { x: sum.x / len, y: sum.y / len }
-    const { width, below, above } = boxes[i]
+    const { width, below, above, glyphHalf } = boxes[i]
     const halfWidth = width / 2
     const place = (dir: Pt, t: number): Pt => ({
       x: clamp(q.x + t * dir.x, LABEL_MARGIN + halfWidth, WIDTH - LABEL_MARGIN - halfWidth),
@@ -194,7 +197,7 @@ function labelAnchors(poly: Pt[], boxes: LabelBox[]): Pt[] {
     })
     // the gap between the glyphs' box and the corner
     const gap = (a: Pt) =>
-      Math.hypot(Math.max(0, Math.abs(a.x - q.x) - halfWidth), Math.max(0, Math.abs(a.y - q.y) - GLYPH_HALF_HEIGHT))
+      Math.hypot(Math.max(0, Math.abs(a.x - q.x) - halfWidth), Math.max(0, Math.abs(a.y - q.y) - glyphHalf))
     for (const deg of [0, 15, -15, 30, -30, 45, -45, 60, -60, 75, -75, 90, -90]) {
       const r = (deg * Math.PI) / 180
       const dir = { x: d.x * Math.cos(r) - d.y * Math.sin(r), y: d.x * Math.sin(r) + d.y * Math.cos(r) }
@@ -371,17 +374,23 @@ const artGalleryPlayer: PlayerModule<GalleryState, ArtGalleryInput> = {
 
     // labels outside their corners, the glyphs centred on the anchor: the baseline goes
     // GLYPH_HALF_HEIGHT below it (the layer is y-flipped: the text is flipped back to read upright).
-    // The text boxes are measured at the origin, unflipped: y from −ascent to +descent.
+    // The text boxes are measured at the origin, unflipped: y from −ascent to +descent. On a canvas
+    // shown small the labels are laid out at the enlarged size (scene.textScale), and StepPlayer
+    // leaves them as they are (fixedSize).
+    const scale = scene.textScale ?? 1
+    const glyphHalf = GLYPH_HALF_HEIGHT * scale
     const texts = poly.map(
-      (_, i) => new P.PointText({ content: label(i), fontSize: LABEL_SIZE, fillColor: c.ink, justification: 'center' }),
+      (_, i) =>
+        new P.PointText({ content: label(i), fontSize: LABEL_SIZE * scale, fillColor: c.ink, justification: 'center', data: { fixedSize: true } }),
     )
     const boxes = texts.map(({ bounds: b }) => ({
       width: b.width,
-      below: b.bottom + GLYPH_HALF_HEIGHT,
-      above: -b.top - GLYPH_HALF_HEIGHT,
+      below: b.bottom + glyphHalf,
+      above: -b.top - glyphHalf,
+      glyphHalf,
     }))
     labelAnchors(poly, boxes).forEach((a, i) => {
-      texts[i].matrix = new P.Matrix(1, 0, 0, -1, a.x, a.y - GLYPH_HALF_HEIGHT)
+      texts[i].matrix = new P.Matrix(1, 0, 0, -1, a.x, a.y - glyphHalf)
     })
   },
 

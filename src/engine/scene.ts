@@ -9,6 +9,12 @@ export type Scene = {
   dispose(): void
   /** Inner canvas height (from the `height` attribute). */
   height: number
+  /**
+   * How much a step player enlarges canvas text because the canvas is shown small (1: not at
+   * all), set before each render. Modules that lay out labels themselves size them by it and
+   * mark them data.fixedSize; StepPlayer scales the other texts after the render.
+   */
+  textScale?: number
 }
 
 const teardowns = new WeakMap<Scene, () => void>()

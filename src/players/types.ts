@@ -26,9 +26,11 @@ export type PlayerModule<S, I> = {
   /** Draws an invalid input (default: the handles only) after clearing the scene. */
   renderInvalid?(scene: Scene, input: I): void
   /**
-   * Draws step `step` after clearing the scene. Pure with respect to `step` and `input`. On a
-   * canvas shown small, StepPlayer then enlarges the texts (PointText) it drew, except those
-   * marked `data.fixedSize = true` (e.g. labels inside a node's circle).
+   * Draws step `step` after clearing the scene. Pure with respect to `step`, `input` and
+   * `scene.textScale`. On a canvas shown small, StepPlayer then enlarges the texts (PointText) it
+   * drew by scene.textScale, except those marked `data.fixedSize = true` (labels inside a node's
+   * circle, or sized by the module itself); `data.anchor = 'top'` keeps a text's top edge in
+   * place (a label below a marker) instead of its point, 'bottom' its bottom edge (a label above one).
    */
   render(scene: Scene, step: Step<S>, input: I): void
   pseudocode: string[]

@@ -28,26 +28,55 @@ const MAX_TEXT_SCALE = 1.6
 const SMALL_CANVAS = 0.8
 
 /**
- * Scales the texts of the scene by SMALL_CANVAS / s, at most MAX_TEXT_SCALE, where s is the
- * canvas's CSS width over its width in scene units, once s < SMALL_CANVAS: on a phone, where the
- * whole canvas is shown small, the labels stay readable; at s ≥ SMALL_CANVAS (desktop) the
- * modules' sizes are kept. Texts with data.fixedSize (labels inside a node's shape) are skipped.
- * A text keeps its anchor (its point, with its justification), and its module size is kept in
- * data.baseFontSize, so repeated passes (after every render and on every resize) do not compound.
+ * How much canvas text is enlarged: SMALL_CANVAS / s, at most MAX_TEXT_SCALE, where s is the
+ * canvas's CSS width over its width in scene units, once s < SMALL_CANVAS (on a phone the whole
+ * canvas is shown small; the labels stay readable); 1 at s ≥ SMALL_CANVAS (desktop). Null while
+ * the canvas is not laid out.
  */
-function scaleCanvasText(scene: Scene) {
+function textFactor(scene: Scene): number | null {
   const view = scene.paper.view
   const shown = (view.element as HTMLCanvasElement).getBoundingClientRect().width
-  if (!(shown > 0)) return // not laid out (yet)
+  if (!(shown > 0)) return null
   const s = shown / view.viewSize.width
-  const factor = s >= SMALL_CANVAS ? 1 : Math.min(SMALL_CANVAS / s, MAX_TEXT_SCALE)
-  for (const item of scene.paper.project.getItems({ class: scene.paper.PointText }) as paper.PointText[]) {
-    const data = item.data as { baseFontSize?: number; fixedSize?: boolean }
+  return s >= SMALL_CANVAS ? 1 : Math.min(SMALL_CANVAS / s, MAX_TEXT_SCALE)
+}
+
+/**
+ * Scales the texts the module drew by `factor` (see textFactor). Texts with data.fixedSize are
+ * skipped: labels inside a node's shape, and labels the module laid out itself at
+ * scene.textScale. A text keeps its anchor (its point, with its justification); one marked
+ * data.anchor = 'top' (a label below a marker) keeps the top edge of its text box instead, so
+ * it grows downwards, away from the marker, and one marked 'bottom' (a label above a marker)
+ * keeps its bottom edge and grows upwards. The module's size, point and text box are kept in
+ * data.baseFontSize, data.basePoint and data.baseBox, so repeated passes do not compound.
+ */
+function scaleCanvasText(scene: Scene, factor: number) {
+  const P = scene.paper
+  for (const item of P.project.getItems({ class: P.PointText }) as paper.PointText[]) {
+    const data = item.data as {
+      baseFontSize?: number
+      basePoint?: paper.Point
+      baseBox?: { top: number; bottom: number }
+      fixedSize?: boolean
+      anchor?: string
+    }
     if (data.fixedSize) continue
     data.baseFontSize ??= parseFloat(String(item.fontSize))
     if (!Number.isFinite(data.baseFontSize)) continue
+    data.basePoint ??= item.point.clone()
+    // the text box relative to the baseline, in the text's own units (y down)
+    data.baseBox ??= { top: item.internalBounds.top, bottom: item.internalBounds.bottom }
     const size = data.baseFontSize * factor
     if (item.fontSize !== size) item.fontSize = size
+    if (data.anchor !== 'top' && data.anchor !== 'bottom') continue
+    // move the baseline along the text's own y (down on screen, as the text reads upright) so that
+    // the box's top (or bottom) edge is where it was at the module's size
+    const box = item.internalBounds
+    const drop = data.anchor === 'top' ? data.baseBox.top - box.top : data.baseBox.bottom - box.bottom
+    const m = item.matrix
+    const down = m.transform(new P.Point(0, drop)).subtract(m.transform(new P.Point(0, 0)))
+    const point = data.basePoint.add(down)
+    if (!item.point.equals(point)) item.point = point
   }
 }
 
@@ -65,6 +94,8 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(5)
   const [scene, setScene] = useState<Scene | null>(null)
+  /** How much canvas text is enlarged (textFactor), given to the module as scene.textScale. */
+  const [textScale, setTextScale] = useState(1)
   /** Index of the loaded preset as the select's value; "" once the input changes otherwise. */
   const [preset, setPreset] = useState('')
   /** The selected mode's id; kept when the input changes. */
@@ -107,6 +138,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   // draw the current step, or the invalid input
   useEffect(() => {
     if (!scene) return
+    scene.textScale = textScale
     if (invalid === null) {
       if (step) module.render(scene, step, input)
     } else if (module.renderInvalid) module.renderInvalid(scene, input)
@@ -118,14 +150,22 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       for (const q of handlesOf(input, mode))
         new P.Path.Circle({ center: new P.Point(q.x, q.y), radius: HANDLE_RADIUS, fillColor: ink })
     }
-    // after the module's render, which stays pure: the module draws at scene sizes
-    scaleCanvasText(scene)
-  }, [scene, module, step, input, invalid, handlesOf, mode])
+    // after the module's render, which stays pure: the module draws at scene sizes, except the
+    // labels it sized by scene.textScale itself
+    scaleCanvasText(scene, textScale)
+  }, [scene, module, step, input, invalid, handlesOf, mode, textScale])
 
-  // the canvas is shown at another size (window resized, phone rotated): scale the text again
+  // the text factor follows the canvas's shown size (window resized, phone rotated); a new
+  // factor draws the step again, so modules that lay out their labels can do it at the new size
   useEffect(() => {
-    if (!scene || typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(() => scaleCanvasText(scene))
+    if (!scene) return
+    const update = () => {
+      const f = textFactor(scene)
+      if (f !== null) setTextScale(f)
+    }
+    update()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(update)
     observer.observe(scene.paper.view.element)
     return () => observer.disconnect()
   }, [scene])

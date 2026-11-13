@@ -805,3 +805,60 @@ test('canvas text keeps its size on a full-size canvas', async () => {
   expect(shownText('label').size).toBe(12)
   expect(shownText('small').size).toBe(9)
 })
+
+test('the module sees the text scale before it renders, and renders again when it changes', async () => {
+  const scales: (number | undefined)[] = []
+  const renderStep = vi.fn((scene: import('../engine/scene').Scene) => {
+    scales.push(scene.textScale)
+    const P = scene.paper
+    P.activate()
+    scene.clear()
+    // laid out by the module itself at its own size
+    new P.PointText({ point: [100, 100], content: 'own', fontSize: 13 * (scene.textScale ?? 1), name: 'own', data: { fixedSize: true } })
+    // below a marker: grows downwards, its top edge stays put
+    new P.Path.Circle({ center: [300, 200], radius: 5, fillColor: 'black' })
+    new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 300, 200 - 5 - 9), content: 'v1', fontSize: 9, justification: 'center', name: 'below', data: { anchor: 'top' } })
+    // above a marker: grows upwards, its bottom edge stays put
+    new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 300, 200 + 9), content: 'y = 90', fontSize: 9, justification: 'center', name: 'above', data: { anchor: 'bottom' } })
+  })
+  try {
+    await page.viewport(400, 800)
+    const screen = await render(
+      <div data-testid="box" style={{ width: 320 }}>
+        <StepPlayer module={{ ...fake, render: renderStep }} />
+      </div>,
+    )
+    await expect.poll(() => scales.at(-1)).toBeCloseTo(1.6, 6)
+    expect(shownText('own').size).toBeCloseTo(13 * 1.6, 6)
+    const below = () => window.__webcgalDebug!.scene.paper.project.getItem({ name: 'below' }) as paper.PointText
+    expect(Number(below().fontSize)).toBeCloseTo(9 * 1.6, 6)
+    // the top edge (the largest y of the y-flipped text's box) is where it is at the module's size
+    const P = window.__webcgalDebug!.scene.paper
+    const ref = new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 300, 200 - 5 - 9), content: 'v1', fontSize: 9, justification: 'center' })
+    const top = ref.bounds.bottom
+    ref.remove()
+    expect(below().bounds.bottom).toBeCloseTo(top, 6)
+    const above = () => window.__webcgalDebug!.scene.paper.project.getItem({ name: 'above' }) as paper.PointText
+    const ref2 = new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 300, 200 + 9), content: 'y = 90', fontSize: 9, justification: 'center' })
+    const bottom = ref2.bounds.top // the smallest y: the box's bottom edge on screen
+    ref2.remove()
+    expect(Number(above().fontSize)).toBeCloseTo(9 * 1.6, 6)
+    expect(above().bounds.top).toBeCloseTo(bottom, 6)
+    expect(below().bounds.height).toBeGreaterThan(1.5 * ref.bounds.height)
+    // a resize that changes the scale renders again with the new one
+    const calls = renderStep.mock.calls.length
+    ;(screen.getByTestId('box').element() as HTMLElement).style.width = '500px'
+    await expect.poll(() => scales.at(-1)).toBeCloseTo(0.8 / (500 / 775), 2)
+    expect(renderStep.mock.calls.length).toBeGreaterThan(calls)
+    expect(below().bounds.bottom).toBeCloseTo(top, 6)
+    // s ≥ 0.8: scale 1, the module's sizes
+    ;(screen.getByTestId('box').element() as HTMLElement).style.width = '679px'
+    await expect.poll(() => scales.at(-1)).toBe(1)
+    expect(shownText('own').size).toBe(13)
+    expect(Number(below().fontSize)).toBe(9)
+    expect(below().point.y).toBe(200 - 5 - 9)
+    expect(above().point.y).toBe(200 + 9)
+  } finally {
+    await page.viewport(1280, 800)
+  }
+})

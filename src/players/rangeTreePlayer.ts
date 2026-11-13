@@ -240,7 +240,8 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
           strokeWidth: 1,
           name: `main-${v.id}`,
         })
-        if (labelled) text(v.label, q.x, q.y - LEAF_RADIUS - 9, 9, 'center', faint ? c.faint : c.ink)
+        // below the leaf: enlarged downwards on a small canvas (StepPlayer), clear of the circle
+        if (labelled) text(v.label, q.x, q.y - LEAF_RADIUS - 9, 9, 'center', faint ? c.faint : c.ink).data.anchor = 'top'
       }
     }
     // the node whose associated tree is drawn below, ringed in the query (in the build it is the current node)
@@ -321,7 +322,11 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
           items.push(
             new P.Path.Circle({ center: pt(q), radius: LEAF_RADIUS, fillColor: f ?? c.ink, strokeColor: f ?? c.ink, strokeWidth: 1, name: `assoc-node-leaf-${v.id}` }),
           )
-          if (aLabelled) items.push(text(pointLabel(v.point), q.x, q.y - LEAF_RADIUS - 9, 9, 'center'))
+          if (aLabelled) {
+            const leafLabel = text(pointLabel(v.point), q.x, q.y - LEAF_RADIUS - 9, 9, 'center')
+            leafLabel.data.anchor = 'top' // below the leaf: enlarged downwards, clear of the circle
+            items.push(leafLabel)
+          }
         }
       }
       if (tree.root) draw(tree.root)

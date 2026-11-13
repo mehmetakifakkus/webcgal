@@ -10,7 +10,7 @@ const LEGACY_PATHS = [
 ]
 
 /** Pages added after the migration (not on the legacy site). */
-const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation', '/algorithms/delaunay', '/algorithms/voronoi', '/algorithms/kdTree', '/algorithms/artGallery']
+const NEW_PATHS = ['/algorithms/segmentIntersection', '/algorithms/triangulation', '/algorithms/delaunay', '/algorithms/voronoi', '/algorithms/kdTree', '/algorithms/artGallery', '/algorithms/rangeTree']
 
 describe('registry', () => {
   test('paths are legacy paths', () => {
@@ -45,6 +45,14 @@ describe('registry', () => {
     expect(algorithms.map((a) => a.path).slice(6, 9)).toEqual([
       '/algorithms/smallestEnclosingDisk',
       '/algorithms/kdTree',
+      '/algorithms/rangeTree',
+    ])
+  })
+
+  test('Range Tree follows kd-Tree Range Search in the menu', () => {
+    expect(algorithms.map((a) => a.path).slice(7, 10)).toEqual([
+      '/algorithms/kdTree',
+      '/algorithms/rangeTree',
       '/algorithms/L-monoton',
     ])
   })
@@ -57,6 +65,19 @@ describe('registry', () => {
       thumbnail: '/images/kdTree_tn.png',
       summary: 'Build a kd-tree by alternating median splits and answer a rectangular range query, step by step.',
       canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
+    })
+    expect(a?.player).toBeTypeOf('function')
+  })
+
+  test('the range tree page has a step player and one 775x480 canvas', () => {
+    const a = findAlgorithm('/algorithms/rangeTree')
+    expect(a).toMatchObject({
+      slug: 'rangeTree',
+      name: 'Range Tree',
+      thumbnail: '/images/rangeTree_tn.png',
+      summary:
+        'Build a 2-D range tree (a tree on x with an associated tree on y at every node) and answer a rectangular range query in O(log² n + k), step by step.',
+      canvases: [{ id: 'canvas-1', width: 775, height: 480, label: '' }],
     })
     expect(a?.player).toBeTypeOf('function')
   })

@@ -7,6 +7,7 @@ import { KD_PRESETS } from '../geometry/algorithms/kdtree/presets'
 import { KD_PSEUDOCODE } from '../geometry/algorithms/kdtree/pseudocode'
 import { clipSegment, type Box } from '../geometry/algorithms/voronoi/clip'
 import type { KdInput, Pt } from '../geometry/types'
+import { clampToBox, cornerHandles as cornerHandlesIn, moveCorner } from './cornerHandles'
 import { cssColor } from './cssColor'
 import type { Panel, PlayerModule } from './types'
 
@@ -19,8 +20,6 @@ const POINT_RADIUS = 4
 const LEAF_RADIUS = 5
 const SPLIT_SIZE = 12
 const CORNER_SIZE = 7
-/** Least distance between the two corner handles in each direction (see cornerHandles). */
-const CORNER_GAP = 1
 const MAX_POINT_LABELS = 20
 const MAX_NODE_LABELS = 24
 /** Space kept under the deepest row when leaves are labelled, so their labels stay in the area. */
@@ -30,27 +29,9 @@ const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i)
 const fmt = (v: number) => v.toFixed(1)
 /** Compact number for region bounds: one decimal at most, no trailing ".0". */
 const short = (v: number) => String(+v.toFixed(1))
-const clamp = (p: Pt): Pt => ({
-  x: Math.min(PLANE_BOX.x1, Math.max(PLANE_BOX.x0, p.x)),
-  y: Math.min(PLANE_BOX.y1, Math.max(PLANE_BOX.y0, p.y)),
-})
-/**
- * The two corner handles. StepPlayer grabs the last handle among equally near ones, so when the
- * rectangle has collapsed (zero width and/or height) the lower-left handle is reported 1 unit
- * down / left of the upper-right one in each collapsed direction; the nearer handle then wins and
- * either corner can be grabbed again. At the box's lower-left edge the upper-right one moves
- * up / right instead. The query itself is unchanged.
- */
-function cornerHandles(query: KdInput['query']): [Pt, Pt] {
-  const lo = clamp({ x: query.x0, y: query.y0 })
-  const hi = clamp({ x: query.x1, y: query.y1 })
-  for (const a of ['x', 'y'] as const) {
-    if (hi[a] - lo[a] >= CORNER_GAP) continue
-    if (hi[a] - CORNER_GAP >= (a === 'x' ? PLANE_BOX.x0 : PLANE_BOX.y0)) lo[a] = hi[a] - CORNER_GAP
-    else hi[a] = lo[a] + CORNER_GAP
-  }
-  return [lo, hi]
-}
+const clamp = (p: Pt): Pt => clampToBox(PLANE_BOX, p)
+/** The two corner handles, told apart when the rectangle has collapsed (see cornerHandles.ts). */
+const cornerHandles = (query: KdInput['query']): [Pt, Pt] => cornerHandlesIn(query, PLANE_BOX)
 const copyInput = (input: KdInput): KdInput => ({ points: input.points.map((q) => ({ x: q.x, y: q.y })), query: { ...input.query } })
 
 /** 14 points at least 20 apart, and a rectangle covering 26–39% of the plane box. */
@@ -127,13 +108,8 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
       next.points[k] = q
       return next
     }
-    // the dragged corner stops at the opposite one (which stays put), so a drag keeps its handle
-    // index and x0 ≤ x1, y0 ≤ y1 hold; a zero-width or zero-height rectangle is valid
-    const { x0, y0, x1, y1 } = input.query
-    next.query =
-      k === n
-        ? { x0: Math.min(q.x, x1), y0: Math.min(q.y, y1), x1, y1 }
-        : { x0, y0, x1: Math.max(q.x, x0), y1: Math.max(q.y, y0) }
+    // the dragged corner stops at the opposite one (which stays put)
+    next.query = moveCorner(input.query, k !== n, q)
     return next
   },
   canvas: { width: WIDTH, height: HEIGHT },

@@ -36,7 +36,8 @@ export function kdTree(input: PointInput[]): ApiKdTree {
   return Object.freeze({ root: tree.root && toApi(tree.root), depth: tree.depth, size: points.length })
 }
 
-function boundingBox(points: Pt[]): Box {
+/** The points' bounding box with a 10-unit margin (the root region of `rangeQuery`, `drawKdTree` and `drawRangeTree`). */
+export function boundingBox(points: Pt[]): Box {
   const xs = points.map((p) => p.x)
   const ys = points.map((p) => p.y)
   return {
@@ -103,7 +104,7 @@ function toTree(tree: unknown, points: Pt[], fn: string): KdTree {
 }
 
 /** `{x0, y0, x1, y1}` or `[p, q]`, normalized so that x0 ≤ x1 and y0 ≤ y1. */
-function toRect(rect: unknown, fn: string): Box {
+export function toRect(rect: unknown, fn: string): Box {
   let a: Pt
   let b: Pt
   const r = rect as Record<string, unknown> | null

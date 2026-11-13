@@ -147,6 +147,13 @@
   --kd-report: #26a269;
   --kd-pruned: #9aa0a6;
 
+  /* range tree player */
+  --rt-current: #e66100;
+  --rt-path: #1a5fb4;
+  --rt-canonical: #26a269;
+  --rt-slab: #99c1f1;
+  --rt-faint: #c0bfbc;
+
   /* art gallery player */
   --ag-c0: #c01c28;
   --ag-c1: #26a269;
@@ -259,6 +266,13 @@
     --kd-query: #9141ac;
     --kd-report: #26a269;
     --kd-pruned: #9aa0a6;
+
+    /* range tree player: same as light (canvas stays white) */
+    --rt-current: #e66100;
+    --rt-path: #1a5fb4;
+    --rt-canonical: #26a269;
+    --rt-slab: #99c1f1;
+    --rt-faint: #c0bfbc;
 
     /* art gallery player: same as light (canvas stays white) */
     --ag-c0: #c01c28;

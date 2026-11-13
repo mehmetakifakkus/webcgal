@@ -121,6 +121,18 @@ export const algorithms: AlgorithmEntry[] = [
     canvases: [{ id: 'canvas-1', width: 775, height: 360, label: '' }],
   },
   {
+    slug: 'rangeTree',
+    path: '/algorithms/rangeTree',
+    name: 'Range Tree',
+    thumbnail: '/images/rangeTree_tn.png',
+    summary:
+      'Build a 2-D range tree (a tree on x with an associated tree on y at every node) and answer a rectangular range query in O(log² n + k), step by step.',
+    content: () => import('./content/algorithms/rangeTree/index.mdx'),
+    demoCode: () => import('./content/algorithms/rangeTree/demo.js?raw').then(raw),
+    player: () => import('./players/rangeTreePlayer'),
+    canvases: [{ id: 'canvas-1', width: 775, height: 480, label: '' }],
+  },
+  {
     slug: 'L-monoton',
     path: '/algorithms/L-monoton',
     name: 'L-monotone Polygon',

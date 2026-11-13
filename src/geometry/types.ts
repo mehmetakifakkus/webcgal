@@ -54,5 +54,8 @@ export type MiniDiscInput = { points: Pt[]; order: number[] }
 /** `query` is a closed axis-parallel rectangle, structurally the `Box` of voronoi/clip.ts. */
 export type KdInput = { points: Pt[]; query: { x0: number; y0: number; x1: number; y1: number } }
 
+/** `query` is a closed axis-parallel rectangle, structurally the `Box` of voronoi/clip.ts. */
+export type RangeTreeInput = { points: Pt[]; query: { x0: number; y0: number; x1: number; y1: number } }
+
 /** `cameras` are vertex indices of `polygon`; only the sandbox mode uses them. */
 export type ArtGalleryInput = { polygon: Pt[]; cameras: number[] }

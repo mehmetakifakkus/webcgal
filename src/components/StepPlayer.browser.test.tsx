@@ -703,16 +703,17 @@ for (const [name, base, height] of [
     }
   })
 
-// canvas text: scaled up (at most 1.6 times) when the canvas is shown smaller than its scene size
+// canvas text: scaled up by 0.8 / s (at most 1.6 times) when the canvas is shown at s < 0.8 of its scene size
 type Shown = { size: number; onScreen: number; point: { x: number; y: number }; scale: number }
 function makeTextModule() {
   const render = vi.fn((scene: import('../engine/scene').Scene, step: Step<{ k: number }>) => {
     const P = scene.paper
     P.activate()
     scene.clear()
-    // y-flipped back, like the players' labels; a nested one too
+    // y-flipped back, like the players' labels; a nested one too; one inside a shape keeps its size
     new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 200, 150), content: `label ${step.state.k}`, fontSize: 12, justification: 'center', name: 'label' })
     new P.Group([new P.PointText({ point: [400, 100], content: 'small', fontSize: 9, name: 'small' })])
+    new P.PointText({ point: [600, 200], content: 'v1', fontSize: 9, justification: 'center', name: 'fixed', data: { fixedSize: true } })
   })
   const module: PlayerModule<{ k: number }, Pt[]> = { ...fake, render }
   return { module, render }
@@ -725,17 +726,22 @@ function shownText(name: string): Shown {
   const size = Number(item.fontSize)
   return { size, onScreen: size * scale, point: { x: item.point.x, y: item.point.y }, scale }
 }
+/** Renders the text module in a box `width` px wide on a 400 px viewport (one column: the canvas is as wide as the box). */
+async function renderTextModule(width: number) {
+  await page.viewport(400, 800)
+  const { module, render: renderStep } = makeTextModule()
+  const screen = await render(
+    <div data-testid="box" style={{ width }}>
+      <StepPlayer module={module} />
+    </div>,
+  )
+  await expect.poll(() => renderStep.mock.calls.length).toBeGreaterThan(0)
+  return screen
+}
 
 test('canvas text is scaled up on a 320 px wide canvas, at most 1.6 times', async () => {
-  await page.viewport(400, 800)
   try {
-    const { module, render: renderStep } = makeTextModule()
-    const screen = await render(
-      <div data-testid="box" style={{ width: 320 }}>
-        <StepPlayer module={module} />
-      </div>,
-    )
-    await expect.poll(() => renderStep.mock.calls.length).toBeGreaterThan(0)
+    const screen = await renderTextModule(320)
     await expect.poll(() => shownText('label').size).toBeCloseTo(12 * 1.6, 6)
     const label = shownText('label')
     expect(label.scale).toBeLessThan(0.45)
@@ -744,23 +750,45 @@ test('canvas text is scaled up on a 320 px wide canvas, at most 1.6 times', asyn
     expect(label.point).toEqual({ x: 200, y: 150 })
     expect(shownText('small').size).toBeCloseTo(9 * 1.6, 6)
     expect(shownText('small').point).toEqual({ x: 400, y: 100 })
+    // a label marked fixedSize (inside a node circle) keeps its size
+    expect(shownText('fixed').size).toBe(9)
     // later renders and resizes do not compound
     for (let k = 0; k < 3; k++) await screen.getByRole('button', { name: 'Next' }).click()
     await expect.element(screen.getByText('Step 4 / 5')).toBeVisible()
     await expect.poll(() => (window.__webcgalDebug!.scene.paper.project.getItem({ name: 'label' }) as paper.PointText).content).toBe('label 3')
     expect(shownText('label').size).toBeCloseTo(12 * 1.6, 6)
     const box = screen.getByTestId('box').element() as HTMLElement
-    // 620 px: s = 0.8, the factor is 1 / s
-    box.style.width = '620px'
-    await expect.poll(() => shownText('label').scale).toBeCloseTo(0.8, 2)
-    await expect.poll(() => shownText('label').size).toBeCloseTo(12 / shownText('label').scale, 4)
-    expect(shownText('label').onScreen).toBeCloseTo(12, 4)
+    // 500 px: s ≈ 0.645, the factor is 0.8 / s
+    box.style.width = '500px'
+    await expect.poll(() => shownText('label').scale).toBeCloseTo(500 / 775, 2)
+    await expect.poll(() => shownText('label').size).toBeCloseTo((12 * 0.8) / shownText('label').scale, 4)
+    expect(shownText('label').onScreen).toBeCloseTo(12 * 0.8, 4)
     box.style.width = '320px'
     await expect.poll(() => shownText('label').size).toBeCloseTo(12 * 1.6, 6)
-    box.style.width = '620px'
-    await expect.poll(() => shownText('label').size).toBeCloseTo(12 / shownText('label').scale, 4)
+    box.style.width = '500px'
+    await expect.poll(() => shownText('label').size).toBeCloseTo((12 * 0.8) / shownText('label').scale, 4)
     expect(shownText('label').point).toEqual({ x: 200, y: 150 })
-    expect(shownText('small').size).toBeCloseTo(9 / shownText('small').scale, 4)
+    expect(shownText('small').size).toBeCloseTo((9 * 0.8) / shownText('small').scale, 4)
+    expect(shownText('fixed').size).toBe(9)
+    // back to a canvas shown at s ≥ 0.8: the module's sizes again
+    box.style.width = '679px'
+    await expect.poll(() => shownText('label').size).toBe(12)
+    expect(shownText('small').size).toBe(9)
+  } finally {
+    await page.viewport(1280, 800)
+  }
+})
+
+test('canvas text keeps its size on a desktop-width canvas (679 px, s = 0.876)', async () => {
+  try {
+    const screen = await renderTextModule(679)
+    await screen.getByRole('button', { name: 'Next' }).click()
+    await expect.poll(() => (window.__webcgalDebug!.scene.paper.project.getItem({ name: 'label' }) as paper.PointText).content).toBe('label 1')
+    await pause(100)
+    expect(shownText('label').scale).toBeCloseTo(679 / 775, 3)
+    expect(shownText('label').size).toBe(12)
+    expect(shownText('small').size).toBe(9)
+    expect(shownText('fixed').size).toBe(9)
   } finally {
     await page.viewport(1280, 800)
   }

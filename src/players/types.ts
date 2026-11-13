@@ -25,7 +25,11 @@ export type PlayerModule<S, I> = {
   validate?(input: I): string | null
   /** Draws an invalid input (default: the handles only) after clearing the scene. */
   renderInvalid?(scene: Scene, input: I): void
-  /** Draws step `step` after clearing the scene. Pure with respect to `step` and `input`. */
+  /**
+   * Draws step `step` after clearing the scene. Pure with respect to `step` and `input`. On a
+   * canvas shown small, StepPlayer then enlarges the texts (PointText) it drew, except those
+   * marked `data.fixedSize = true` (e.g. labels inside a node's circle).
+   */
   render(scene: Scene, step: Step<S>, input: I): void
   pseudocode: string[]
   /** The input a player starts with, and gets from "New random input". */

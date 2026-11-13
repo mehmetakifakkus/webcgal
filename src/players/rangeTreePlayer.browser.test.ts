@@ -640,3 +640,18 @@ test('handles by mode: points with a build phase, corners with a query phase', (
   expect(rangeTreePlayer.moveHandle(input, n + 2, { x: 60, y: 70 }, 'full')).toBe(input)
   expect(input).toEqual(textbook())
 })
+
+test('labels inside node circles keep their size (data.fixedSize); the others do not', () => {
+  const input = textbook()
+  const scene = makeScene()
+  const steps = rangeTreePlayer.computeSteps(input)
+  // a query step with an associated tree drawn
+  const step = steps.find((st) => st.line === RT_LINE.loAssoc || st.line === RT_LINE.hiAssoc)!
+  rangeTreePlayer.render(scene, step, input)
+  const texts = all(scene).filter((it): it is paper.PointText => it instanceof scene.paper.PointText)
+  const circles = [...named(scene, 'main-'), ...named(scene, 'assoc-node-split-')].filter((c) => near(c.bounds.width, 20))
+  expect(circles.length).toBeGreaterThan(9)
+  const inside = texts.filter((t) => circles.some((c) => near(t.point.x, c.bounds.center.x) && near(t.point.y, c.bounds.center.y - 3)))
+  expect(inside).toHaveLength(circles.length)
+  for (const t of texts) expect(Boolean(t.data.fixedSize), t.content).toBe(inside.includes(t))
+})

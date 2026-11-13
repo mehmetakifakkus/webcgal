@@ -89,8 +89,14 @@ function treeLayout(nodes: KdNodeView[], bottom: number): Map<number, Pt> {
   return out
 }
 
-const kdTreePlayer: PlayerModule<KdState, KdInput> = {
-  computeSteps: (input, mode) => kdSteps(input, (mode ?? 'full') as KdMode),
+/** A step state with the mode it was computed in (the corners are drawn only with a query phase). */
+type KdPlayerState = KdState & { mode: KdMode }
+
+const kdTreePlayer: PlayerModule<KdPlayerState, KdInput> = {
+  computeSteps(input, mode) {
+    const m: KdMode = mode === 'build' || mode === 'query' ? mode : 'full'
+    return kdSteps(input, m).map((step) => ({ ...step, state: { ...step.state, mode: m } }))
+  },
   modes: [
     { id: 'full', label: 'Build and query' },
     { id: 'build', label: 'Build only' },
@@ -219,8 +225,9 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
         fillColor: reported.has(i) ? c.report : faded ? withAlpha(c.ink, 0.3) : c.ink,
       })
     })
-    // the corners are drawn where they are grabbed (cornerHandles)
-    for (const q of cornerHandles(query)) {
+    // the corners are drawn where they are grabbed (cornerHandles), in modes with a query phase
+    // (in "Build only" they are not handles)
+    for (const q of s.mode === 'build' ? [] : cornerHandles(query)) {
       const h = CORNER_SIZE / 2
       rect({ x0: q.x - h, y0: q.y - h, x1: q.x + h, y1: q.y + h }, { fillColor: c.query })
     }

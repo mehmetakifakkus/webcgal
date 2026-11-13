@@ -229,7 +229,8 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
           strokeWidth: 1.5,
           name: `main-${v.id}`,
         })
-        if (labelled) text(v.label, q.x, q.y - 3, 9, 'center', faint ? c.faint : f ? WHITE : c.ink)
+        // inside the circle: kept at this size when StepPlayer enlarges the canvas text
+        if (labelled) text(v.label, q.x, q.y - 3, 9, 'center', faint ? c.faint : f ? WHITE : c.ink).data.fixedSize = true
       } else {
         new P.Path.Circle({
           center: pt(q),
@@ -308,7 +309,11 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
             }),
           )
           // the split value on y, which the 1-D query compares with, rounded so it fits the circle
-          if (aLabelled) items.push(text(String(Math.round(v.value)), q.x, q.y - 3, 8, 'center', f ? WHITE : c.ink))
+          if (aLabelled) {
+            const value = text(String(Math.round(v.value)), q.x, q.y - 3, 8, 'center', f ? WHITE : c.ink)
+            value.data.fixedSize = true // inside the circle: not enlarged by StepPlayer
+            items.push(value)
+          }
           draw(v.left)
           draw(v.right)
         } else {

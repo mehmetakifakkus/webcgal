@@ -447,3 +447,21 @@ test('handles by mode: points with a build phase, corners with a query phase', (
   expect(kdTreePlayer.moveHandle(input, -1, { x: 60, y: 70 }, 'full')).toBe(input)
   expect(input).toEqual(textbook())
 })
+
+test('the corner squares are drawn only in modes with a query phase', () => {
+  const input = textbook()
+  const corners = kdTreePlayer.handles(input).slice(-2)
+  const scene = makeScene()
+  for (const mode of ['full', 'build', 'query']) {
+    const steps = kdTreePlayer.computeSteps(input, mode)
+    for (const step of [steps[0], steps[steps.length - 1]]) {
+      kdTreePlayer.render(scene, step, input)
+      const squares = corners.flatMap((c) =>
+        paths(scene).filter((p) => near(p.bounds.center.x, c.x) && near(p.bounds.center.y, c.y) && near(p.bounds.width, 7)),
+      )
+      expect(squares, mode).toHaveLength(mode === 'build' ? 0 : 2)
+      // the query rectangle itself is still drawn, dashed
+      expect(paths(scene).some((p) => p.dashArray.length > 0 && near(p.bounds.x, input.query.x0) && near(p.bounds.width, input.query.x1 - input.query.x0))).toBe(true)
+    }
+  }
+})

@@ -13,6 +13,7 @@ import triangulateExample from './examples/triangulate.js?raw'
 import delaunayExample from './examples/delaunay.js?raw'
 import voronoiExample from './examples/voronoi.js?raw'
 import kdTreeExample from './examples/kdTree.js?raw'
+import rangeTreeExample from './examples/rangeTree.js?raw'
 import vectorExample from './examples/Vector.js?raw'
 import getRandomIntExample from './examples/getRandomInt.js?raw'
 import convexHullExample from './examples/convexHull.js?raw'
@@ -118,6 +119,12 @@ export const docs: DocEntry[] = [
     category: 'misc_functions',
     content: () => import('./kdTree.mdx'),
     example: kdTreeExample,
+  },
+  {
+    name: 'rangeTree',
+    category: 'misc_functions',
+    content: () => import('./rangeTree.mdx'),
+    example: rangeTreeExample,
   },
   {
     name: 'artGallery',

@@ -1,0 +1,30 @@
+Builds a 2-D range tree of a point set: a balanced tree on `x` whose every node also holds an associated tree on `y` over the points below it. It supports orthogonal range searching. The algorithm is explained step by step on the [Range Tree](/algorithms/rangeTree) page.
+
+```js
+rangeTree(points)
+```
+
+`points` is an array of `TextPoint` objects (for example from `Points.createRandom(n)`), `Point` objects, `{ x, y }` objects or `[x, y]` arrays. Errors are thrown for other input ("rangeTree: expected an array of points (item N is not a point)", or "rangeTree: expected an array of points (got &lt;type&gt;)" when the argument is not an array). The result is deeply read-only and has these fields:
+
+- `root`: the root node of the main tree, or `null` for no points. A split node is `{ value, left, right, assoc }` (`value` is the largest `x` in its left subtree); a leaf is `{ point, assoc }`, where `point` is the 0-based index of a point in the input array.
+- `assoc`: at every node, leaves included, the root node of its associated tree on `y` over the points below the node. It is a node like the main tree's, but with `y` values and without `assoc`: a split node is `{ value, left, right }` (`value` is the largest `y` in its left subtree) and a leaf is `{ point }`.
+- `depth`: the depth of the deepest leaf of the main tree (0 for one point).
+- `size`: the number of points.
+- `storage`: the number of leaves of all associated trees together, which is O(n log n).
+
+Points are ordered by `x`, then `y`, then their index in the main tree, and by `y`, then `x`, then their index in the associated trees, so equal coordinates and coincident points still have exactly one place in each tree.
+
+Two more functions are documented on this page. Both take the points and a `rangeTree(points)` result for the same points; otherwise they throw "rangeTreeQuery: expected the result of rangeTree(points) for the same points" (or the same message with `drawRangeTree:`). A hand-made object is rejected in the same way. The tree's structure and the placement of the points are checked: every point is stored in exactly one leaf of the main tree and in each associated tree on its path, in the right order and with balanced trees, and `depth`, `size` and `storage` must be correct. The tree is not rebuilt. Because every call checks the whole tree, a query costs more than the O(log² n + k) of the algorithm itself.
+
+- `rangeTreeQuery(points, tree, rect)` returns the indices of the points in the closed rectangle `rect`, given as `{ x0, y0, x1, y1 }` or as two points (opposite corners); it is normalized, so the corners may come in any order. The search is 2DRangeQuery of de Berg et al. §5.3: a 1-D query in the associated trees of the canonical subtrees. The indices are in ascending order, and the returned array is a plain array. Other input for `rect` (including non-finite coordinates) throws `rangeTreeQuery: expected a rectangle {x0, y0, x1, y1} or two points`; the point errors say `rangeTreeQuery:` as well.
+- `drawRangeTree(points, tree, color)` draws the split lines of the main tree with 1 px strokes, one vertical line `x = value` per split node. A range tree splits on `x` only, so every line crosses the whole plane; in `y` it is clipped to the bounding box of the points plus a margin of 10. `color` defaults to `'black'`. Nothing is drawn for no points.
+
+```js
+var points = Points.createRandom(30);
+var tree = rangeTree(points);
+drawRangeTree(points, tree, 'lightgray');
+new Path.Rectangle({ from: [200, 120], to: [500, 340], strokeColor: 'red' });
+var hits = rangeTreeQuery(points, tree, { x0: 200, y0: 120, x1: 500, y1: 340 });
+hits.forEach(function (i) { points[i].path.fillColor = 'red'; });
+console.log(hits.length + ' point(s) in the range, storage ' + tree.storage);
+```

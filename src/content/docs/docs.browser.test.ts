@@ -15,6 +15,7 @@ const EXAMPLE_OUTPUT: Record<string, RegExp> = {
   smallestEnclosingDisk: /^radius \d+(\.\d+)? · \d+ points inside$/,
   findStabber: /^(stabber y = .+|no stabbing line)$/,
   getTextPoint: /^found .+$/,
+  rangeTree: /^\d+ point\(s\) in the range, storage \d+$/,
 }
 const RUNS = 5
 

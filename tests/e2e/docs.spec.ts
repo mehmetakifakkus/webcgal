@@ -3,7 +3,7 @@ import { BASE_PATH } from './base';
 
 const items = [
   'Polygon', 'TextPoint', 'Points', 'Vector', 'clearScreen', 'clearLog', 'draw', 'createPolygon', 'createRandomPolygon', 'isMonotone',
-  'createRandom', 'sort', 'shuffle', 'getRandomInt', 'animate', 'convexHull', 'findIntersections', 'triangulate', 'delaunay', 'voronoi', 'kdTree', 'artGallery', 'findStabber', 'loop', 'mouseDown', 'smallestEnclosingDisk', 'getCenterAndRadius', 'getTextPoint',
+  'createRandom', 'sort', 'shuffle', 'getRandomInt', 'animate', 'convexHull', 'findIntersections', 'triangulate', 'delaunay', 'voronoi', 'kdTree', 'rangeTree', 'artGallery', 'findStabber', 'loop', 'mouseDown', 'smallestEnclosingDisk', 'getCenterAndRadius', 'getTextPoint',
 ];
 
 function collectErrors(page: Page) {
@@ -125,13 +125,13 @@ test('internal MDX links navigate in the app; external ones open a new tab', asy
   await expect(external).toHaveAttribute('rel', 'noopener noreferrer');
 });
 
-test('28 pages, "Try it" on exactly 22 of them', async ({ page }) => {
-  expect(items).toHaveLength(28);
+test('29 pages, "Try it" on exactly 23 of them', async ({ page }) => {
+  expect(items).toHaveLength(29);
   let withExample = 0;
   for (const item of items) {
     await page.goto(`documentation/${item}`);
     await expect(page.getByRole('heading', { level: 1, name: item, exact: true })).toBeVisible();
     withExample += await page.getByRole('link', { name: 'Try it' }).count();
   }
-  expect(withExample).toBe(22);
+  expect(withExample).toBe(23);
 });

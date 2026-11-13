@@ -3,7 +3,7 @@
 WebCgal is a small teaching site for computational geometry. Each algorithm
 (convex hull, line segment intersection, polygon triangulation, smallest
 enclosing disk, monotone polygons, point-line duality, Delaunay
-triangulation, Voronoi diagram, kd-tree range search, art gallery problem) has a page with an explanation, a runnable demo and, for some, a step-by-step
+triangulation, Voronoi diagram, kd-tree and range tree range search, art gallery problem) has a page with an explanation, a runnable demo and, for some, a step-by-step
 player. The demos are written in PaperScript, so you can edit them and see the
 result immediately.
 
@@ -34,6 +34,12 @@ Live site: https://mehmetakifakkus.github.io/webcgal/ (also https://webcgal.netl
   Build and query / Build only / Query only, shows the plane and the tree side
   by side, has the panels Node / Query / Reported, presets, and draggable
   points and query-rectangle corners.
+  The Range Tree player (`/algorithms/rangeTree`, de Berg §5.3: the main tree
+  on x with an associated tree on y at every node, and 2DRangeQuery with its
+  canonical subtrees) has the modes Build and query / Build only / Query only,
+  shows the plane, the main tree and the selected node's associated tree, has
+  the panels Node / Result / Storage, presets, and draggable points and
+  query-rectangle corners.
   The Art Gallery player (`/algorithms/artGallery`, de Berg §3.1: Fisk's
   ⌊n/3⌋ construction by triangulating, 3-colouring the vertices and keeping the
   smallest colour class) has the modes Fisk's construction / Place your own
@@ -73,6 +79,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 - `src/geometry/algorithms/voronoi/` - Voronoi diagram (clipping helpers, dual construction with circumcenter merging, cells, verifier, step recorder, presets)
 - `src/geometry/algorithms/minidisc/` - smallest enclosing disk (MiniDisc core with recorder, minimality verifier, step generator, presets)
 - `src/geometry/algorithms/kdtree/` - kd-tree (construction and range search with recorders, verifier, step generator, presets)
+- `src/geometry/algorithms/rangetree/` - range tree (main tree with associated trees, 1-D and 2-D range queries with recorders, verifier, step generator, presets)
 - `src/geometry/algorithms/artGallery/` - art gallery problem (Fisk's construction, visibility polygons, coverage state, step generator, presets)
 - `src/engine/` - PaperScript runtime and the API exposed to user code (`api.ts`)
 - `src/engine/__fixtures__/legacy/` - code of the old site, kept to prove it still runs
@@ -81,7 +88,7 @@ build with that hook into `dist-e2e/`, so `dist/` is never affected.
 - `src/players/` - step players of the algorithms
 - `src/content/` - MDX content: algorithms, API docs, playground templates
 - `src/registry.ts` - the list of algorithms; menu, cards and routes derive from it
-- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`node scripts/thumbnail.mjs --slug <slug> --preset "<name>" --step <n>`; `npm run thumbnail:segmentIntersection`, `npm run thumbnail:triangulation`, `npm run thumbnail:delaunay`, `npm run thumbnail:voronoi`, `npm run thumbnail:smallestEnclosingDisk`, `npm run thumbnail:kdTree` and `npm run thumbnail:artGallery` regenerate those thumbnails)
+- `scripts/` - `check-bundle.mjs` and `thumbnail.mjs` (`node scripts/thumbnail.mjs --slug <slug> --preset "<name>" --step <n>`; `npm run thumbnail:segmentIntersection`, `npm run thumbnail:triangulation`, `npm run thumbnail:delaunay`, `npm run thumbnail:voronoi`, `npm run thumbnail:smallestEnclosingDisk`, `npm run thumbnail:kdTree`, `npm run thumbnail:rangeTree` and `npm run thumbnail:artGallery` regenerate those thumbnails)
 - `tests/e2e/` - Playwright tests
 
 ## Adding a new algorithm
@@ -130,7 +137,7 @@ To run the e2e smoke test against the live sub-path site (tests that need the
 e2e debug hook are skipped there):
 
 ```bash
-BASE_URL=https://mehmetakifakkus.github.io/webcgal/ npx playwright test tests/e2e/smoke.spec.ts tests/e2e/smallestEnclosingDisk.spec.ts tests/e2e/kdTree.spec.ts tests/e2e/artGallery.spec.ts --trace off
+BASE_URL=https://mehmetakifakkus.github.io/webcgal/ npx playwright test tests/e2e/smoke.spec.ts tests/e2e/smallestEnclosingDisk.spec.ts tests/e2e/kdTree.spec.ts tests/e2e/rangeTree.spec.ts tests/e2e/artGallery.spec.ts --trace off
 ```
 
 ## License

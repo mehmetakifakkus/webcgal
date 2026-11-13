@@ -1,7 +1,8 @@
 // Pseudocode for the 2-D range tree (de Berg et al., §5.3). Line numbers are the 0-based indices
 // used by the recorders in rangeTree.ts and search.ts. The comparisons are the ones the code
 // makes with composite bounds (see search.ts): the path to x goes left when x ≤ x_v, the path to
-// x′ goes right when x′ ≥ x_v.
+// x′ goes right when x′ ≥ x_v. The associated tree is named T′ on its own line, as the call
+// 1DRangeQuery(T_assoc(rc(v)), [y : y′]) is too wide for the pseudocode card at that depth.
 
 export const RT_PSEUDOCODE: string[] = [
   'Build2DRangeTree(P)',
@@ -19,13 +20,17 @@ export const RT_PSEUDOCODE: string[] = [
   '        else v ← lc(v_split)',
   '            while v is not a leaf',
   '                do if x ≤ x_v',
-  '                    then 1DRangeQuery(T_assoc(rc(v)), [y : y′]); v ← lc(v)',
+  '                    then T′ ← T_assoc(rc(v))',
+  '                        1DRangeQuery(T′, [y : y′])',
+  '                        v ← lc(v)',
   '                    else v ← rc(v)',
   '            check if the point stored at v must be reported',
   '            v ← rc(v_split)',
   '            while v is not a leaf',
   '                do if x′ ≥ x_v',
-  '                    then 1DRangeQuery(T_assoc(lc(v)), [y : y′]); v ← rc(v)',
+  '                    then T′ ← T_assoc(lc(v))',
+  '                        1DRangeQuery(T′, [y : y′])',
+  '                        v ← rc(v)',
   '                    else v ← lc(v)',
   '            check if the point stored at v must be reported',
 ]
@@ -39,11 +44,11 @@ export const RT_LINE = {
   findSplit: 9,
   splitLeaf: 11,
   loQuery: 14,
-  loAssoc: 15,
-  loRight: 16,
-  loLeaf: 17,
-  hiQuery: 20,
-  hiAssoc: 21,
-  hiLeft: 22,
-  hiLeaf: 23,
+  loAssoc: 16,
+  loRight: 18,
+  loLeaf: 19,
+  hiQuery: 22,
+  hiAssoc: 24,
+  hiLeft: 26,
+  hiLeaf: 27,
 } as const

@@ -38,7 +38,7 @@ export type RTState = {
   /**
    * The main-tree node whose associated tree is drawn, or null. Set only on the steps about that
    * tree: the node's build step, and in the query the decision that selects a canonical subtree
-   * (lines 14 / 20) and its 1DRangeQuery (lines 15 / 21); null on every other query step.
+   * (lines 14 / 22) and its 1DRangeQuery (lines 16 / 24); null on every other query step.
    */
   assocShown: number | null
   /** The search paths and reported nodes in `assocShown`'s associated tree: on its 1DRangeQuery step only, else null. */

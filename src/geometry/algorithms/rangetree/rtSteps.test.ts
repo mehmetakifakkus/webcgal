@@ -61,13 +61,17 @@ describe('RT_PSEUDOCODE', () => {
       '        else v ← lc(v_split)',
       '            while v is not a leaf',
       '                do if x ≤ x_v',
-      '                    then 1DRangeQuery(T_assoc(rc(v)), [y : y′]); v ← lc(v)',
+      '                    then T′ ← T_assoc(rc(v))',
+      '                        1DRangeQuery(T′, [y : y′])',
+      '                        v ← lc(v)',
       '                    else v ← rc(v)',
       '            check if the point stored at v must be reported',
       '            v ← rc(v_split)',
       '            while v is not a leaf',
       '                do if x′ ≥ x_v',
-      '                    then 1DRangeQuery(T_assoc(lc(v)), [y : y′]); v ← rc(v)',
+      '                    then T′ ← T_assoc(lc(v))',
+      '                        1DRangeQuery(T′, [y : y′])',
+      '                        v ← rc(v)',
       '                    else v ← lc(v)',
       '            check if the point stored at v must be reported',
     ])
@@ -195,7 +199,7 @@ describe('rtSteps: query', () => {
         expect(steps[0].state.pathHi, name).toEqual(toSplit)
       }
 
-      const assoc = steps.filter((s) => s.line === 15 || s.line === 21)
+      const assoc = steps.filter((s) => s.line === 16 || s.line === 24)
       expect(assoc, name).toHaveLength(q.assocQueries.length)
       assoc.forEach((s, k) => {
         const a = q.assocQueries[k]
@@ -223,29 +227,29 @@ describe('rtSteps: query', () => {
           expect(s.state.canonical.at(-1), name).toBe(tree.nodes[s.state.current!].right!.id)
           if (R.x0 === tree.nodes[s.state.current!].value) ties++
         } else if (lr) {
-          expect(s.line, name).toBe(16)
+          expect(s.line, name).toBe(18)
           expect(R.x0 > tree.nodes[s.state.current!].value!, name).toBe(true)
         } else if (hq) {
-          expect(s.line, name).toBe(20)
+          expect(s.line, name).toBe(22)
           expect(R.x1 >= tree.nodes[s.state.current!].value!, name).toBe(true)
           expect(hq[4], name).toBe(label(tree.nodes[s.state.current!].left!.id))
           if (R.x1 === tree.nodes[s.state.current!].value) ties++
         } else if (hl) {
-          expect(s.line, name).toBe(22)
+          expect(s.line, name).toBe(26)
           expect(R.x1 < tree.nodes[s.state.current!].value!, name).toBe(true)
         } else if (LEAF.test(s.description)) {
-          expect([11, 17, 23], name).toContain(s.line)
+          expect([11, 19, 27], name).toContain(s.line)
         } else {
           expect(s === steps[0] || s === last || ASSOC.test(s.description), `${name}: ${s.description}`).toBe(true)
         }
       }
-      const decisions = steps.filter((s) => [14, 16, 20, 22].includes(s.line))
+      const decisions = steps.filter((s) => [14, 18, 22, 26].includes(s.line))
       const below = q.pathLo.slice(q.pathLo.indexOf(q.split!) + 1, -1).length + q.pathHi.slice(q.pathHi.indexOf(q.split!) + 1, -1).length
       expect(decisions, name).toHaveLength(q.split === null ? 0 : below)
       const leaves = steps.filter((s) => LEAF.test(s.description))
       expect(leaves.map((s) => s.state.current).map((id) => tree.nodes[id!].point), name).toEqual(q.checkedLeaves)
 
-      // Done repeats the line of the last end-leaf check: 11 after a split leaf, 23 otherwise
+      // Done repeats the line of the last end-leaf check: 11 after a split leaf, 27 otherwise
       const splitLeaf = q.split !== null && tree.nodes[q.split].kind === 'leaf'
       expect(last.line, name).toBe(splitLeaf ? RT_LINE.splitLeaf : RT_LINE.hiLeaf)
       if (steps.length > 1) expect(last.line, name).toBe(steps[steps.length - 2].line)
@@ -308,10 +312,10 @@ describe('rtSteps: query', () => {
     expect(steps.map((s) => [s.line, s.description])).toEqual([
       [9, 'Split node v2: x = x′ = 100 meets its split value 100, so the path to x goes left and the path to x′ right'],
       [14, 'v3: x = 100 ≤ 100, the right subtree p2 lies in the slab → query its associated tree'],
-      [15, '1DRangeQuery(T_assoc(p2), [150 : 250]): reports p2'],
-      [17, 'Leaf p1: outside'],
-      [23, 'Leaf p3: outside'],
-      [23, 'Done: 1 point reported, 1 associated query'],
+      [16, '1DRangeQuery(T_assoc(p2), [150 : 250]): reports p2'],
+      [19, 'Leaf p1: outside'],
+      [27, 'Leaf p3: outside'],
+      [27, 'Done: 1 point reported, 1 associated query'],
     ])
     // x = x′ off every split value parts the paths nowhere: the split node is a leaf
     const off = rtSteps({ points, query: { x0: 120, y0: 0, x1: 120, y1: 400 } }, 'query')
@@ -332,7 +336,7 @@ describe('rtSteps: degenerate input', () => {
       const steps = rtSteps(input, mode)
       expect(steps).toHaveLength(1)
       expect(steps[0].description).toBe('Done: 0 points reported, 0 associated queries')
-      expect(steps[0].line).toBe(23)
+      expect(steps[0].line).toBe(27)
       expect(steps[0].state).toMatchObject({ phase: 'query', mode, nodes: [], split: null, builtUpTo: 0, reported: [] })
       expect(steps[0].state.counts).toEqual({ nodes: 0, storage: 0, depth: 0, assocQueries: 0 })
     }
@@ -411,12 +415,12 @@ describe('rtSteps: general', () => {
 const TEXTBOOK_QUERY: [number, string][] = [
   [9, 'Split node v1: x = 104 and x′ = 289 go different ways (x ≤ 189 ≤ x′)'],
   [14, 'v2: x = 104 ≤ 119, the right subtree v5 lies in the slab → query its associated tree'],
-  [15, '1DRangeQuery(T_assoc(v5), [131 : 376]): reports nothing'],
-  [16, 'v3: x = 104 > 88, go right'],
-  [17, 'Leaf p3: inside the rectangle, reported'],
-  [20, 'v6: x′ = 289 ≥ 289, the left subtree v7 lies in the slab → query its associated tree'],
-  [21, '1DRangeQuery(T_assoc(v7), [131 : 376]): reports p6, p7, p8'],
-  [22, 'v9: x′ = 289 < 320, go left'],
-  [23, 'Leaf p9: outside'],
-  [23, 'Done: 4 points reported, 2 associated queries'],
+  [16, '1DRangeQuery(T_assoc(v5), [131 : 376]): reports nothing'],
+  [18, 'v3: x = 104 > 88, go right'],
+  [19, 'Leaf p3: inside the rectangle, reported'],
+  [22, 'v6: x′ = 289 ≥ 289, the left subtree v7 lies in the slab → query its associated tree'],
+  [24, '1DRangeQuery(T_assoc(v7), [131 : 376]): reports p6, p7, p8'],
+  [26, 'v9: x′ = 289 < 320, go left'],
+  [27, 'Leaf p9: outside'],
+  [27, 'Done: 4 points reported, 2 associated queries'],
 ]

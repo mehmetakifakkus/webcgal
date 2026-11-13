@@ -118,7 +118,7 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
     { id: 'build', label: 'Build only' },
     { id: 'query', label: 'Query only' },
   ],
-  // the query block is lines 8–23, the build block 0–7
+  // the query block is lines 8–27, the build block 0–7
   dimmedLines: (mode) => (mode === 'build' ? range(8, RT_PSEUDOCODE.length - 1) : mode === 'query' ? range(0, 7) : []),
   pseudocode: RT_PSEUDOCODE,
   hint: 'Drag the points or the corners of the query rectangle. Keys: ← → to step, Space to play or pause.',

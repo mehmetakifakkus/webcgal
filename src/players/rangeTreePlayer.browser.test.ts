@@ -558,7 +558,7 @@ test('modes, dimmed lines, presets, canvas, hint and colours', () => {
     { id: 'query', label: 'Query only' },
   ])
   expect(rangeTreePlayer.pseudocode).toBe(RT_PSEUDOCODE)
-  expect(rangeTreePlayer.dimmedLines!('build')).toEqual(range(8, 23))
+  expect(rangeTreePlayer.dimmedLines!('build')).toEqual(range(8, 27))
   expect(rangeTreePlayer.dimmedLines!('query')).toEqual(range(0, 7))
   expect(rangeTreePlayer.dimmedLines!('full')).toEqual([])
   expect(rangeTreePlayer.dimmedLines!()).toEqual([])

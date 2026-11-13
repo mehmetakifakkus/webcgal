@@ -134,10 +134,10 @@ export function oneDRangeQuery(points: Pt[], tree: Tree1D, lo: number, hi: numbe
  * against R. All decisions on x use the composite bounds of `oneDRangeQuery`.
  *
  * `record` gets: line 9 for the split node (11 if it is a leaf, checked directly); on the path
- * to x0 line 14 (query the right child) followed by line 15 (its 1-D query) or line 16 (go right),
- * and line 17 for the end leaf; on the path to x1 lines 20, 21, 22 and 23 likewise; and a final
- * "Done" on the line of the last end-leaf check (11 or 23; 23 if nothing was checked). Only
- * lines 14–15 and 20–21 show an associated tree. It does not change the result.
+ * to x0 line 14 (query the right child) followed by line 16 (its 1-D query) or line 18 (go right),
+ * and line 19 for the end leaf; on the path to x1 lines 22, 24, 26 and 27 likewise; and a final
+ * "Done" on the line of the last end-leaf check (11 or 27; 27 if nothing was checked). Only
+ * lines 14/16 and 22/24 show an associated tree. It does not change the result.
  */
 export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTRecorder): RangeQuery2DResult {
   const out: RangeQuery2DResult = {
@@ -148,7 +148,7 @@ export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTR
   // shown only on the steps about that associated tree: the decision that selects it and its 1-D query
   let assocShown: number | null = null
   let assocPaths: AssocQuery | null = null
-  // Done repeats the line of the last end-leaf check (11 or 23); 23 when there was none
+  // Done repeats the line of the last end-leaf check (11 or 27); 27 when there was none
   let lastLine: number = RT_LINE.hiLeaf
   const emit = (line: number, description: string, current: number | null) => {
     if (!record) return
@@ -196,7 +196,7 @@ export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTR
     split.id,
   )
 
-  /** Lines 14–15 (path to x, `c` the right child of `v`) or 20–21 (path to x′, `c` the left child). */
+  /** Lines 14 and 16 (path to x, `c` the right child of `v`) or 22 and 24 (path to x′, `c` the left child). */
   const canonical = (v: RTNode, c: RTNode, lo: boolean) => {
     out.canonical.push(c.id)
     assocShown = c.id

@@ -1,7 +1,9 @@
 import type { Pt } from '../../types'
 import type { Box } from '../voronoi/clip'
 import { inRect } from '../kdtree/search'
-import type { RangeTree, RTNode, Tree1D, Tree1DNode } from './rangeTree'
+import { RT_LINE } from './pseudocode'
+import { count, fmt, pointLabel, rtNodeViews, type RangeTree, type RTNode, type Tree1D, type Tree1DNode } from './rangeTree'
+import type { RTRecorder } from './rtState'
 
 /*
  * Composite bounds (§5.5). The trees are ordered by composite keys, which are all distinct, and
@@ -31,6 +33,9 @@ export type OneDResult = {
   result: number[]
 }
 
+/** The 1-D query on y in the associated tree of the main-tree node `node`. */
+export type AssocQuery = { node: number } & OneDResult
+
 export type RangeQuery2DResult = {
   /** Main-tree id of the split node on x, null for an empty tree or an empty x-range. */
   split: number | null
@@ -40,8 +45,8 @@ export type RangeQuery2DResult = {
   pathHi: number[]
   /** Main-tree ids of the canonical subtrees, in the order they are found. */
   canonical: number[]
-  /** One 1DRangeQuery on y per canonical subtree, in the same order; `result` ascending. */
-  assocQueries: { node: number; result: number[] }[]
+  /** One 1DRangeQuery on y per canonical subtree, in the same order (ids in its associated tree). */
+  assocQueries: AssocQuery[]
   /** Point indices of the end leaves tested against the whole rectangle. */
   checkedLeaves: number[]
   /** Point indices in the closed rectangle, ascending. */
@@ -127,51 +132,121 @@ export function oneDRangeQuery(points: Pt[], tree: Tree1D, lo: number, hi: numbe
  * associated tree of the right child wherever the path goes left (a canonical subtree), on the
  * path to x1 likewise for the left child wherever it goes right; check the two end leaves
  * against R. All decisions on x use the composite bounds of `oneDRangeQuery`.
+ *
+ * `record` gets: line 9 for the split node (11 if it is a leaf, checked directly); on the path
+ * to x0 line 14 (query the right child) followed by line 15 (its 1-D query) or line 16 (go right),
+ * and line 17 for the end leaf; on the path to x1 lines 20, 21, 22 and 23 likewise; and a final
+ * line 23 "Done". It does not change the result.
  */
-export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box): RangeQuery2DResult {
+export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTRecorder): RangeQuery2DResult {
   const out: RangeQuery2DResult = {
     split: null, pathLo: [], pathHi: [], canonical: [], assocQueries: [], checkedLeaves: [], reported: [],
   }
-  if (!tree.root || R.x0 > R.x1) return out
+  const found: number[] = []
+  const views = record ? rtNodeViews(tree) : []
+  let assocShown: number | null = null
+  let assocPaths: AssocQuery | null = null
+  const emit = (line: number, description: string, current: number | null) => {
+    if (!record) return
+    record(line, description, { current }, {
+      phase: 'query',
+      nodes: views.map((v) => ({ ...v, points: [...v.points] })),
+      current: null,
+      assocShown,
+      assocPaths: assocPaths && structuredClone(assocPaths),
+      pathLo: [...out.pathLo],
+      pathHi: [...out.pathHi],
+      split: out.split,
+      canonical: [...out.canonical],
+      reported: [...found].sort(ascending),
+      checked: [...out.checkedLeaves],
+      builtUpTo: tree.nodes.length,
+      counts: { nodes: tree.nodes.length, storage: tree.storage, depth: tree.depth, assocQueries: out.assocQueries.length },
+    })
+  }
+  const done = () => {
+    out.reported = found.sort(ascending)
+    emit(
+      RT_LINE.done,
+      `Done: ${count(out.reported.length, 'point')} reported, ${count(out.assocQueries.length, 'associated query', 'associated queries')}`,
+      null,
+    )
+    return out
+  }
+
+  if (!tree.root || R.x0 > R.x1) return done()
   const inner = (v: RTNode) => (v.kind === 'split' ? { value: v.value!, left: v.left!, right: v.right! } : null)
   const toSplit = findSplit(tree.root, inner, R.x0, R.x1)
   const split = toSplit[toSplit.length - 1]
   out.split = split.id
   out.pathLo = toSplit.map((v) => v.id)
   out.pathHi = [...out.pathLo]
+  const [x, x_, y, y_] = [fmt(R.x0), fmt(R.x1), fmt(R.y0), fmt(R.y1)]
+  emit(
+    RT_LINE.findSplit,
+    split.kind === 'leaf'
+      ? `Split node is the leaf ${split.label}`
+      : `Split node ${split.label}: x = ${x} and x′ = ${x_} go different ways (x ≤ ${fmt(split.value!)} ≤ x′)`,
+    split.id,
+  )
 
-  const canonical = (c: RTNode) => {
+  /** Lines 14–15 (path to x, `c` the right child of `v`) or 20–21 (path to x′, `c` the left child). */
+  const canonical = (v: RTNode, c: RTNode, lo: boolean) => {
     out.canonical.push(c.id)
-    out.assocQueries.push({ node: c.id, result: oneDRangeQuery(points, c.assoc, R.y0, R.y1).result })
+    assocShown = c.id
+    assocPaths = null
+    emit(
+      lo ? RT_LINE.loQuery : RT_LINE.hiQuery,
+      lo
+        ? `${v.label}: x = ${x} ≤ ${fmt(v.value!)}, the right subtree ${c.label} lies in the slab → query its associated tree`
+        : `${v.label}: x′ = ${x_} ≥ ${fmt(v.value!)}, the left subtree ${c.label} lies in the slab → query its associated tree`,
+      v.id,
+    )
+    const q: AssocQuery = { node: c.id, ...oneDRangeQuery(points, c.assoc, R.y0, R.y1) }
+    out.assocQueries.push(q)
+    assocPaths = q
+    found.push(...q.result)
+    emit(
+      lo ? RT_LINE.loAssoc : RT_LINE.hiAssoc,
+      `1DRangeQuery(T_assoc(${c.label}), [${y} : ${y_}]): reports ${q.result.length ? q.result.map(pointLabel).join(', ') : 'nothing'}`,
+      v.id,
+    )
   }
-  const check = (v: RTNode) => out.checkedLeaves.push(v.point!)
+  const check = (v: RTNode, line: number) => {
+    out.checkedLeaves.push(v.point!)
+    const inside = inRect(points[v.point!], R)
+    if (inside) found.push(v.point!)
+    emit(line, `Leaf ${v.label}: ${inside ? 'inside the rectangle, reported' : 'outside'}`, v.id)
+  }
 
-  if (split.kind === 'leaf') check(split)
+  if (split.kind === 'leaf') check(split, RT_LINE.splitLeaf)
   else {
     let v = split.left!
     out.pathLo.push(v.id)
     while (v.kind === 'split') {
       if (loGoesLeft(R.x0, v.value!)) {
-        canonical(v.right!)
+        canonical(v, v.right!, true)
         v = v.left!
-      } else v = v.right!
+      } else {
+        emit(RT_LINE.loRight, `${v.label}: x = ${x} > ${fmt(v.value!)}, go right`, v.id)
+        v = v.right!
+      }
       out.pathLo.push(v.id)
     }
-    check(v)
+    check(v, RT_LINE.loLeaf)
     v = split.right!
     out.pathHi.push(v.id)
     while (v.kind === 'split') {
       if (!hiGoesLeft(R.x1, v.value!)) {
-        canonical(v.left!)
+        canonical(v, v.left!, false)
         v = v.right!
-      } else v = v.left!
+      } else {
+        emit(RT_LINE.hiLeft, `${v.label}: x′ = ${x_} < ${fmt(v.value!)}, go left`, v.id)
+        v = v.left!
+      }
       out.pathHi.push(v.id)
     }
-    check(v)
+    check(v, RT_LINE.hiLeaf)
   }
-
-  const reported = out.assocQueries.flatMap((q) => q.result)
-  for (const i of out.checkedLeaves) if (inRect(points[i], R)) reported.push(i)
-  out.reported = reported.sort(ascending)
-  return out
+  return done()
 }

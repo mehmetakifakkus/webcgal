@@ -1,5 +1,8 @@
 import type { Pt } from '../../types'
-import { compareOn } from '../kdtree/kdTree'
+import type { Box } from '../voronoi/clip'
+import { compareOn, plural } from '../kdtree/kdTree'
+import { RT_LINE } from './pseudocode'
+import type { RTNodeView, RTRecorder } from './rtState'
 
 /**
  * A node of the leaf-based balanced binary search tree of de Berg et al. §5.1. A split node's
@@ -40,6 +43,29 @@ export type RangeTree = { root: RTNode | null; nodes: RTNode[]; depth: number; s
 
 export const pointLabel = (i: number) => `p${i + 1}`
 
+/** The plane area of the player's canvas (spec §4.1), y-up. */
+export const RT_PLANE: Box = { x0: 15, y0: 15, x1: 355, y1: 465 }
+
+/** A coordinate for step texts: at most two decimals, none for integers. */
+export const fmt = (v: number) => String(Math.round(v * 100) / 100)
+
+/** `plural` of the kd-tree page, with an irregular plural if given: `count(2, 'leaf', 'leaves')` = "2 leaves". */
+export const count = (k: number, one: string, many?: string) => (many === undefined || k === 1 ? plural(k, one) : `${k} ${many}`)
+
+/** The main-tree nodes of `tree` as the player draws them, in pre-order; arrays are copies. */
+export function rtNodeViews(tree: RangeTree): RTNodeView[] {
+  const parent = new Array<number | null>(tree.nodes.length).fill(null)
+  for (const v of tree.nodes) if (v.kind === 'split') parent[v.left!.id] = parent[v.right!.id] = v.id
+  return tree.nodes.map((v) => {
+    const view: RTNodeView = { id: v.id, label: v.label, kind: v.kind, parent: parent[v.id], depth: v.depth, points: [...v.points] }
+    if (v.kind === 'split') view.value = v.value
+    else view.point = v.point
+    return view
+  })
+}
+
+const copyViews = (views: RTNodeView[]) => views.map((v) => ({ ...v, points: [...v.points] }))
+
 /**
  * Builds the balanced tree on `points[indices]`, sorted by the composite order on `axis`
  * (`compareOn`), so the input order is irrelevant. Of m points the left subtree gets ⌈m/2⌉.
@@ -63,8 +89,12 @@ export function buildTree1D(points: Pt[], indices: number[], axis: 'x' | 'y'): T
  * Build2DRangeTree of de Berg et al. §5.3: the main tree is the balanced tree of §5.1 on the
  * x-composite order, and every node (leaves included) gets an associated tree on y over the
  * points of its subtree. Ids are pre-order numbers.
+ *
+ * `record` gets one call per main node in pre-order once the tree is complete (so every state
+ * carries the whole shape, `builtUpTo` saying how much of it exists): line 3 for a split node,
+ * line 2 for a leaf; the last call's description ends with the totals. It does not change the result.
  */
-export function rangeTree(points: Pt[]): RangeTree {
+export function rangeTree(points: Pt[], record?: RTRecorder): RangeTree {
   const nodes: RTNode[] = []
   let splits = 0
   let maxDepth = 0
@@ -98,5 +128,48 @@ export function rangeTree(points: Pt[]): RangeTree {
 
   const sorted = points.map((_, i) => i).sort((a, b) => compareOn(points, 'x', a, b))
   const root = sorted.length ? build(sorted, 0) : null
-  return { root, nodes, depth: maxDepth, storage }
+  const tree: RangeTree = { root, nodes, depth: maxDepth, storage }
+  if (record) recordBuild(points, tree, record)
+  return tree
+}
+
+function buildText(points: Pt[], v: RTNode): string {
+  if (v.kind === 'leaf') return `Leaf ${v.label}: associated tree with ${count(v.assoc.size, 'leaf', 'leaves')}`
+  const l = v.left!.points
+  const r = v.right!.points
+  const [a, b] = [points[l[l.length - 1]], points[r[0]]]
+  // a tie across the split: by y, or by number when the two points coincide (composite order)
+  const tie = b.x !== v.value ? '' : b.y === a.y ? ' — coincident points ordered by number' : ' — ties broken by y'
+  return (
+    `Node ${v.label}: ${count(v.points.length, 'point')}, associated tree on y with ${count(v.assoc.size, 'leaf', 'leaves')}; ` +
+    `split at x = ${fmt(v.value!)} (${l.length} left, ${r.length} right)${tie}`
+  )
+}
+
+/** The build steps of `rangeTree`, one per main node in pre-order. */
+function recordBuild(points: Pt[], tree: RangeTree, record: RTRecorder) {
+  const views = rtNodeViews(tree)
+  let storage = 0
+  let depth = 0
+  tree.nodes.forEach((v, k) => {
+    storage += v.assoc.size
+    depth = Math.max(depth, v.depth)
+    const last = k === tree.nodes.length - 1
+    const totals = last ? ` · main tree ${count(tree.nodes.length, 'node')}, associated trees ${count(tree.storage, 'leaf', 'leaves')}` : ''
+    record(v.kind === 'leaf' ? RT_LINE.leaf : RT_LINE.split, buildText(points, v) + totals, { current: v.id }, {
+      phase: 'build',
+      nodes: copyViews(views),
+      current: null,
+      assocShown: v.id,
+      assocPaths: null,
+      pathLo: [],
+      pathHi: [],
+      split: null,
+      canonical: [],
+      reported: [],
+      checked: [],
+      builtUpTo: k + 1,
+      counts: { nodes: k + 1, storage, depth, assocQueries: 0 },
+    })
+  })
 }

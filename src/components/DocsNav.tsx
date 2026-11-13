@@ -1,12 +1,31 @@
+import { useLayoutEffect, useRef } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { categories, docs } from '../content/docs'
 import './DocsNav.css'
 
-/** Category sidebar of the documentation; below 800px it becomes a select above the content. */
+/** Space kept between the active link and the edge of the sidebar it is scrolled to. */
+const SCROLL_MARGIN = 8
+
+/**
+ * Category sidebar of the documentation; below 800px it becomes a select above the content.
+ * When `current` changes, the sidebar scrolls (itself only, never the page) just enough to show its link.
+ */
 export default function DocsNav({ current }: { current?: string }) {
   const navigate = useNavigate()
+  const navRef = useRef<HTMLElement>(null)
+  useLayoutEffect(() => {
+    const nav = navRef.current
+    const link = nav?.querySelector<HTMLElement>('.docs-nav-list a[aria-current="page"]')
+    // nothing to do when the list is hidden (narrow screens) or fits
+    if (!nav || !link || link.offsetParent === null || nav.scrollHeight <= nav.clientHeight) return
+    // scrollTop rather than scrollIntoView, which would scroll the page as well
+    const n = nav.getBoundingClientRect()
+    const l = link.getBoundingClientRect()
+    if (l.top < n.top) nav.scrollTop += l.top - n.top - SCROLL_MARGIN
+    else if (l.bottom > n.bottom) nav.scrollTop += l.bottom - n.bottom + SCROLL_MARGIN
+  }, [current])
   return (
-    <nav aria-label="Documentation" className="docs-nav">
+    <nav ref={navRef} aria-label="Documentation" className="docs-nav">
       <label className="docs-nav-select">
         <span>Documentation item</span>
         <select

@@ -135,3 +135,43 @@ test('29 pages, "Try it" on exactly 23 of them', async ({ page }) => {
   }
   expect(withExample).toBe(23);
 });
+
+/** Where the link of `name` is in the sidebar's scroll box, and how the sidebar and the page are scrolled. */
+async function sidebarState(page: Page, name: string) {
+  return page.evaluate((name) => {
+    const nav = document.querySelector('nav.docs-nav')!;
+    const link = [...nav.querySelectorAll('a')].find((a) => a.textContent === name)!;
+    const n = nav.getBoundingClientRect();
+    const l = link.getBoundingClientRect();
+    return {
+      scrolls: nav.scrollHeight > nav.clientHeight,
+      navScrollTop: nav.scrollTop,
+      inside: l.top >= n.top - 0.5 && l.bottom <= n.bottom + 0.5,
+      active: link.getAttribute('aria-current') === 'page',
+      windowScrollY: window.scrollY,
+    };
+  }, name);
+}
+
+test('the sidebar shows the active item, without scrolling the page', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 700 });
+  await page.goto('documentation/getTextPoint');
+  await expect(page.getByRole('heading', { level: 1, name: 'getTextPoint' })).toBeVisible();
+  await page.waitForTimeout(200);
+  const loaded = await sidebarState(page, 'getTextPoint');
+  // the list is taller than the sidebar here, so it has to scroll for the last item
+  expect(loaded.scrolls).toBe(true);
+  expect(loaded).toMatchObject({ inside: true, active: true, windowScrollY: 0 });
+  expect(loaded.navScrollTop).toBeGreaterThan(0);
+
+  // from the top of the list, scroll the sidebar down and click an item near the bottom
+  await page.goto('documentation/Polygon');
+  await expect(page.getByRole('heading', { level: 1, name: 'Polygon' })).toBeVisible();
+  expect((await sidebarState(page, 'Polygon')).navScrollTop).toBe(0);
+  const nav = page.getByRole('navigation', { name: 'Documentation' });
+  await nav.evaluate((el) => (el.scrollTop = el.scrollHeight));
+  await nav.getByRole('link', { name: 'smallestEnclosingDisk', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'smallestEnclosingDisk' })).toBeVisible();
+  await page.waitForTimeout(200);
+  expect(await sidebarState(page, 'smallestEnclosingDisk')).toMatchObject({ inside: true, active: true });
+});

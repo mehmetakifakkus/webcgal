@@ -13,7 +13,14 @@ type Loaded = { name: string; Content: ComponentType<Record<string, unknown>> }
 export default function DocItem() {
   const { item } = useParams()
   const entry = findDoc(item)
-  return entry ? <DocPage key={entry.name} entry={entry} /> : <NotFound />
+  if (!entry) return <NotFound />
+  // the sidebar stays mounted from item to item, so it keeps its scroll position
+  return (
+    <div className="docs-layout">
+      <DocsNav current={entry.name} />
+      <DocPage key={entry.name} entry={entry} />
+    </div>
+  )
 }
 
 function DocPage({ entry }: { entry: DocEntry }) {
@@ -51,44 +58,41 @@ function DocPage({ entry }: { entry: DocEntry }) {
   const ready = loaded?.name === entry.name ? loaded : null
 
   return (
-    <div className="docs-layout">
-      <DocsNav current={entry.name} />
-      <article className="docs-main">
-        <header className="page-header docs-header">
-          <nav aria-label="Breadcrumb" className="breadcrumb">
-            <ol>
-              <li>
-                <Link to="/documentation">Documentation</Link>
-              </li>
-              <li>{category?.title}</li>
-              <li aria-current="page">{entry.name}</li>
-            </ol>
-          </nav>
-          <h1>{entry.name}</h1>
-          {entry.example !== undefined && (
-            <div className="docs-actions">
-              <Link className="btn btn-primary" to={`/playground?example=${encodeURIComponent(entry.name)}`}>
-                Try it
-              </Link>
-            </div>
-          )}
-        </header>
-        {ready ? (
-          <>
-            <div className="prose docs-prose">
-              <ready.Content components={mdxComponents} />
-            </div>
-            {entry.example !== undefined && (
-              <section className="docs-preview surface" aria-label="Live preview">
-                <h2>Live preview</h2>
-                <CodeRunner initialCode={entry.example} />
-              </section>
-            )}
-          </>
-        ) : (
-          <p className="loading">Loading…</p>
+    <article className="docs-main">
+      <header className="page-header docs-header">
+        <nav aria-label="Breadcrumb" className="breadcrumb">
+          <ol>
+            <li>
+              <Link to="/documentation">Documentation</Link>
+            </li>
+            <li>{category?.title}</li>
+            <li aria-current="page">{entry.name}</li>
+          </ol>
+        </nav>
+        <h1>{entry.name}</h1>
+        {entry.example !== undefined && (
+          <div className="docs-actions">
+            <Link className="btn btn-primary" to={`/playground?example=${encodeURIComponent(entry.name)}`}>
+              Try it
+            </Link>
+          </div>
         )}
-      </article>
-    </div>
+      </header>
+      {ready ? (
+        <>
+          <div className="prose docs-prose">
+            <ready.Content components={mdxComponents} />
+          </div>
+          {entry.example !== undefined && (
+            <section className="docs-preview surface" aria-label="Live preview">
+              <h2>Live preview</h2>
+              <CodeRunner initialCode={entry.example} />
+            </section>
+          )}
+        </>
+      ) : (
+        <p className="loading">Loading…</p>
+      )}
+    </article>
   )
 }

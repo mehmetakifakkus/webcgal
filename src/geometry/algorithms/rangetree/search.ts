@@ -136,7 +136,8 @@ export function oneDRangeQuery(points: Pt[], tree: Tree1D, lo: number, hi: numbe
  * `record` gets: line 9 for the split node (11 if it is a leaf, checked directly); on the path
  * to x0 line 14 (query the right child) followed by line 15 (its 1-D query) or line 16 (go right),
  * and line 17 for the end leaf; on the path to x1 lines 20, 21, 22 and 23 likewise; and a final
- * line 23 "Done". It does not change the result.
+ * "Done" on the line of the last end-leaf check (11 or 23; 23 if nothing was checked). Only
+ * lines 14–15 and 20–21 show an associated tree. It does not change the result.
  */
 export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTRecorder): RangeQuery2DResult {
   const out: RangeQuery2DResult = {
@@ -144,8 +145,11 @@ export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTR
   }
   const found: number[] = []
   const views = record ? rtNodeViews(tree) : []
+  // shown only on the steps about that associated tree: the decision that selects it and its 1-D query
   let assocShown: number | null = null
   let assocPaths: AssocQuery | null = null
+  // Done repeats the line of the last end-leaf check (11 or 23); 23 when there was none
+  let lastLine: number = RT_LINE.hiLeaf
   const emit = (line: number, description: string, current: number | null) => {
     if (!record) return
     record(line, description, { current }, {
@@ -167,7 +171,7 @@ export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTR
   const done = () => {
     out.reported = found.sort(ascending)
     emit(
-      RT_LINE.done,
+      lastLine,
       `Done: ${count(out.reported.length, 'point')} reported, ${count(out.assocQueries.length, 'associated query', 'associated queries')}`,
       null,
     )
@@ -186,7 +190,9 @@ export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTR
     RT_LINE.findSplit,
     split.kind === 'leaf'
       ? `Split node is the leaf ${split.label}`
-      : `Split node ${split.label}: x = ${x} and x′ = ${x_} go different ways (x ≤ ${fmt(split.value!)} ≤ x′)`,
+      : R.x0 === R.x1
+        ? `Split node ${split.label}: x = x′ = ${x} meets its split value ${fmt(split.value!)}, so the path to x goes left and the path to x′ right`
+        : `Split node ${split.label}: x = ${x} and x′ = ${x_} go different ways (x ≤ ${fmt(split.value!)} ≤ x′)`,
     split.id,
   )
 
@@ -211,8 +217,11 @@ export function rangeQuery2D(points: Pt[], tree: RangeTree, R: Box, record?: RTR
       `1DRangeQuery(T_assoc(${c.label}), [${y} : ${y_}]): reports ${q.result.length ? q.result.map(pointLabel).join(', ') : 'nothing'}`,
       v.id,
     )
+    assocShown = null
+    assocPaths = null
   }
   const check = (v: RTNode, line: number) => {
+    lastLine = line
     out.checkedLeaves.push(v.point!)
     const inside = inRect(points[v.point!], R)
     if (inside) found.push(v.point!)

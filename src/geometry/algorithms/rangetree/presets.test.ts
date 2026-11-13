@@ -95,6 +95,10 @@ describe('RT_PRESETS', () => {
     const { x0, x1, y0, y1 } = input.query
     expect(x1 - x0).toBeLessThan((y1 - y0) / 4)
     expect(expected.canonical).toBeGreaterThanOrEqual(3)
+    // at least two canonical subtrees are inner nodes, not single leaves
+    const tree = rangeTree(input.points)
+    const inner = rangeQuery2D(input.points, tree, input.query).canonical.filter((id) => tree.nodes[id].kind === 'split')
+    expect(inner.length).toBeGreaterThanOrEqual(2)
   })
 
   it('Query covers everything reports every point', () => {

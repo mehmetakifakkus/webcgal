@@ -4,7 +4,7 @@ import type { Pt, RangeTreeInput } from '../../types'
 import { mulberry32 } from '../delaunay/delaunay'
 import { bruteForceRange } from '../kdtree/verify'
 import { RT_PRESETS, randomRangeTreeInput } from './presets'
-import { PSEUDOCODE_HEADINGS, RT_PSEUDOCODE } from './pseudocode'
+import { PSEUDOCODE_HEADINGS, RT_LINE, RT_PSEUDOCODE } from './pseudocode'
 import { rangeTree } from './rangeTree'
 import type { RTState } from './rtState'
 import { rtSteps } from './rtSteps'
@@ -245,7 +245,10 @@ describe('rtSteps: query', () => {
       const leaves = steps.filter((s) => LEAF.test(s.description))
       expect(leaves.map((s) => s.state.current).map((id) => tree.nodes[id!].point), name).toEqual(q.checkedLeaves)
 
-      expect(last.line, name).toBe(23)
+      // Done repeats the line of the last end-leaf check: 11 after a split leaf, 23 otherwise
+      const splitLeaf = q.split !== null && tree.nodes[q.split].kind === 'leaf'
+      expect(last.line, name).toBe(splitLeaf ? RT_LINE.splitLeaf : RT_LINE.hiLeaf)
+      if (steps.length > 1) expect(last.line, name).toBe(steps[steps.length - 2].line)
       expect(last.state.current, name).toBeNull()
       expect(last.description, name).toBe(`Done: ${plural(q.reported.length, 'point')} reported, ${plural(q.assocQueries.length, 'associated query').replace('querys', 'queries')}`)
       expect(last.state.reported, name).toEqual(q.reported)
@@ -270,10 +273,49 @@ describe('rtSteps: query', () => {
     expect(steps.map((s) => [s.line, s.description])).toEqual([
       [9, 'Split node is the leaf p2'],
       [11, 'Leaf p2: inside the rectangle, reported'],
-      [23, 'Done: 1 point reported, 0 associated queries'],
+      [11, 'Done: 1 point reported, 0 associated queries'],
     ])
     expect(steps[0].state.pathLo).toEqual([0, 2])
     expect(steps[2].state.checked).toEqual([1])
+  })
+
+  it('shows an associated tree only on the steps about it', () => {
+    const about: number[] = [RT_LINE.loQuery, RT_LINE.loAssoc, RT_LINE.hiQuery, RT_LINE.hiAssoc]
+    let shown = 0
+    for (const { name, input } of inputs) {
+      for (const s of rtSteps(input, 'query')) {
+        if (about.includes(s.line)) {
+          shown++
+          // the right child on the path to x, the left child on the path to x′
+          const [left, right] = s.state.nodes.filter((c) => c.parent === s.state.current).map((c) => c.id)
+          const lo = s.line === RT_LINE.loQuery || s.line === RT_LINE.loAssoc
+          expect(s.state.assocShown, name).toBe(lo ? right : left)
+          expect(s.state.assocShown, name).toBe(s.state.canonical.at(-1))
+          if (s.line === RT_LINE.loQuery || s.line === RT_LINE.hiQuery) expect(s.state.assocPaths, name).toBeNull()
+          else expect(s.state.assocPaths?.node, name).toBe(s.state.assocShown)
+        } else {
+          expect(s.state.assocShown, `${name}: ${s.description}`).toBeNull()
+          expect(s.state.assocPaths, `${name}: ${s.description}`).toBeNull()
+        }
+      }
+    }
+    expect(shown).toBeGreaterThan(0)
+  })
+
+  it('x = x′: the split node is where x meets the split value', () => {
+    const points = P([[100, 100], [100, 200], [150, 150], [200, 300], [250, 120]])
+    const steps = rtSteps({ points, query: { x0: 100, y0: 150, x1: 100, y1: 250 } }, 'query')
+    expect(steps.map((s) => [s.line, s.description])).toEqual([
+      [9, 'Split node v2: x = x′ = 100 meets its split value 100, so the path to x goes left and the path to x′ right'],
+      [14, 'v3: x = 100 ≤ 100, the right subtree p2 lies in the slab → query its associated tree'],
+      [15, '1DRangeQuery(T_assoc(p2), [150 : 250]): reports p2'],
+      [17, 'Leaf p1: outside'],
+      [23, 'Leaf p3: outside'],
+      [23, 'Done: 1 point reported, 1 associated query'],
+    ])
+    // x = x′ off every split value parts the paths nowhere: the split node is a leaf
+    const off = rtSteps({ points, query: { x0: 120, y0: 0, x1: 120, y1: 400 } }, 'query')
+    expect(off.map((s) => s.description)).toEqual(['Split node is the leaf p3', 'Leaf p3: outside', 'Done: 0 points reported, 0 associated queries'])
   })
 
   it('reports singular counts', () => {
@@ -302,7 +344,7 @@ describe('rtSteps: degenerate input', () => {
       [2, 'Leaf p1: associated tree with 1 leaf · main tree 1 node, associated trees 1 leaf'],
       [9, 'Split node is the leaf p1'],
       [11, 'Leaf p1: inside the rectangle, reported'],
-      [23, 'Done: 1 point reported, 0 associated queries'],
+      [11, 'Done: 1 point reported, 0 associated queries'],
     ])
     const out = rtSteps({ ...input, query: { x0: 150, y0: 50, x1: 250, y1: 250 } }, 'query')
     expect(out[1].description).toBe('Leaf p1: outside')

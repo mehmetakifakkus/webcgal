@@ -46,5 +46,4 @@ export const RT_LINE = {
   hiAssoc: 21,
   hiLeft: 22,
   hiLeaf: 23,
-  done: 23,
 } as const

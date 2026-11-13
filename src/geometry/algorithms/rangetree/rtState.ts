@@ -35,9 +35,13 @@ export type RTState = {
   nodes: RTNodeView[]
   /** The node this step is about, null on the done step. */
   current: number | null
-  /** The main-tree node whose associated tree is drawn, or null. */
+  /**
+   * The main-tree node whose associated tree is drawn, or null. Set only on the steps about that
+   * tree: the node's build step, and in the query the decision that selects a canonical subtree
+   * (lines 14 / 20) and its 1DRangeQuery (lines 15 / 21); null on every other query step.
+   */
   assocShown: number | null
-  /** The search paths and reported nodes in `assocShown`'s associated tree, once it has been queried. */
+  /** The search paths and reported nodes in `assocShown`'s associated tree: on its 1DRangeQuery step only, else null. */
   assocPaths: RTAssocPaths | null
   /** Main-tree ids of the search path to x so far (from the root, through the split node). */
   pathLo: number[]

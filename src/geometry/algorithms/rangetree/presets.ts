@@ -28,9 +28,10 @@ const clusters = pts(
   [230, 330], [265, 300], [300, 345], [250, 390], [320, 410], [285, 435], [215, 420],
 )
 
+// p3…p10 lie in the strip, so the strip holds whole inner subtrees of the main tree as well as leaves
 const strip = pts(
-  [40, 300], [70, 120], [100, 420], [125, 220],
-  [158, 60], [166, 390], [174, 170], [182, 300], [190, 440], [198, 110],
+  [40, 300], [90, 120],
+  [150, 60], [157, 400], [164, 170], [171, 300], [178, 110], [185, 440], [192, 230], [199, 350],
   [240, 250], [270, 380], [300, 90], [330, 200],
 )
 
@@ -59,8 +60,8 @@ export const RT_PRESETS: RTPreset[] = [
   },
   {
     name: 'Thin vertical strip',
-    input: { points: strip, query: { x0: 150, y0: 30, x1: 205, y1: 450 } },
-    expected: { reported: [4, 5, 6, 7, 8, 9], canonical: 4, assocQueries: 4, nodes: 27, storage: 68, depth: 4 },
+    input: { points: strip, query: { x0: 145, y0: 30, x1: 205, y1: 450 } },
+    expected: { reported: [2, 3, 4, 5, 6, 7, 8, 9], canonical: 4, assocQueries: 4, nodes: 27, storage: 68, depth: 4 },
   },
   {
     name: 'Query covers everything',

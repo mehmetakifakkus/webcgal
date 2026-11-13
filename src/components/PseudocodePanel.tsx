@@ -1,11 +1,20 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 type Props = { lines: string[]; active: number; dimmed?: number[] }
 
 /**
+ * `text` with a <wbr> after every "(", "," and "←", so a line too wide for a narrow screen wraps
+ * there rather than inside a word (<wbr> adds no text: textContent stays `text`).
+ */
+function withBreaks(text: string): ReactNode[] {
+  return text.split(/(?<=[(,←])/).flatMap((part, i) => (i === 0 ? [part] : [<wbr key={i} />, part]))
+}
+
+/**
  * Pseudocode listing; the line of the current step is highlighted and marked with aria-current="step".
  * Lines in `dimmed` are shown faded (class pseudocode-dimmed).
- * Leading spaces become a hanging indent (--indent, in ch), so wrapped lines keep their indentation.
+ * Leading spaces become a hanging indent (--indent, in ch), so wrapped lines keep their indentation;
+ * long lines wrap after ( , and ← (see withBreaks).
  */
 export default function PseudocodePanel({ lines, active, dimmed }: Props) {
   return (
@@ -20,7 +29,7 @@ export default function PseudocodePanel({ lines, active, dimmed }: Props) {
             aria-current={i === active ? 'step' : undefined}
             style={{ '--indent': text.length - body.length } as CSSProperties}
           >
-            <code>{body}</code>
+            <code>{withBreaks(body)}</code>
           </li>
         )
       })}

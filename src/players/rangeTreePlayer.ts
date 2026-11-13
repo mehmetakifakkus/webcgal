@@ -8,7 +8,7 @@ import type { RTMode, RTNodeView, RTState } from '../geometry/algorithms/rangetr
 import { rtSteps } from '../geometry/algorithms/rangetree/rtSteps'
 import type { Box } from '../geometry/algorithms/voronoi/clip'
 import type { Pt, RangeTreeInput } from '../geometry/types'
-import { clampToBox, cornerHandles, moveCorner } from './cornerHandles'
+import { clampToBox, cornerHandles, handleRefs, moveCorner, type HandleRef } from './cornerHandles'
 import { cssColor } from './cssColor'
 import type { Panel, PlayerModule } from './types'
 
@@ -45,6 +45,11 @@ const copyInput = (input: RangeTreeInput): RangeTreeInput => ({
   points: input.points.map((q) => ({ x: q.x, y: q.y })),
   query: { ...input.query },
 })
+/** The handles of `mode` (see handleRefs): the points unless "Query only", the corners unless "Build only". */
+const refs = (n: number, mode?: string): HandleRef[] => {
+  const m = modeOf(mode)
+  return handleRefs(n, { points: m !== 'query', corners: m !== 'build' })
+}
 /** A dragged position: integer coordinates (so step texts compare what they show), in the plane area. */
 const snap = (p: Pt): Pt => clampToBox(RT_PLANE, { x: Math.round(p.x), y: Math.round(p.y) })
 
@@ -124,17 +129,17 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
   hint: 'Drag the points or the corners of the query rectangle. Keys: ← → to step, Space to play or pause.',
   randomInput: () => randomRangeTreeInput(),
   presets: RT_PRESETS.map(({ name, input }) => ({ name, input: copyInput(input) })),
-  // StepPlayer asks for the handles without a mode: all of them, and moveHandle keeps the
-  // points put in "Query only" and the corners in "Build only"
-  handles: ({ points, query }) => [...points.map((p) => clampToBox(RT_PLANE, p)), ...cornerHandles(query, RT_PLANE)],
+  handles({ points, query }, mode) {
+    const corners = cornerHandles(query, RT_PLANE)
+    return refs(points.length, mode).map((r) => ('point' in r ? clampToBox(RT_PLANE, points[r.point]) : corners[r.corner]))
+  },
   moveHandle(input, k, p, mode) {
-    const m = modeOf(mode)
-    const n = input.points.length
-    if (k < 0 || k > n + 1 || (k < n && m === 'query') || (k >= n && m === 'build')) return input
+    const r = refs(input.points.length, mode)[k]
+    if (!r) return input
     const next = copyInput(input)
     const q = snap(p)
-    if (k < n) next.points[k] = q
-    else next.query = moveCorner(input.query, k === n + 1, q)
+    if ('point' in r) next.points[r.point] = q
+    else next.query = moveCorner(input.query, r.corner === 1, q)
     return next
   },
   canvas: { width: WIDTH, height: HEIGHT },
@@ -224,7 +229,8 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
           strokeWidth: 1.5,
           name: `main-${v.id}`,
         })
-        if (labelled) text(v.label, q.x, q.y - 3, 9, 'center', faint ? c.faint : f ? WHITE : c.ink)
+        // inside the circle: kept at this size when StepPlayer enlarges the canvas text
+        if (labelled) text(v.label, q.x, q.y - 3, 9, 'center', faint ? c.faint : f ? WHITE : c.ink).data.fixedSize = true
       } else {
         new P.Path.Circle({
           center: pt(q),
@@ -234,7 +240,8 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
           strokeWidth: 1,
           name: `main-${v.id}`,
         })
-        if (labelled) text(v.label, q.x, q.y - LEAF_RADIUS - 9, 9, 'center', faint ? c.faint : c.ink)
+        // below the leaf: enlarged downwards on a small canvas (StepPlayer), clear of the circle
+        if (labelled) text(v.label, q.x, q.y - LEAF_RADIUS - 9, 9, 'center', faint ? c.faint : c.ink).data.anchor = 'top'
       }
     }
     // the node whose associated tree is drawn below, ringed in the query (in the build it is the current node)
@@ -303,7 +310,11 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
             }),
           )
           // the split value on y, which the 1-D query compares with, rounded so it fits the circle
-          if (aLabelled) items.push(text(String(Math.round(v.value)), q.x, q.y - 3, 8, 'center', f ? WHITE : c.ink))
+          if (aLabelled) {
+            const value = text(String(Math.round(v.value)), q.x, q.y - 3, 8, 'center', f ? WHITE : c.ink)
+            value.data.fixedSize = true // inside the circle: not enlarged by StepPlayer
+            items.push(value)
+          }
           draw(v.left)
           draw(v.right)
         } else {
@@ -311,7 +322,11 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
           items.push(
             new P.Path.Circle({ center: pt(q), radius: LEAF_RADIUS, fillColor: f ?? c.ink, strokeColor: f ?? c.ink, strokeWidth: 1, name: `assoc-node-leaf-${v.id}` }),
           )
-          if (aLabelled) items.push(text(pointLabel(v.point), q.x, q.y - LEAF_RADIUS - 9, 9, 'center'))
+          if (aLabelled) {
+            const leafLabel = text(pointLabel(v.point), q.x, q.y - LEAF_RADIUS - 9, 9, 'center')
+            leafLabel.data.anchor = 'top' // below the leaf: enlarged downwards, clear of the circle
+            items.push(leafLabel)
+          }
         }
       }
       if (tree.root) draw(tree.root)

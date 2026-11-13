@@ -37,3 +37,18 @@ export function moveCorner(query: Box, upper: boolean, q: Pt): Box {
   const { x0, y0, x1, y1 } = query
   return upper ? { x0, y0, x1: Math.max(q.x, x0), y1: Math.max(q.y, y0) } : { x0: Math.min(q.x, x1), y0: Math.min(q.y, y1), x1, y1 }
 }
+
+/** What a handle index stands for: point `point` of the input, or corner 0 (lower-left) or 1 (upper-right). */
+export type HandleRef = { point: number } | { corner: 0 | 1 }
+
+/**
+ * The handles of a player with points and a query rectangle, in index order: the `n` points when
+ * the mode has a build phase (`points`), then the two corners when it has a query phase
+ * (`corners`). Both handles(input, mode) and moveHandle(input, index, p, mode) read their indices
+ * from this list, so an index means the same handle to both.
+ */
+export function handleRefs(n: number, { points, corners }: { points: boolean; corners: boolean }): HandleRef[] {
+  const refs: HandleRef[] = points ? Array.from({ length: n }, (_, i) => ({ point: i })) : []
+  if (corners) refs.push({ corner: 0 }, { corner: 1 })
+  return refs
+}

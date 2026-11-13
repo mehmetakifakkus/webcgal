@@ -1,10 +1,13 @@
 import { expect, test, vi } from 'vitest'
+import type paper from 'paper'
 import { render } from 'vitest-browser-react'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import StepPlayer from './StepPlayer'
 import type { PlayerModule } from '../players/types'
 import type { Step } from '../geometry/steps'
-import type { Pt, Segment } from '../geometry/types'
+import type { KdInput, Pt, RangeTreeInput, Segment } from '../geometry/types'
+import kdTreePlayer from '../players/kdTreePlayer'
+import rangeTreePlayer from '../players/rangeTreePlayer'
 
 const LINES = ['zero', 'one', 'two', 'three', 'four']
 const fake: PlayerModule<{ k: number }, Pt[]> = {
@@ -567,4 +570,295 @@ test('a click keeps the preset selection; a drag clears it', async () => {
     { keys: '[/MouseLeft]' },
   ])
   await expect.poll(value).toBe('')
+})
+
+test('StepPlayer passes the mode to handles; moveHandle gets indices into that list', async () => {
+  // in mode b only the last two points are handles
+  const handles = vi.fn((pts: Pt[], mode?: string) => (mode === 'b' ? pts.slice(1) : pts))
+  const moveHandle = vi.fn((pts: Pt[], k: number, p: Pt, mode?: string) => {
+    const i = mode === 'b' ? k + 1 : k
+    return pts.map((q, j) => (j === i ? p : q))
+  })
+  const computeSteps = vi.fn((_pts: Pt[], _mode?: string) =>
+    [0, 1].map((k): Step<{ k: number }> => ({ description: `step ${k}`, line: k, state: { k } })),
+  )
+  const module: PlayerModule<{ k: number }, Pt[]> = {
+    modes: [
+      { id: 'a', label: 'Mode A' },
+      { id: 'b', label: 'Mode B' },
+    ],
+    computeSteps,
+    render: () => {},
+    // no renderInvalid: the player draws the handles itself
+    validate: (pts) => (pts[1].x < 50 ? 'Invalid input' : null),
+    pseudocode: ['first', 'second'],
+    randomInput: () => MODE_POINTS,
+    handles,
+    moveHandle,
+  }
+  const screen = await render(<StepPlayer module={module} />)
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), 'Mode B')
+  await expect.element(screen.getByText('Step 1 / 2')).toBeVisible()
+  handles.mockClear()
+  const { canvas, at } = canvasAt(screen)
+  const from = MODE_POINTS[1]
+  try {
+    await userEvent.pointer([
+      { target: canvas, coords: at(from) },
+      { keys: '[MouseLeft>]' },
+      { target: canvas, coords: at({ x: 20, y: from.y }) },
+    ])
+    await expect.element(screen.getByRole('alert')).toHaveTextContent('Invalid input')
+    // grabbing (mouse down) and drawing the invalid input both ask for mode b's handles
+    expect(handles.mock.calls.length).toBeGreaterThanOrEqual(2)
+    expect(handles.mock.calls.every(([, mode]) => mode === 'b')).toBe(true)
+    // the second point is handle 0 of mode b
+    expect(moveHandle).toHaveBeenCalled()
+    expect(moveHandle.mock.calls.every(([, k, , mode]) => k === 0 && mode === 'b')).toBe(true)
+  } finally {
+    await userEvent.pointer([{ keys: '[/MouseLeft]' }])
+  }
+  await expect.element(screen.getByText('Step 1 / 2')).toBeVisible()
+  // mode a: every point is a handle
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), 'Mode A')
+  handles.mockClear()
+  moveHandle.mockClear()
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: from.x + 40, y: from.y }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(() => moveHandle.mock.calls.length).toBeGreaterThan(0)
+  expect(handles.mock.calls.every(([, mode]) => mode === 'a')).toBe(true)
+  expect(moveHandle.mock.calls.every(([, k]) => k === 1)).toBe(true)
+})
+
+test('modules without modes get handles(input)', async () => {
+  const handles = vi.fn((pts: Pt[]) => pts)
+  const screen = await render(<StepPlayer module={{ ...fake, handles }} />)
+  await expect.element(screen.getByText(`Step 1 / ${n}`)).toBeVisible()
+  const { canvas, at } = canvasAt(screen)
+  await userEvent.pointer([{ target: canvas, coords: at({ x: 100, y: 100 }) }, { keys: '[MouseLeft>]' }, { keys: '[/MouseLeft]' }])
+  await expect.poll(() => handles.mock.calls.length).toBeGreaterThan(0)
+  expect(handles.mock.calls.every((args) => args.length === 1)).toBe(true)
+})
+
+/**
+ * Presses at the input's point 0, which lies 5 units right of the query's lower-left corner,
+ * and drags by (30, 20) in `mode`; returns the input the steps were last computed for.
+ */
+async function dragNearCorner<I extends KdInput | RangeTreeInput>(
+  base: PlayerModule<unknown, I>,
+  input: I,
+  height: number,
+  mode: string,
+): Promise<I> {
+  const computeSteps = vi.fn((inp: I, m?: string) => base.computeSteps(inp, m))
+  const module: PlayerModule<unknown, I> = { ...base, randomInput: () => input, computeSteps }
+  const screen = await render(<StepPlayer module={module} />)
+  const label = base.modes!.find((m) => m.id === mode)!.label
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), label)
+  await expect.poll(() => computeSteps.mock.lastCall?.[1]).toBe(mode)
+  const canvas = screen.getByLabelText('Drawing canvas')
+  const r = (canvas.element() as HTMLCanvasElement).getBoundingClientRect()
+  const at = (p: Pt) => ({ x: (p.x * r.width) / 775, y: ((height - p.y) * r.height) / height })
+  const from = input.points[0]
+  const calls = computeSteps.mock.calls.length
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: from.x + 15, y: from.y + 10 }) },
+    { target: canvas, coords: at({ x: from.x + 30, y: from.y + 20 }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(() => computeSteps.mock.calls.length).toBeGreaterThan(calls)
+  await pause(50)
+  await screen.unmount()
+  return computeSteps.mock.lastCall![0]
+}
+
+for (const [name, base, height] of [
+  ['kd-tree', kdTreePlayer, 360],
+  ['range tree', rangeTreePlayer, 480],
+] as const)
+  test(`${name}: the handles follow the mode (a corner 5 units from a point)`, async () => {
+    const preset = base.presets!.find((p) => p.name === 'Textbook example')!.input as KdInput
+    const { x0, y0 } = preset.query
+    const input = { points: [{ x: x0 + 5, y: y0 }, ...preset.points.slice(1)], query: { ...preset.query } }
+    const from = input.points[0]
+    const module = base as unknown as PlayerModule<unknown, KdInput>
+    const close = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y) < 1.5
+    // Query only: the press grabs the corner; the point stays put
+    const query = await dragNearCorner(module, input, height, 'query')
+    expect(query.points).toEqual(input.points)
+    expect(close({ x: query.query.x0, y: query.query.y0 }, { x: from.x + 30, y: from.y + 20 })).toBe(true)
+    expect([query.query.x1, query.query.y1]).toEqual([input.query.x1, input.query.y1])
+    // Build only, and Build and query as before: the same press moves the point
+    for (const mode of ['build', 'full']) {
+      const moved = await dragNearCorner(module, input, height, mode)
+      expect(moved.query).toEqual(input.query)
+      expect(close(moved.points[0], { x: from.x + 30, y: from.y + 20 })).toBe(true)
+      expect(moved.points.slice(1)).toEqual(input.points.slice(1))
+    }
+  })
+
+// canvas text: scaled up by 0.8 / s (at most 1.6 times) when the canvas is shown at s < 0.8 of its scene size
+type Shown = { size: number; onScreen: number; point: { x: number; y: number }; scale: number }
+function makeTextModule() {
+  const render = vi.fn((scene: import('../engine/scene').Scene, step: Step<{ k: number }>) => {
+    const P = scene.paper
+    P.activate()
+    scene.clear()
+    // y-flipped back, like the players' labels; a nested one too; one inside a shape keeps its size
+    new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 200, 150), content: `label ${step.state.k}`, fontSize: 12, justification: 'center', name: 'label' })
+    new P.Group([new P.PointText({ point: [400, 100], content: 'small', fontSize: 9, name: 'small' })])
+    new P.PointText({ point: [600, 200], content: 'v1', fontSize: 9, justification: 'center', name: 'fixed', data: { fixedSize: true } })
+  })
+  const module: PlayerModule<{ k: number }, Pt[]> = { ...fake, render }
+  return { module, render }
+}
+function shownText(name: string): Shown {
+  const scene = window.__webcgalDebug!.scene
+  const item = scene.paper.project.getItem({ name }) as paper.PointText
+  const canvas = scene.paper.view.element as HTMLCanvasElement
+  const scale = canvas.getBoundingClientRect().width / scene.paper.view.viewSize.width
+  const size = Number(item.fontSize)
+  return { size, onScreen: size * scale, point: { x: item.point.x, y: item.point.y }, scale }
+}
+/** Renders the text module in a box `width` px wide on a 400 px viewport (one column: the canvas is as wide as the box). */
+async function renderTextModule(width: number) {
+  await page.viewport(400, 800)
+  const { module, render: renderStep } = makeTextModule()
+  const screen = await render(
+    <div data-testid="box" style={{ width }}>
+      <StepPlayer module={module} />
+    </div>,
+  )
+  await expect.poll(() => renderStep.mock.calls.length).toBeGreaterThan(0)
+  return screen
+}
+
+test('canvas text is scaled up on a 320 px wide canvas, at most 1.6 times', async () => {
+  try {
+    const screen = await renderTextModule(320)
+    await expect.poll(() => shownText('label').size).toBeCloseTo(12 * 1.6, 6)
+    const label = shownText('label')
+    expect(label.scale).toBeLessThan(0.45)
+    expect(label.onScreen).toBeGreaterThanOrEqual(7.5)
+    // the anchor stays where the module put it
+    expect(label.point).toEqual({ x: 200, y: 150 })
+    expect(shownText('small').size).toBeCloseTo(9 * 1.6, 6)
+    expect(shownText('small').point).toEqual({ x: 400, y: 100 })
+    // a label marked fixedSize (inside a node circle) keeps its size
+    expect(shownText('fixed').size).toBe(9)
+    // later renders and resizes do not compound
+    for (let k = 0; k < 3; k++) await screen.getByRole('button', { name: 'Next' }).click()
+    await expect.element(screen.getByText('Step 4 / 5')).toBeVisible()
+    await expect.poll(() => (window.__webcgalDebug!.scene.paper.project.getItem({ name: 'label' }) as paper.PointText).content).toBe('label 3')
+    expect(shownText('label').size).toBeCloseTo(12 * 1.6, 6)
+    const box = screen.getByTestId('box').element() as HTMLElement
+    // 500 px: s ≈ 0.645, the factor is 0.8 / s
+    box.style.width = '500px'
+    await expect.poll(() => shownText('label').scale).toBeCloseTo(500 / 775, 2)
+    await expect.poll(() => shownText('label').size).toBeCloseTo((12 * 0.8) / shownText('label').scale, 4)
+    expect(shownText('label').onScreen).toBeCloseTo(12 * 0.8, 4)
+    box.style.width = '320px'
+    await expect.poll(() => shownText('label').size).toBeCloseTo(12 * 1.6, 6)
+    box.style.width = '500px'
+    await expect.poll(() => shownText('label').size).toBeCloseTo((12 * 0.8) / shownText('label').scale, 4)
+    expect(shownText('label').point).toEqual({ x: 200, y: 150 })
+    expect(shownText('small').size).toBeCloseTo((9 * 0.8) / shownText('small').scale, 4)
+    expect(shownText('fixed').size).toBe(9)
+    // back to a canvas shown at s ≥ 0.8: the module's sizes again
+    box.style.width = '679px'
+    await expect.poll(() => shownText('label').size).toBe(12)
+    expect(shownText('small').size).toBe(9)
+  } finally {
+    await page.viewport(1280, 800)
+  }
+})
+
+test('canvas text keeps its size on a desktop-width canvas (679 px, s = 0.876)', async () => {
+  try {
+    const screen = await renderTextModule(679)
+    await screen.getByRole('button', { name: 'Next' }).click()
+    await expect.poll(() => (window.__webcgalDebug!.scene.paper.project.getItem({ name: 'label' }) as paper.PointText).content).toBe('label 1')
+    await pause(100)
+    expect(shownText('label').scale).toBeCloseTo(679 / 775, 3)
+    expect(shownText('label').size).toBe(12)
+    expect(shownText('small').size).toBe(9)
+    expect(shownText('fixed').size).toBe(9)
+  } finally {
+    await page.viewport(1280, 800)
+  }
+})
+
+test('canvas text keeps its size on a full-size canvas', async () => {
+  const { module, render: renderStep } = makeTextModule()
+  const screen = await render(<StepPlayer module={module} />)
+  await expect.poll(() => renderStep.mock.calls.length).toBeGreaterThan(0)
+  await screen.getByRole('button', { name: 'Next' }).click()
+  await expect.poll(() => (window.__webcgalDebug!.scene.paper.project.getItem({ name: 'label' }) as paper.PointText).content).toBe('label 1')
+  await pause(100)
+  expect(shownText('label').scale).toBeCloseTo(1, 6)
+  expect(shownText('label').size).toBe(12)
+  expect(shownText('small').size).toBe(9)
+})
+
+test('the module sees the text scale before it renders, and renders again when it changes', async () => {
+  const scales: (number | undefined)[] = []
+  const renderStep = vi.fn((scene: import('../engine/scene').Scene) => {
+    scales.push(scene.textScale)
+    const P = scene.paper
+    P.activate()
+    scene.clear()
+    // laid out by the module itself at its own size
+    new P.PointText({ point: [100, 100], content: 'own', fontSize: 13 * (scene.textScale ?? 1), name: 'own', data: { fixedSize: true } })
+    // below a marker: grows downwards, its top edge stays put
+    new P.Path.Circle({ center: [300, 200], radius: 5, fillColor: 'black' })
+    new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 300, 200 - 5 - 9), content: 'v1', fontSize: 9, justification: 'center', name: 'below', data: { anchor: 'top' } })
+    // above a marker: grows upwards, its bottom edge stays put
+    new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 300, 200 + 9), content: 'y = 90', fontSize: 9, justification: 'center', name: 'above', data: { anchor: 'bottom' } })
+  })
+  try {
+    await page.viewport(400, 800)
+    const screen = await render(
+      <div data-testid="box" style={{ width: 320 }}>
+        <StepPlayer module={{ ...fake, render: renderStep }} />
+      </div>,
+    )
+    await expect.poll(() => scales.at(-1)).toBeCloseTo(1.6, 6)
+    expect(shownText('own').size).toBeCloseTo(13 * 1.6, 6)
+    const below = () => window.__webcgalDebug!.scene.paper.project.getItem({ name: 'below' }) as paper.PointText
+    expect(Number(below().fontSize)).toBeCloseTo(9 * 1.6, 6)
+    // the top edge (the largest y of the y-flipped text's box) is where it is at the module's size
+    const P = window.__webcgalDebug!.scene.paper
+    const ref = new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 300, 200 - 5 - 9), content: 'v1', fontSize: 9, justification: 'center' })
+    const top = ref.bounds.bottom
+    ref.remove()
+    expect(below().bounds.bottom).toBeCloseTo(top, 6)
+    const above = () => window.__webcgalDebug!.scene.paper.project.getItem({ name: 'above' }) as paper.PointText
+    const ref2 = new P.PointText({ matrix: new P.Matrix(1, 0, 0, -1, 300, 200 + 9), content: 'y = 90', fontSize: 9, justification: 'center' })
+    const bottom = ref2.bounds.top // the smallest y: the box's bottom edge on screen
+    ref2.remove()
+    expect(Number(above().fontSize)).toBeCloseTo(9 * 1.6, 6)
+    expect(above().bounds.top).toBeCloseTo(bottom, 6)
+    expect(below().bounds.height).toBeGreaterThan(1.5 * ref.bounds.height)
+    // a resize that changes the scale renders again with the new one
+    const calls = renderStep.mock.calls.length
+    ;(screen.getByTestId('box').element() as HTMLElement).style.width = '500px'
+    await expect.poll(() => scales.at(-1)).toBeCloseTo(0.8 / (500 / 775), 2)
+    expect(renderStep.mock.calls.length).toBeGreaterThan(calls)
+    expect(below().bounds.bottom).toBeCloseTo(top, 6)
+    // s ≥ 0.8: scale 1, the module's sizes
+    ;(screen.getByTestId('box').element() as HTMLElement).style.width = '679px'
+    await expect.poll(() => scales.at(-1)).toBe(1)
+    expect(shownText('own').size).toBe(13)
+    expect(Number(below().fontSize)).toBe(9)
+    expect(below().point.y).toBe(200 - 5 - 9)
+    expect(above().point.y).toBe(200 + 9)
+  } finally {
+    await page.viewport(1280, 800)
+  }
 })

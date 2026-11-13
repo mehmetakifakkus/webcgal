@@ -7,7 +7,7 @@ import { KD_PRESETS } from '../geometry/algorithms/kdtree/presets'
 import { KD_PSEUDOCODE } from '../geometry/algorithms/kdtree/pseudocode'
 import { clipSegment, type Box } from '../geometry/algorithms/voronoi/clip'
 import type { KdInput, Pt } from '../geometry/types'
-import { clampToBox, cornerHandles as cornerHandlesIn, moveCorner } from './cornerHandles'
+import { clampToBox, cornerHandles as cornerHandlesIn, handleRefs, moveCorner, type HandleRef } from './cornerHandles'
 import { cssColor } from './cssColor'
 import type { Panel, PlayerModule } from './types'
 
@@ -32,6 +32,8 @@ const short = (v: number) => String(+v.toFixed(1))
 const clamp = (p: Pt): Pt => clampToBox(PLANE_BOX, p)
 /** The two corner handles, told apart when the rectangle has collapsed (see cornerHandles.ts). */
 const cornerHandles = (query: KdInput['query']): [Pt, Pt] => cornerHandlesIn(query, PLANE_BOX)
+/** The handles of `mode` (see handleRefs): the points unless "Query only", the corners unless "Build only". */
+const refs = (n: number, mode?: string): HandleRef[] => handleRefs(n, { points: mode !== 'query', corners: mode !== 'build' })
 const copyInput = (input: KdInput): KdInput => ({ points: input.points.map((q) => ({ x: q.x, y: q.y })), query: { ...input.query } })
 
 /** 14 points at least 20 apart, and a rectangle covering 26–39% of the plane box. */
@@ -87,8 +89,14 @@ function treeLayout(nodes: KdNodeView[], bottom: number): Map<number, Pt> {
   return out
 }
 
-const kdTreePlayer: PlayerModule<KdState, KdInput> = {
-  computeSteps: (input, mode) => kdSteps(input, (mode ?? 'full') as KdMode),
+/** A step state with the mode it was computed in (the corners are drawn only with a query phase). */
+type KdPlayerState = KdState & { mode: KdMode }
+
+const kdTreePlayer: PlayerModule<KdPlayerState, KdInput> = {
+  computeSteps(input, mode) {
+    const m: KdMode = mode === 'build' || mode === 'query' ? mode : 'full'
+    return kdSteps(input, m).map((step) => ({ ...step, state: { ...step.state, mode: m } }))
+  },
   modes: [
     { id: 'full', label: 'Build and query' },
     { id: 'build', label: 'Build only' },
@@ -99,17 +107,18 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
   hint: 'Drag the points or the two corners of the query rectangle. Keys: ← → to step, Space to play or pause.',
   randomInput,
   presets: KD_PRESETS.map(({ name, input }) => ({ name, input: copyInput(input) })),
-  handles: ({ points, query }) => [...points.map(clamp), ...cornerHandles(query)],
-  moveHandle(input, k, p) {
+  handles({ points, query }, mode) {
+    const corners = cornerHandles(query)
+    return refs(points.length, mode).map((r) => ('point' in r ? clamp(points[r.point]) : corners[r.corner]))
+  },
+  moveHandle(input, k, p, mode) {
+    const r = refs(input.points.length, mode)[k]
+    if (!r) return input
     const next = copyInput(input)
-    const n = input.points.length
     const q = clamp(p)
-    if (k < n) {
-      next.points[k] = q
-      return next
-    }
+    if ('point' in r) next.points[r.point] = q
     // the dragged corner stops at the opposite one (which stays put)
-    next.query = moveCorner(input.query, k !== n, q)
+    else next.query = moveCorner(input.query, r.corner === 1, q)
     return next
   },
   canvas: { width: WIDTH, height: HEIGHT },
@@ -195,13 +204,16 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
       for (const v of s.nodes) {
         const q = at.get(v.id)!
         if (!v.axis) {
-          text(label(v.point!), q.x, q.y - LEAF_RADIUS - 9, 9, 'center')
+          // below the leaf: enlarged downwards on a small canvas (StepPlayer), clear of the circle
+          text(label(v.point!), q.x, q.y - LEAF_RADIUS - 9, 9, 'center').data.anchor = 'top'
           continue
         }
         const content = `${v.axis} = ${Math.round(v.value!)}`
         const [x, y, j] = v.parent === null ? [q.x + 9, q.y - 12, 'left'] : [q.x, q.y + 9, 'center']
-        text(content, x, y, 9, j).set({ fillColor: c.bg, strokeColor: c.bg, strokeWidth: 4, strokeJoin: 'round' })
-        text(content, x, y, 9, j)
+        // above the square (not the root's, which is beside it): enlarged upwards on a small canvas
+        const anchor = v.parent === null ? undefined : 'bottom'
+        text(content, x, y, 9, j).set({ fillColor: c.bg, strokeColor: c.bg, strokeWidth: 4, strokeJoin: 'round', data: { anchor } })
+        text(content, x, y, 9, j).data.anchor = anchor
       }
 
     // points last (they match handles(input)): reported green, those in skipped regions faded
@@ -216,8 +228,9 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
         fillColor: reported.has(i) ? c.report : faded ? withAlpha(c.ink, 0.3) : c.ink,
       })
     })
-    // the corners are drawn where they are grabbed (cornerHandles)
-    for (const q of cornerHandles(query)) {
+    // the corners are drawn where they are grabbed (cornerHandles), in modes with a query phase
+    // (in "Build only" they are not handles)
+    for (const q of s.mode === 'build' ? [] : cornerHandles(query)) {
       const h = CORNER_SIZE / 2
       rect({ x0: q.x - h, y0: q.y - h, x1: q.x + h, y1: q.y + h }, { fillColor: c.query })
     }

@@ -19,6 +19,66 @@ const GRAB = 12
 const CLICK_SLOP = 3
 /** Radius of the handles drawn for an invalid input when the module has no renderInvalid. */
 const HANDLE_RADIUS = 4
+/** Canvas text grows by at most this factor when the canvas is shown small. */
+const MAX_TEXT_SCALE = 1.6
+/**
+ * Shown at this fraction of its scene size or more, the canvas keeps its text sizes (on desktop
+ * the page shows the 775-unit canvas at 679 px, s = 0.876).
+ */
+const SMALL_CANVAS = 0.8
+
+/**
+ * How much canvas text is enlarged: SMALL_CANVAS / s, at most MAX_TEXT_SCALE, where s is the
+ * canvas's CSS width over its width in scene units, once s < SMALL_CANVAS (on a phone the whole
+ * canvas is shown small; the labels stay readable); 1 at s ≥ SMALL_CANVAS (desktop). Null while
+ * the canvas is not laid out.
+ */
+function textFactor(scene: Scene): number | null {
+  const view = scene.paper.view
+  const shown = (view.element as HTMLCanvasElement).getBoundingClientRect().width
+  if (!(shown > 0)) return null
+  const s = shown / view.viewSize.width
+  return s >= SMALL_CANVAS ? 1 : Math.min(SMALL_CANVAS / s, MAX_TEXT_SCALE)
+}
+
+/**
+ * Scales the texts the module drew by `factor` (see textFactor). Texts with data.fixedSize are
+ * skipped: labels inside a node's shape, and labels the module laid out itself at
+ * scene.textScale. A text keeps its anchor (its point, with its justification); one marked
+ * data.anchor = 'top' (a label below a marker) keeps the top edge of its text box instead, so
+ * it grows downwards, away from the marker, and one marked 'bottom' (a label above a marker)
+ * keeps its bottom edge and grows upwards. The module's size, point and text box are kept in
+ * data.baseFontSize, data.basePoint and data.baseBox, so repeated passes do not compound.
+ */
+function scaleCanvasText(scene: Scene, factor: number) {
+  const P = scene.paper
+  for (const item of P.project.getItems({ class: P.PointText }) as paper.PointText[]) {
+    const data = item.data as {
+      baseFontSize?: number
+      basePoint?: paper.Point
+      baseBox?: { top: number; bottom: number }
+      fixedSize?: boolean
+      anchor?: string
+    }
+    if (data.fixedSize) continue
+    data.baseFontSize ??= parseFloat(String(item.fontSize))
+    if (!Number.isFinite(data.baseFontSize)) continue
+    data.basePoint ??= item.point.clone()
+    // the text box relative to the baseline, in the text's own units (y down)
+    data.baseBox ??= { top: item.internalBounds.top, bottom: item.internalBounds.bottom }
+    const size = data.baseFontSize * factor
+    if (item.fontSize !== size) item.fontSize = size
+    if (data.anchor !== 'top' && data.anchor !== 'bottom') continue
+    // move the baseline along the text's own y (down on screen, as the text reads upright) so that
+    // the box's top (or bottom) edge is where it was at the module's size
+    const box = item.internalBounds
+    const drop = data.anchor === 'top' ? data.baseBox.top - box.top : data.baseBox.bottom - box.bottom
+    const m = item.matrix
+    const down = m.transform(new P.Point(0, drop)).subtract(m.transform(new P.Point(0, 0)))
+    const point = data.basePoint.add(down)
+    if (!item.point.equals(point)) item.point = point
+  }
+}
 
 /** Keys are ignored while typing in a form control or the code editor. */
 function isTypingTarget(t: EventTarget | null) {
@@ -34,6 +94,8 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(5)
   const [scene, setScene] = useState<Scene | null>(null)
+  /** How much canvas text is enlarged (textFactor), given to the module as scene.textScale. */
+  const [textScale, setTextScale] = useState(1)
   /** Index of the loaded preset as the select's value; "" once the input changes otherwise. */
   const [preset, setPreset] = useState('')
   /** The selected mode's id; kept when the input changes. */
@@ -44,6 +106,11 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   modeRef.current = mode
   /** The last input that passed `validate`: a drag that ends on an invalid input reverts to it. */
   const lastValidRef = useRef(input)
+  /** The draggable handles of `inp` in mode `m`; modules without modes get the call they were written for. */
+  const handlesOf = useCallback(
+    (inp: unknown, m: string | undefined): Pt[] => (m === undefined ? module.handles(inp) : module.handles(inp, m)),
+    [module],
+  )
   const presetId = useId()
   const modeId = useId()
   const { width, height } = module.canvas ?? DEFAULT_CANVAS
@@ -71,6 +138,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   // draw the current step, or the invalid input
   useEffect(() => {
     if (!scene) return
+    scene.textScale = textScale
     if (invalid === null) {
       if (step) module.render(scene, step, input)
     } else if (module.renderInvalid) module.renderInvalid(scene, input)
@@ -79,10 +147,28 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       P.activate()
       scene.clear()
       const ink = cssColor('--canvas-ink', '#1c1e21')
-      for (const q of module.handles(input))
+      for (const q of handlesOf(input, mode))
         new P.Path.Circle({ center: new P.Point(q.x, q.y), radius: HANDLE_RADIUS, fillColor: ink })
     }
-  }, [scene, module, step, input, invalid])
+    // after the module's render, which stays pure: the module draws at scene sizes, except the
+    // labels it sized by scene.textScale itself
+    scaleCanvasText(scene, textScale)
+  }, [scene, module, step, input, invalid, handlesOf, mode, textScale])
+
+  // the text factor follows the canvas's shown size (window resized, phone rotated); a new
+  // factor draws the step again, so modules that lay out their labels can do it at the new size
+  useEffect(() => {
+    if (!scene) return
+    const update = () => {
+      const f = textFactor(scene)
+      if (f !== null) setTextScale(f)
+    }
+    update()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(update)
+    observer.observe(scene.paper.view.element)
+    return () => observer.disconnect()
+  }, [scene])
 
   // playback
   useEffect(() => {
@@ -150,7 +236,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       const unitsPerPx = shown > 0 ? view.viewSize.width / shown : 1
       let best = -1
       let bestD = GRAB * Math.max(1, unitsPerPx)
-      module.handles(inputRef.current).forEach((p, i) => {
+      handlesOf(inputRef.current, modeRef.current).forEach((p, i) => {
         const d = Math.hypot(p.x - q.x, p.y - q.y)
         if (d <= bestD) {
           best = i
@@ -219,7 +305,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       view.onMouseDrag = null
       view.onMouseUp = null
     }
-  }, [scene, module, width, height, replaceInput])
+  }, [scene, module, width, height, replaceInput, handlesOf])
 
   return (
     <div ref={containerRef} className="step-player" tabIndex={0} aria-label="Step by step player">

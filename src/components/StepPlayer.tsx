@@ -44,6 +44,11 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
   modeRef.current = mode
   /** The last input that passed `validate`: a drag that ends on an invalid input reverts to it. */
   const lastValidRef = useRef(input)
+  /** The draggable handles of `inp` in mode `m`; modules without modes get the call they were written for. */
+  const handlesOf = useCallback(
+    (inp: unknown, m: string | undefined): Pt[] => (m === undefined ? module.handles(inp) : module.handles(inp, m)),
+    [module],
+  )
   const presetId = useId()
   const modeId = useId()
   const { width, height } = module.canvas ?? DEFAULT_CANVAS
@@ -79,10 +84,10 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       P.activate()
       scene.clear()
       const ink = cssColor('--canvas-ink', '#1c1e21')
-      for (const q of module.handles(input))
+      for (const q of handlesOf(input, mode))
         new P.Path.Circle({ center: new P.Point(q.x, q.y), radius: HANDLE_RADIUS, fillColor: ink })
     }
-  }, [scene, module, step, input, invalid])
+  }, [scene, module, step, input, invalid, handlesOf, mode])
 
   // playback
   useEffect(() => {
@@ -150,7 +155,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       const unitsPerPx = shown > 0 ? view.viewSize.width / shown : 1
       let best = -1
       let bestD = GRAB * Math.max(1, unitsPerPx)
-      module.handles(inputRef.current).forEach((p, i) => {
+      handlesOf(inputRef.current, modeRef.current).forEach((p, i) => {
         const d = Math.hypot(p.x - q.x, p.y - q.y)
         if (d <= bestD) {
           best = i
@@ -219,7 +224,7 @@ export default function StepPlayer({ module }: { module: PlayerModule<any, any> 
       view.onMouseDrag = null
       view.onMouseUp = null
     }
-  }, [scene, module, width, height, replaceInput])
+  }, [scene, module, width, height, replaceInput, handlesOf])
 
   return (
     <div ref={containerRef} className="step-player" tabIndex={0} aria-label="Step by step player">

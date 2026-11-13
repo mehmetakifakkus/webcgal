@@ -4,7 +4,9 @@ import { userEvent } from 'vitest/browser'
 import StepPlayer from './StepPlayer'
 import type { PlayerModule } from '../players/types'
 import type { Step } from '../geometry/steps'
-import type { Pt, Segment } from '../geometry/types'
+import type { KdInput, Pt, RangeTreeInput, Segment } from '../geometry/types'
+import kdTreePlayer from '../players/kdTreePlayer'
+import rangeTreePlayer from '../players/rangeTreePlayer'
 
 const LINES = ['zero', 'one', 'two', 'three', 'four']
 const fake: PlayerModule<{ k: number }, Pt[]> = {
@@ -568,3 +570,134 @@ test('a click keeps the preset selection; a drag clears it', async () => {
   ])
   await expect.poll(value).toBe('')
 })
+
+test('StepPlayer passes the mode to handles; moveHandle gets indices into that list', async () => {
+  // in mode b only the last two points are handles
+  const handles = vi.fn((pts: Pt[], mode?: string) => (mode === 'b' ? pts.slice(1) : pts))
+  const moveHandle = vi.fn((pts: Pt[], k: number, p: Pt, mode?: string) => {
+    const i = mode === 'b' ? k + 1 : k
+    return pts.map((q, j) => (j === i ? p : q))
+  })
+  const computeSteps = vi.fn((_pts: Pt[], _mode?: string) =>
+    [0, 1].map((k): Step<{ k: number }> => ({ description: `step ${k}`, line: k, state: { k } })),
+  )
+  const module: PlayerModule<{ k: number }, Pt[]> = {
+    modes: [
+      { id: 'a', label: 'Mode A' },
+      { id: 'b', label: 'Mode B' },
+    ],
+    computeSteps,
+    render: () => {},
+    // no renderInvalid: the player draws the handles itself
+    validate: (pts) => (pts[1].x < 50 ? 'Invalid input' : null),
+    pseudocode: ['first', 'second'],
+    randomInput: () => MODE_POINTS,
+    handles,
+    moveHandle,
+  }
+  const screen = await render(<StepPlayer module={module} />)
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), 'Mode B')
+  await expect.element(screen.getByText('Step 1 / 2')).toBeVisible()
+  handles.mockClear()
+  const { canvas, at } = canvasAt(screen)
+  const from = MODE_POINTS[1]
+  try {
+    await userEvent.pointer([
+      { target: canvas, coords: at(from) },
+      { keys: '[MouseLeft>]' },
+      { target: canvas, coords: at({ x: 20, y: from.y }) },
+    ])
+    await expect.element(screen.getByRole('alert')).toHaveTextContent('Invalid input')
+    // grabbing (mouse down) and drawing the invalid input both ask for mode b's handles
+    expect(handles.mock.calls.length).toBeGreaterThanOrEqual(2)
+    expect(handles.mock.calls.every(([, mode]) => mode === 'b')).toBe(true)
+    // the second point is handle 0 of mode b
+    expect(moveHandle).toHaveBeenCalled()
+    expect(moveHandle.mock.calls.every(([, k, , mode]) => k === 0 && mode === 'b')).toBe(true)
+  } finally {
+    await userEvent.pointer([{ keys: '[/MouseLeft]' }])
+  }
+  await expect.element(screen.getByText('Step 1 / 2')).toBeVisible()
+  // mode a: every point is a handle
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), 'Mode A')
+  handles.mockClear()
+  moveHandle.mockClear()
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: from.x + 40, y: from.y }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(() => moveHandle.mock.calls.length).toBeGreaterThan(0)
+  expect(handles.mock.calls.every(([, mode]) => mode === 'a')).toBe(true)
+  expect(moveHandle.mock.calls.every(([, k]) => k === 1)).toBe(true)
+})
+
+test('modules without modes get handles(input)', async () => {
+  const handles = vi.fn((pts: Pt[]) => pts)
+  const screen = await render(<StepPlayer module={{ ...fake, handles }} />)
+  await expect.element(screen.getByText(`Step 1 / ${n}`)).toBeVisible()
+  const { canvas, at } = canvasAt(screen)
+  await userEvent.pointer([{ target: canvas, coords: at({ x: 100, y: 100 }) }, { keys: '[MouseLeft>]' }, { keys: '[/MouseLeft]' }])
+  await expect.poll(() => handles.mock.calls.length).toBeGreaterThan(0)
+  expect(handles.mock.calls.every((args) => args.length === 1)).toBe(true)
+})
+
+/**
+ * Presses at the input's point 0, which lies 5 units right of the query's lower-left corner,
+ * and drags by (30, 20) in `mode`; returns the input the steps were last computed for.
+ */
+async function dragNearCorner<I extends KdInput | RangeTreeInput>(
+  base: PlayerModule<unknown, I>,
+  input: I,
+  height: number,
+  mode: string,
+): Promise<I> {
+  const computeSteps = vi.fn((inp: I, m?: string) => base.computeSteps(inp, m))
+  const module: PlayerModule<unknown, I> = { ...base, randomInput: () => input, computeSteps }
+  const screen = await render(<StepPlayer module={module} />)
+  const label = base.modes!.find((m) => m.id === mode)!.label
+  await userEvent.selectOptions(screen.getByLabelText('Mode'), label)
+  await expect.poll(() => computeSteps.mock.lastCall?.[1]).toBe(mode)
+  const canvas = screen.getByLabelText('Drawing canvas')
+  const r = (canvas.element() as HTMLCanvasElement).getBoundingClientRect()
+  const at = (p: Pt) => ({ x: (p.x * r.width) / 775, y: ((height - p.y) * r.height) / height })
+  const from = input.points[0]
+  const calls = computeSteps.mock.calls.length
+  await userEvent.pointer([
+    { target: canvas, coords: at(from) },
+    { keys: '[MouseLeft>]' },
+    { target: canvas, coords: at({ x: from.x + 15, y: from.y + 10 }) },
+    { target: canvas, coords: at({ x: from.x + 30, y: from.y + 20 }) },
+    { keys: '[/MouseLeft]' },
+  ])
+  await expect.poll(() => computeSteps.mock.calls.length).toBeGreaterThan(calls)
+  await pause(50)
+  await screen.unmount()
+  return computeSteps.mock.lastCall![0]
+}
+
+for (const [name, base, height] of [
+  ['kd-tree', kdTreePlayer, 360],
+  ['range tree', rangeTreePlayer, 480],
+] as const)
+  test(`${name}: the handles follow the mode (a corner 5 units from a point)`, async () => {
+    const preset = base.presets!.find((p) => p.name === 'Textbook example')!.input as KdInput
+    const { x0, y0 } = preset.query
+    const input = { points: [{ x: x0 + 5, y: y0 }, ...preset.points.slice(1)], query: { ...preset.query } }
+    const from = input.points[0]
+    const module = base as unknown as PlayerModule<unknown, KdInput>
+    const close = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y) < 1.5
+    // Query only: the press grabs the corner; the point stays put
+    const query = await dragNearCorner(module, input, height, 'query')
+    expect(query.points).toEqual(input.points)
+    expect(close({ x: query.query.x0, y: query.query.y0 }, { x: from.x + 30, y: from.y + 20 })).toBe(true)
+    expect([query.query.x1, query.query.y1]).toEqual([input.query.x1, input.query.y1])
+    // Build only, and Build and query as before: the same press moves the point
+    for (const mode of ['build', 'full']) {
+      const moved = await dragNearCorner(module, input, height, mode)
+      expect(moved.query).toEqual(input.query)
+      expect(close(moved.points[0], { x: from.x + 30, y: from.y + 20 })).toBe(true)
+      expect(moved.points.slice(1)).toEqual(input.points.slice(1))
+    }
+  })

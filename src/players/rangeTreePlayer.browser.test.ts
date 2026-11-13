@@ -221,11 +221,13 @@ test('point handles only with a build phase', () => {
     expect(moved.query).toEqual(input.query)
     expect(input.points[2]).toEqual(textbook().points[2])
   }
-  // Query only: the points stay put; Build only: the corners stay put
+  // Query only: the handles are the two corners; Build only: the points (see 'handles by mode')
+  expect(rangeTreePlayer.handles(input, 'query')).toEqual(h.slice(n))
+  expect(rangeTreePlayer.handles(input, 'build')).toEqual(h.slice(0, n))
   expect(rangeTreePlayer.moveHandle(input, 2, { x: 100, y: 200 }, 'query')).toBe(input)
   expect(rangeTreePlayer.moveHandle(input, n, { x: 50, y: 50 }, 'build')).toBe(input)
   expect(rangeTreePlayer.moveHandle(input, n + 1, { x: 300, y: 400 }, 'build')).toBe(input)
-  expect(rangeTreePlayer.moveHandle(input, n + 1, { x: 300, y: 400 }, 'query').query).toEqual({ x0: 104, y0: 131, x1: 300, y1: 400 })
+  expect(rangeTreePlayer.moveHandle(input, 1, { x: 300, y: 400 }, 'query').query).toEqual({ x0: 104, y0: 131, x1: 300, y1: 400 })
   // the corners are drawn (7 px squares at the handles) only in modes with a query phase
   const scene = makeScene()
   for (const mode of ['full', 'build', 'query']) {
@@ -613,4 +615,28 @@ test('modes, dimmed lines, presets, canvas, hint and colours', () => {
   // the tokens, identical in the light and dark blocks
   const tokens = { '--rt-current': C.current, '--rt-path': C.path, '--rt-canonical': C.canonical, '--rt-slab': C.slab, '--rt-faint': C.faint }
   for (const [name, value] of Object.entries(tokens)) expect(themeCss.split(`${name}: ${value};`).length - 1, name).toBe(2)
+})
+
+test('handles by mode: points with a build phase, corners with a query phase', () => {
+  const input = textbook()
+  const n = input.points.length
+  const corners = rangeTreePlayer.handles(input).slice(-2)
+  for (const mode of ['full', undefined]) expect(rangeTreePlayer.handles(input, mode)).toEqual([...input.points, ...corners])
+  expect(rangeTreePlayer.handles(input, 'build')).toEqual(input.points)
+  expect(rangeTreePlayer.handles(input, 'query')).toEqual(corners)
+  // moveHandle reads an index the way handles(input, mode) produced it
+  const lo = rangeTreePlayer.moveHandle(input, 0, { x: 40.4, y: 30.6 }, 'query')
+  expect(lo.query).toEqual({ ...input.query, x0: 40, y0: 31 })
+  expect(lo.points).toEqual(input.points)
+  const hi = rangeTreePlayer.moveHandle(input, 1, { x: 320, y: 420 }, 'query')
+  expect(hi.query).toEqual({ ...input.query, x1: 320, y1: 420 })
+  const pt = rangeTreePlayer.moveHandle(input, 1, { x: 60, y: 70 }, 'build')
+  expect(pt.points[1]).toEqual({ x: 60, y: 70 })
+  expect(pt.query).toEqual(input.query)
+  expect(rangeTreePlayer.moveHandle(input, n + 1, { x: 320, y: 420 }, 'full').query).toEqual(hi.query)
+  // indices outside the mode's list leave the input as it is
+  expect(rangeTreePlayer.moveHandle(input, 2, { x: 60, y: 70 }, 'query')).toBe(input)
+  expect(rangeTreePlayer.moveHandle(input, n, { x: 60, y: 70 }, 'build')).toBe(input)
+  expect(rangeTreePlayer.moveHandle(input, n + 2, { x: 60, y: 70 }, 'full')).toBe(input)
+  expect(input).toEqual(textbook())
 })

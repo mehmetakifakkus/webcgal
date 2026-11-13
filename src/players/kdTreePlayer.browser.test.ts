@@ -422,3 +422,28 @@ test('dimmed lines per mode', () => {
   expect(kdTreePlayer.computeSteps(input)).toEqual(kdTreePlayer.computeSteps(input, 'full'))
   expect(kdTreePlayer.computeSteps(input, 'build').every((s) => s.line <= 9)).toBe(true)
 })
+
+test('handles by mode: points with a build phase, corners with a query phase', () => {
+  const input = textbook()
+  const n = input.points.length
+  const corners = kdTreePlayer.handles(input).slice(-2)
+  // full mode (and no mode) keeps every handle, points first
+  for (const mode of ['full', undefined]) expect(kdTreePlayer.handles(input, mode)).toEqual([...input.points, ...corners])
+  expect(kdTreePlayer.handles(input, 'build')).toEqual(input.points)
+  expect(kdTreePlayer.handles(input, 'query')).toEqual(corners)
+  // moveHandle reads an index the way handles(input, mode) produced it
+  const lo = kdTreePlayer.moveHandle(input, 0, { x: 40, y: 30 }, 'query')
+  expect(lo.query).toEqual({ ...input.query, x0: 40, y0: 30 })
+  expect(lo.points).toEqual(input.points)
+  const hi = kdTreePlayer.moveHandle(input, 1, { x: 420, y: 320 }, 'query')
+  expect(hi.query).toEqual({ ...input.query, x1: 420, y1: 320 })
+  const pt = kdTreePlayer.moveHandle(input, 1, { x: 60, y: 70 }, 'build')
+  expect(pt.points[1]).toEqual({ x: 60, y: 70 })
+  expect(pt.query).toEqual(input.query)
+  expect(kdTreePlayer.moveHandle(input, n + 1, { x: 420, y: 320 }, 'full').query).toEqual(hi.query)
+  // indices outside the mode's list leave the input as it is
+  expect(kdTreePlayer.moveHandle(input, 2, { x: 60, y: 70 }, 'query')).toBe(input)
+  expect(kdTreePlayer.moveHandle(input, n, { x: 60, y: 70 }, 'build')).toBe(input)
+  expect(kdTreePlayer.moveHandle(input, -1, { x: 60, y: 70 }, 'full')).toBe(input)
+  expect(input).toEqual(textbook())
+})

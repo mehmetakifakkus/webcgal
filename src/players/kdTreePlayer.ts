@@ -7,7 +7,7 @@ import { KD_PRESETS } from '../geometry/algorithms/kdtree/presets'
 import { KD_PSEUDOCODE } from '../geometry/algorithms/kdtree/pseudocode'
 import { clipSegment, type Box } from '../geometry/algorithms/voronoi/clip'
 import type { KdInput, Pt } from '../geometry/types'
-import { clampToBox, cornerHandles as cornerHandlesIn, moveCorner } from './cornerHandles'
+import { clampToBox, cornerHandles as cornerHandlesIn, handleRefs, moveCorner, type HandleRef } from './cornerHandles'
 import { cssColor } from './cssColor'
 import type { Panel, PlayerModule } from './types'
 
@@ -32,6 +32,8 @@ const short = (v: number) => String(+v.toFixed(1))
 const clamp = (p: Pt): Pt => clampToBox(PLANE_BOX, p)
 /** The two corner handles, told apart when the rectangle has collapsed (see cornerHandles.ts). */
 const cornerHandles = (query: KdInput['query']): [Pt, Pt] => cornerHandlesIn(query, PLANE_BOX)
+/** The handles of `mode` (see handleRefs): the points unless "Query only", the corners unless "Build only". */
+const refs = (n: number, mode?: string): HandleRef[] => handleRefs(n, { points: mode !== 'query', corners: mode !== 'build' })
 const copyInput = (input: KdInput): KdInput => ({ points: input.points.map((q) => ({ x: q.x, y: q.y })), query: { ...input.query } })
 
 /** 14 points at least 20 apart, and a rectangle covering 26–39% of the plane box. */
@@ -99,17 +101,18 @@ const kdTreePlayer: PlayerModule<KdState, KdInput> = {
   hint: 'Drag the points or the two corners of the query rectangle. Keys: ← → to step, Space to play or pause.',
   randomInput,
   presets: KD_PRESETS.map(({ name, input }) => ({ name, input: copyInput(input) })),
-  handles: ({ points, query }) => [...points.map(clamp), ...cornerHandles(query)],
-  moveHandle(input, k, p) {
+  handles({ points, query }, mode) {
+    const corners = cornerHandles(query)
+    return refs(points.length, mode).map((r) => ('point' in r ? clamp(points[r.point]) : corners[r.corner]))
+  },
+  moveHandle(input, k, p, mode) {
+    const r = refs(input.points.length, mode)[k]
+    if (!r) return input
     const next = copyInput(input)
-    const n = input.points.length
     const q = clamp(p)
-    if (k < n) {
-      next.points[k] = q
-      return next
-    }
+    if ('point' in r) next.points[r.point] = q
     // the dragged corner stops at the opposite one (which stays put)
-    next.query = moveCorner(input.query, k !== n, q)
+    else next.query = moveCorner(input.query, r.corner === 1, q)
     return next
   },
   canvas: { width: WIDTH, height: HEIGHT },

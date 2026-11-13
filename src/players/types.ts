@@ -32,10 +32,13 @@ export type PlayerModule<S, I> = {
   randomInput(): I
   /** Named inputs offered in the "Preset" menu. */
   presets?: { name: string; input: I }[]
-  /** The draggable points of `input`, in scene coordinates. */
-  handles(input: I): Pt[]
   /**
-   * A copy of `input` with handle `index` moved to `p` (in `mode`, when the module has modes);
+   * The draggable points of `input` in `mode` (when the module has modes; StepPlayer passes the
+   * selected one), in scene coordinates. moveHandle and clickHandle get indices into this list.
+   */
+  handles(input: I, mode?: string): Pt[]
+  /**
+   * A copy of `input` with handle `index` (of handles(input, mode)) moved to `p` (in `mode`, when the module has modes);
    * `input` itself is left unchanged. Returning `input` itself means the handle stays put.
    */
   moveHandle(input: I, index: number, p: Pt, mode?: string): I

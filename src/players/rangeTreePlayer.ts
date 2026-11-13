@@ -8,7 +8,7 @@ import type { RTMode, RTNodeView, RTState } from '../geometry/algorithms/rangetr
 import { rtSteps } from '../geometry/algorithms/rangetree/rtSteps'
 import type { Box } from '../geometry/algorithms/voronoi/clip'
 import type { Pt, RangeTreeInput } from '../geometry/types'
-import { clampToBox, cornerHandles, moveCorner } from './cornerHandles'
+import { clampToBox, cornerHandles, handleRefs, moveCorner, type HandleRef } from './cornerHandles'
 import { cssColor } from './cssColor'
 import type { Panel, PlayerModule } from './types'
 
@@ -45,6 +45,11 @@ const copyInput = (input: RangeTreeInput): RangeTreeInput => ({
   points: input.points.map((q) => ({ x: q.x, y: q.y })),
   query: { ...input.query },
 })
+/** The handles of `mode` (see handleRefs): the points unless "Query only", the corners unless "Build only". */
+const refs = (n: number, mode?: string): HandleRef[] => {
+  const m = modeOf(mode)
+  return handleRefs(n, { points: m !== 'query', corners: m !== 'build' })
+}
 /** A dragged position: integer coordinates (so step texts compare what they show), in the plane area. */
 const snap = (p: Pt): Pt => clampToBox(RT_PLANE, { x: Math.round(p.x), y: Math.round(p.y) })
 
@@ -124,17 +129,17 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
   hint: 'Drag the points or the corners of the query rectangle. Keys: ← → to step, Space to play or pause.',
   randomInput: () => randomRangeTreeInput(),
   presets: RT_PRESETS.map(({ name, input }) => ({ name, input: copyInput(input) })),
-  // StepPlayer asks for the handles without a mode: all of them, and moveHandle keeps the
-  // points put in "Query only" and the corners in "Build only"
-  handles: ({ points, query }) => [...points.map((p) => clampToBox(RT_PLANE, p)), ...cornerHandles(query, RT_PLANE)],
+  handles({ points, query }, mode) {
+    const corners = cornerHandles(query, RT_PLANE)
+    return refs(points.length, mode).map((r) => ('point' in r ? clampToBox(RT_PLANE, points[r.point]) : corners[r.corner]))
+  },
   moveHandle(input, k, p, mode) {
-    const m = modeOf(mode)
-    const n = input.points.length
-    if (k < 0 || k > n + 1 || (k < n && m === 'query') || (k >= n && m === 'build')) return input
+    const r = refs(input.points.length, mode)[k]
+    if (!r) return input
     const next = copyInput(input)
     const q = snap(p)
-    if (k < n) next.points[k] = q
-    else next.query = moveCorner(input.query, k === n + 1, q)
+    if ('point' in r) next.points[r.point] = q
+    else next.query = moveCorner(input.query, r.corner === 1, q)
     return next
   },
   canvas: { width: WIDTH, height: HEIGHT },

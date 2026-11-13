@@ -35,6 +35,8 @@ const CORNER_SIZE = 7
 /** Trees with more leaves than this are drawn without labels (leaves would be under 24 px apart). */
 const MAX_LABELLED_LEAVES = 16
 const MAX_POINT_LABELS = 20
+/** Points closer than this to an earlier labelled point share its label (see labelGroups). */
+const LABEL_MERGE = 8
 const WHITE = '#ffffff'
 
 const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
@@ -82,6 +84,21 @@ function layout(root: LNode | null, box: typeof MAIN, slot: number): Map<number,
   }
   place(root, 0)
   return out
+}
+
+/**
+ * Plane labels of coincident or nearly coincident points: a point within LABEL_MERGE of an
+ * earlier labelled point joins that point's label instead of getting its own. Each group lists
+ * point indices, the labelled point first.
+ */
+function labelGroups(points: Pt[]): number[][] {
+  const groups: number[][] = []
+  points.forEach((q, i) => {
+    const g = groups.find((m) => Math.hypot(points[m[0]].x - q.x, points[m[0]].y - q.y) <= LABEL_MERGE)
+    if (g) g.push(i)
+    else groups.push([i])
+  })
+  return groups
 }
 
 /** Ids of `v` and all nodes below it. */
@@ -285,8 +302,8 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
               name: `assoc-node-split-${v.id}`,
             }),
           )
-          // the split value on y, which the 1-D query compares with
-          if (aLabelled) items.push(text(fmt(v.value), q.x, q.y - 3, 8, 'center', f ? WHITE : c.ink))
+          // the split value on y, which the 1-D query compares with, rounded so it fits the circle
+          if (aLabelled) items.push(text(String(Math.round(v.value)), q.x, q.y - 3, 8, 'center', f ? WHITE : c.ink))
           draw(v.left)
           draw(v.right)
         } else {
@@ -306,12 +323,14 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
     // the points of the canonical subtree whose associated tree is shown, ringed
     const ringed = new Set(!build && s.assocShown !== null ? nodes[s.assocShown].points : [])
     if (n <= MAX_POINT_LABELS)
-      points.forEach((q, i) => {
+      for (const members of labelGroups(points)) {
+        const q = points[members[0]]
         // upper right; to the left / below at the plane's right / top edge, which only a drag reaches
         const right = q.x <= RT_PLANE.x1 - 15
         const up = q.y <= RT_PLANE.y1 - 13
-        text(pointLabel(i), q.x + (right ? 6 : -6), q.y + (up ? 5 : -13), 10, right ? 'left' : 'right')
-      })
+        const content = members.length <= 3 ? members.map(pointLabel).join(', ') : `${pointLabel(members[0])} +${members.length - 1}`
+        text(content, q.x + (right ? 6 : -6), q.y + (up ? 5 : -13), 10, right ? 'left' : 'right')
+      }
     points.forEach((q, i) => {
       if (ringed.has(i)) new P.Path.Circle({ center: pt(q), radius: POINT_RADIUS + 3.5, strokeColor: c.canonical, strokeWidth: 1.5 })
       if (current?.kind === 'leaf' && current.point === i && !build)
@@ -359,13 +378,17 @@ const rangeTreePlayer: PlayerModule<RTState, RangeTreeInput> = {
             { text: `${count(s.canonical.length, 'canonical subtree')} · ${count(k.assocQueries, 'associated query', 'associated queries')}` },
             ...(s.checked.length ? [{ text: `checked one by one: ${labels(s.checked)}` }] : []),
           ]
-    // each point is stored once per main-tree node on its root path: at most n·(depth + 1)
-    const bound = n * (k.depth + 1)
+    // the whole tree's totals, in the build too (`nodes` is always the full tree; `counts` would
+    // be running totals there): each point is stored once per main-tree node on its root path,
+    // so at most n·(depth + 1)
+    const total = s.nodes.reduce((sum, x) => sum + x.points.length, 0)
+    const depth = s.nodes.reduce((d, x) => Math.max(d, x.depth), 0)
+    const bound = n * (depth + 1)
     const storage = [
       {
         text:
-          `n = ${n} · main tree ${count(k.nodes, 'node')} · associated trees ${count(k.storage, 'leaf', 'leaves')} ` +
-          `${k.storage === bound ? '=' : '≤'} n·(depth + 1) = ${bound}`,
+          `n = ${n} · main tree ${count(s.nodes.length, 'node')} · associated trees ${count(total, 'leaf', 'leaves')} ` +
+          `${total === bound ? '=' : '≤'} n·(depth + 1) = ${bound}`,
       },
       { text: `a kd-tree stores n = ${n} ${n === 1 ? 'point' : 'points'} once` },
     ]

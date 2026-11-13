@@ -6,7 +6,7 @@ import { randomPointSet } from '../geometry/algorithms/delaunay/verify'
 import { bruteForceRange } from '../geometry/algorithms/kdtree/verify'
 import { RT_PRESETS, randomRangeTreeInput } from '../geometry/algorithms/rangetree/presets'
 import { RT_LINE, RT_PSEUDOCODE } from '../geometry/algorithms/rangetree/pseudocode'
-import { RT_PLANE } from '../geometry/algorithms/rangetree/rangeTree'
+import { RT_PLANE, buildTree1D, type Tree1DNode } from '../geometry/algorithms/rangetree/rangeTree'
 import { distance } from '../geometry/primitives'
 import type { Pt, RangeTreeInput } from '../geometry/types'
 import themeCss from '../styles/theme.css?raw'
@@ -46,7 +46,7 @@ const fill = (it: paper.Item) => it.fillColor?.toCSS(true)
 const stroke = (it: paper.Item) => it.strokeColor?.toCSS(true)
 const near = (a: number, b: number) => Math.abs(a - b) < 1e-6
 
-const C = { current: '#e66100', path: '#1a5fb4', canonical: '#26a269', slab: '#99c1f1', faint: '#c0bfbc' }
+const C = { current: '#e66100', path: '#1a5fb4', canonical: '#26a269', slab: '#99c1f1', faint: '#c0bfbc', ink: '#1c1e21', white: '#ffffff' }
 const inPlane = (p: Pt) => p.x >= RT_PLANE.x0 && p.x <= RT_PLANE.x1 && p.y >= RT_PLANE.y0 && p.y <= RT_PLANE.y1
 const preset = (name: string): RangeTreeInput => rangeTreePlayer.presets!.find((p) => p.name === name)!.input
 const textbook = () => preset('Textbook example')
@@ -57,12 +57,12 @@ function seededInput(seed: number, n: number): RangeTreeInput {
   const points = randomPointSet(rng, n, { x0: 30, y0: 30, x1: 340, y1: 450 }, 12).map((p) => ({ x: Math.round(p.x), y: Math.round(p.y) }))
   return { points, query: { x0: 90, y0: 100, x1: 260, y1: 330 } }
 }
-/** Random inputs as the player makes them (randomRangeTreeInput), with 16 points. */
-function random16(count: number): RangeTreeInput[] {
+/** Random inputs as the player makes them (randomRangeTreeInput), with `n` points. */
+function randomN(n: number, count: number): RangeTreeInput[] {
   const out: RangeTreeInput[] = []
   for (let seed = 1; out.length < count; seed++) {
     const input = randomRangeTreeInput(mulberry32(seed))
-    if (input.points.length === 16) out.push(input)
+    if (input.points.length === n) out.push(input)
   }
   return out
 }
@@ -259,8 +259,8 @@ test('panels by phase', () => {
   expect(first[1].rows).toHaveLength(0)
   expect(first[1].empty).toBe('Nothing reported yet')
   expect(first[0].empty).toBe('No node yet')
-  // build: running totals
-  expect(rows(first[2])).toEqual(['n = 10 · main tree 1 node · associated trees 10 leaves = n·(depth + 1) = 10', 'a kd-tree stores n = 10 points once'])
+  // the whole tree's totals, in the build too
+  expect(rows(first[2])).toEqual(['n = 10 · main tree 19 nodes · associated trees 44 leaves ≤ n·(depth + 1) = 50', 'a kd-tree stores n = 10 points once'])
 
   const leaf = steps.find((s) => s.line === RT_LINE.leaf)!
   const v = leaf.state.nodes[leaf.state.current!]
@@ -299,6 +299,11 @@ test('panels by phase', () => {
   expect(rows(rangeTreePlayer.panels!(s16[s16.length - 1], grid())[2])[0]).toBe(
     'n = 16 · main tree 31 nodes · associated trees 80 leaves = n·(depth + 1) = 80',
   )
+  // the Storage row never shows running totals: every step of the grid has the Done step's row
+  const full16 = rangeTreePlayer.computeSteps(grid())
+  const doneRow = rows(rangeTreePlayer.panels!(full16[full16.length - 1], grid())[2])
+  expect(rows(rangeTreePlayer.panels!(full16[0], grid())[2])).toEqual(doneRow)
+  for (const step of full16) expect(rows(rangeTreePlayer.panels!(step, grid())[2])).toEqual(doneRow)
   // degenerate sizes
   const one: RangeTreeInput = { points: [{ x: 100, y: 100 }], query: input.query }
   const s1 = rangeTreePlayer.computeSteps(one)
@@ -349,25 +354,48 @@ test('associated tree drawn for assocShown', () => {
         expect(it.bounds.top).toBeGreaterThanOrEqual(15)
         expect(it.bounds.bottom).toBeLessThanOrEqual(235)
       }
-      // its search paths and reported leaves on the 1DRangeQuery step only
-      const blue = nodes.filter((it) => fill(it) === C.path)
-      const green = nodes.filter((it) => fill(it) === C.canonical)
-      if (s.assocPaths) {
-        const pathIds = new Set([...s.assocPaths.pathLo, ...s.assocPaths.pathHi])
-        expect(blue.length + green.length).toBeGreaterThan(0)
-        // reported leaves green: every point of the result
-        const greenLeaves = nodes.filter((it) => it.name.startsWith('assoc-node-leaf') && fill(it) === C.canonical)
-        expect(greenLeaves.length).toBe(s.assocPaths.result.length)
-        expect(blue.length).toBeLessThanOrEqual(pathIds.size)
+      // every node's colour by id, walking the rebuilt tree (its ids are those of assocPaths):
+      // split nodes green if reported whole, blue if on a search path, white otherwise; leaves
+      // green if their point is in the result, blue if on a search path, ink otherwise. No paths
+      // before the 1DRangeQuery step.
+      const q1 = s.assocPaths
+      const onPath = new Set(q1 ? [...q1.pathLo, ...q1.pathHi] : [])
+      const reportedRoots = new Set(q1?.reported ?? [])
+      const result = new Set(q1?.result ?? [])
+      const tree = buildTree1D(input.points, v.points, 'y')
+      const shape = (name: string) => {
+        const found = nodes.filter((it) => it.name === name)
+        expect(found, name).toHaveLength(1)
+        return found[0]
+      }
+      const walk = (u: Tree1DNode) => {
+        if (u.kind === 'split') {
+          const want = reportedRoots.has(u.id) ? C.canonical : onPath.has(u.id) ? C.path : C.white
+          expect(fill(shape(`assoc-node-split-${u.id}`)), `${step.description}: split ${u.id}`).toBe(want)
+          walk(u.left)
+          walk(u.right)
+        } else {
+          const want = result.has(u.point) ? C.canonical : onPath.has(u.id) ? C.path : C.ink
+          expect(fill(shape(`assoc-node-leaf-${u.id}`)), `${step.description}: leaf ${u.id}`).toBe(want)
+        }
+      }
+      walk(tree.root!)
+      if (q1) {
+        expect(onPath.size).toBeGreaterThan(0)
         // the canonical child is green in the main tree, the path node v orange
         expect(fill(byName(scene, `main-${s.assocShown}`))).toBe(C.canonical)
         expect(fill(byName(scene, `main-${s.current}`))).toBe(C.current)
-      } else {
-        expect(blue).toHaveLength(0)
-        expect(green).toHaveLength(0)
       }
+      // split values on y are shown as integers, so they fit their circle
+      const values = inGroup.filter((t): t is paper.PointText => t instanceof scene.paper.PointText && /^\d/.test(t.content))
+      expect(values).toHaveLength(v.points.length - 1)
+      for (const t of values) expect(t.content).toMatch(/^\d+$/)
     }
   }
+  // a split value with decimals (a point placed by the API, not by a drag) is rounded on the canvas
+  const odd: RangeTreeInput = { points: [{ x: 100, y: 120.46 }, { x: 200, y: 300 }], query: { x0: 50, y0: 50, x1: 250, y1: 400 } }
+  rangeTreePlayer.render(scene, rangeTreePlayer.computeSteps(odd, 'build')[0], odd)
+  expect(texts(scene).map((t) => t.content)).toContain('120')
 })
 
 test('build phase: unbuilt nodes faint, the current node and its points orange, its split line', () => {
@@ -474,8 +502,52 @@ test('labels fit at n = 16', () => {
     steps.find((s) => s.line === RT_LINE.loAssoc)!,
     steps[steps.length - 1],
   ])
-  for (const input of random16(6)) check(input, 'full', (steps) => [steps[0], steps.find((s) => s.line === RT_LINE.loAssoc || s.line === RT_LINE.hiAssoc) ?? steps[0], steps[steps.length - 1]])
+  const firstOneDLast = (steps: ReturnType<typeof rangeTreePlayer.computeSteps>) => [
+    steps[0],
+    steps.find((s) => s.line === RT_LINE.loAssoc || s.line === RT_LINE.hiAssoc) ?? steps[0],
+    steps[steps.length - 1],
+  ]
+  for (const input of randomN(16, 6)) check(input, 'full', firstOneDLast)
+  // unbalanced, n = 13: leaves at depths 3 and 4, in every step of the grid's first 13 points
+  // and in random 13-point inputs
+  const grid13: RangeTreeInput = { points: grid().points.slice(0, 13), query: grid().query }
+  check(grid13, 'full', (steps) => steps)
+  for (const input of randomN(13, 4)) check(input, 'full', firstOneDLast)
   check(preset('Thin vertical strip'), 'query', (steps) => steps)
+  // coincident points share one label, so they do not pile up (see the next test)
+  check({ points: Array.from({ length: 16 }, () => ({ x: 150, y: 200 })), query: grid().query }, 'full', firstOneDLast)
+})
+
+test('plane labels of coincident points are merged', () => {
+  const scene = makeScene()
+  const planeLabels = (input: RangeTreeInput) => {
+    rangeTreePlayer.render(scene, rangeTreePlayer.computeSteps(input)[0], input)
+    return texts(scene).filter((t) => t.bounds.right < 367)
+  }
+  const Q = { x0: 50, y0: 50, x1: 250, y1: 400 }
+  const same = (k: number, extra: Pt[] = []) => ({ points: [...Array.from({ length: k }, () => ({ x: 150, y: 200 })), ...extra], query: Q })
+  // 16 points at one spot: one label
+  expect(planeLabels(same(16)).map((t) => t.content)).toEqual(['p1 +15'])
+  // two points 1 px apart: one label at the first point
+  const two = planeLabels({ points: [{ x: 150, y: 200 }, { x: 151, y: 200 }], query: Q })
+  expect(two.map((t) => t.content)).toEqual(['p1, p2'])
+  expect(two[0].bounds.left).toBeCloseTo(156, 0)
+  // up to three are listed, more are counted; 8 px still merges, 9 px does not
+  expect(planeLabels(same(3)).map((t) => t.content)).toEqual(['p1, p2, p3'])
+  expect(planeLabels(same(4)).map((t) => t.content)).toEqual(['p1 +3'])
+  expect(planeLabels({ points: [{ x: 100, y: 100 }, { x: 108, y: 100 }, { x: 300, y: 300 }, { x: 300, y: 309 }], query: Q }).map((t) => t.content)).toEqual([
+    'p1, p2',
+    'p3',
+    'p4',
+  ])
+  // merging follows the earlier labelled point: p3 is within 8 of p2 but not of p1, and p2 has no label
+  expect(planeLabels({ points: [{ x: 100, y: 100 }, { x: 107, y: 100 }, { x: 114, y: 100 }], query: Q }).map((t) => t.content)).toEqual([
+    'p1, p2',
+    'p3',
+  ])
+  // the tree labels are unchanged: one per main-tree node
+  rangeTreePlayer.render(scene, rangeTreePlayer.computeSteps(same(16))[0], same(16))
+  expect(texts(scene).filter((t) => t.bounds.left > 370 && t.bounds.top >= 250 && /^[vp]\d+$/.test(t.content))).toHaveLength(31)
 })
 
 test('modes, dimmed lines, presets, canvas, hint and colours', () => {

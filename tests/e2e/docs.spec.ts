@@ -175,3 +175,62 @@ test('the sidebar shows the active item, without scrolling the page', async ({ p
   await page.waitForTimeout(200);
   expect(await sidebarState(page, 'smallestEnclosingDisk')).toMatchObject({ inside: true, active: true });
 });
+
+test('activating a sidebar link keeps the sidebar, its scroll, the focus and the page scroll', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 });
+  await page.goto('documentation/Polygon');
+  await expect(page.getByRole('heading', { level: 1, name: 'Polygon' })).toBeVisible();
+  await expect(page.getByText('Loading…')).toHaveCount(0);
+  const nav = page.getByRole('navigation', { name: 'Documentation' });
+  // scroll the page and the sidebar part of the way; createPolygon's page is long enough to keep
+  // the window's scroll position (a shorter page would rightly scroll it back)
+  await page.mouse.wheel(0, 300);
+  await nav.evaluate((el) => (el.scrollTop = 150));
+  await page.waitForTimeout(200);
+  const before = await page.evaluate(() => {
+    const nav = document.querySelector('nav.docs-nav')!;
+    const n = nav.getBoundingClientRect();
+    const link = [...nav.querySelectorAll<HTMLAnchorElement>('.docs-nav-list a')].find((a) => a.textContent === 'createPolygon')!;
+    const r = link.getBoundingClientRect();
+    link.focus();
+    (window as unknown as { __nav: Element; __link: Element }).__nav = nav;
+    (window as unknown as { __nav: Element; __link: Element }).__link = link;
+    return { name: link.textContent!, visible: r.top >= n.top && r.bottom <= n.bottom, navScrollTop: nav.scrollTop, scrollY: window.scrollY };
+  });
+  expect(before.visible).toBe(true);
+  expect(before.scrollY).toBeGreaterThan(0);
+  expect(before.navScrollTop).toBe(150);
+  // a slow network: the item shows "Loading…" for a while; the page must not get shorter meanwhile
+  await page.route('**/assets/createPolygon-*.js', async (route) => {
+    await new Promise((r) => setTimeout(r, 600));
+    await route.continue();
+  });
+  await page.evaluate(() => {
+    const w = window as unknown as { __scrolls: number[] };
+    w.__scrolls = [];
+    const tick = () => {
+      w.__scrolls.push(window.scrollY);
+      if (w.__scrolls.length < 90) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('Loading…')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: before.name, exact: true })).toBeVisible();
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() => {
+    const w = window as unknown as { __nav: Element; __link: Element };
+    const nav = document.querySelector('nav.docs-nav')!;
+    return {
+      sameNav: w.__nav === nav,
+      focusOnLink: document.activeElement === w.__link,
+      active: w.__link.getAttribute('aria-current'),
+      navScrollTop: nav.scrollTop,
+      scrollY: window.scrollY,
+    };
+  });
+  expect(after).toEqual({ sameNav: true, focusOnLink: true, active: 'page', navScrollTop: before.navScrollTop, scrollY: before.scrollY });
+  // nor at any frame while it loaded
+  const scrolls = await page.evaluate(() => (window as unknown as { __scrolls: number[] }).__scrolls);
+  expect([...new Set(scrolls)]).toEqual([before.scrollY]);
+});

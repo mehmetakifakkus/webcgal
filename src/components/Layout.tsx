@@ -80,8 +80,9 @@ export default function Layout({ children }: { children: ReactNode }) {
       </header>
       {inAlgorithms && <AlgorithmsNav />}
       <main>
-        {/* keyed by path: a page error does not stick when navigating to another page */}
-        <ErrorBoundary key={pathname}>{children}</ErrorBoundary>
+        {/* reset by path: a page error does not stick when navigating to another page, and pages
+            that stay on screen across paths (the documentation sidebar) are not remounted */}
+        <ErrorBoundary resetKey={pathname}>{children}</ErrorBoundary>
       </main>
       <footer className="site-footer">
         <div className="site-footer-inner">

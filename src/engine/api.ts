@@ -26,6 +26,7 @@ import { createTriangulationDrawing, makeMonotone, triangulate } from './triangu
 import { circumcircle as circumcircleApi, createDelaunayDrawing, delaunay } from './delaunay'
 import { createVoronoiDrawing, voronoi, voronoiCells } from './voronoi'
 import { createKdTreeDrawing, kdTree, rangeQuery } from './kdTree'
+import { createRangeTreeDrawing, rangeTree, rangeTreeQuery } from './rangeTree'
 import { artGallery, createArtGalleryDrawing, visibilityPolygon } from './artGallery'
 import type { Scene } from './scene'
 import { createTextPointClass, type TextPoint } from './TextPoint'
@@ -63,6 +64,8 @@ export const API_NAMES = [
   'voronoi', 'drawVoronoi', 'voronoiCells',
   // kd-tree (points are an array of points; leaves and query results hold indices into the input)
   'kdTree', 'rangeQuery', 'drawKdTree',
+  // range tree (points are an array of points; leaves and query results hold indices into the input)
+  'rangeTree', 'rangeTreeQuery', 'drawRangeTree',
   // art gallery (polygons are a Polygon or an array of points; cameras and colours refer to the input vertices)
   'artGallery', 'visibilityPolygon', 'drawArtGallery',
   // environment
@@ -152,6 +155,7 @@ export function buildApi(
   const { drawTriangulation } = createDelaunayDrawing(ctx)
   const { drawVoronoi } = createVoronoiDrawing(ctx)
   const { drawKdTree } = createKdTreeDrawing(ctx)
+  const { drawRangeTree } = createRangeTreeDrawing(ctx)
   const { drawArtGallery } = createArtGalleryDrawing(ctx)
   const pts = (points: PointInput[]) => points.map(toPt)
 
@@ -253,6 +257,9 @@ export function buildApi(
     kdTree,
     rangeQuery,
     drawKdTree,
+    rangeTree,
+    rangeTreeQuery,
+    drawRangeTree,
     artGallery,
     visibilityPolygon,
     drawArtGallery,

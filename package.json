@@ -20,7 +20,8 @@
     "thumbnail:voronoi": "node scripts/thumbnail.mjs --slug voronoi --preset \"Textbook example\" --step 37",
     "thumbnail:smallestEnclosingDisk": "node scripts/thumbnail.mjs --slug smallestEnclosingDisk --preset \"Random example\" --step 32",
     "thumbnail:kdTree": "node scripts/thumbnail.mjs --slug kdTree --preset \"Textbook example\" --step 46 --pad 0.82",
-    "thumbnail:artGallery": "node scripts/thumbnail.mjs --slug artGallery --preset \"Comb\" --step 15 --pad 0.82"
+    "thumbnail:artGallery": "node scripts/thumbnail.mjs --slug artGallery --preset \"Comb\" --step 15 --pad 0.82",
+    "thumbnail:rangeTree": "node scripts/thumbnail.mjs --slug rangeTree --preset \"Textbook example\" --step 29 --pad 0.88"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

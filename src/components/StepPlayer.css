@@ -135,7 +135,8 @@
   transition: background-color 0.15s;
 }
 .pseudocode li::marker { color: var(--text-muted); font-size: 0.8em; }
-.pseudocode code { white-space: pre-wrap; font-family: inherit; font-size: inherit; }
+/* break-word: a long call that does not fit a narrow phone breaks inside a word rather than scrolling the page */
+.pseudocode code { white-space: pre-wrap; overflow-wrap: break-word; font-family: inherit; font-size: inherit; }
 .pseudocode li.active { background: var(--accent); color: var(--accent-contrast); box-shadow: var(--shadow-sm); }
 .pseudocode li.active::marker { color: var(--accent); font-weight: 700; }
 /* lines the current mode skips */

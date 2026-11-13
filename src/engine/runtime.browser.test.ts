@@ -10,8 +10,10 @@ import triangulationDemo from '../content/algorithms/triangulation/demo.js?raw'
 import delaunayDemo from '../content/algorithms/delaunay/demo.js?raw'
 import voronoiDemo from '../content/algorithms/voronoi/demo.js?raw'
 import kdTreeDemo from '../content/algorithms/kdTree/demo.js?raw'
+import rangeTreeDemo from '../content/algorithms/rangeTree/demo.js?raw'
 import artGalleryDemo from '../content/algorithms/artGallery/demo.js?raw'
 import { GALLERY_PRESETS } from '../geometry/algorithms/artGallery/presets'
+import { RT_PRESETS } from '../geometry/algorithms/rangetree/presets'
 
 const samples = import.meta.glob('./__fixtures__/legacy/sampleCodes/*.js', {
   query: '?raw',
@@ -1019,6 +1021,226 @@ describe('kd-tree api', () => {
     expect(exec(kdTreeDemo)).toEqual({ ok: true })
     expect(lines).toHaveLength(1)
     expect(lines[0].text).toMatch(/^\d+ point\(s\) in the range$/)
+  })
+})
+
+describe('range tree api', () => {
+  const errorsOf = (lines: OutputLine[], res: ReturnType<typeof run>) =>
+    [...lines, ...(res.ok ? [] : [res.error])].filter((l) => l.kind === 'error')
+  /** User code: `frozenDeep(o)` is true when `o` and every object below it are frozen. */
+  const FROZEN_DEEP = `
+    function frozenDeep(o) {
+      if (o === null || typeof o !== 'object') return true;
+      if (!Object.isFrozen(o)) return false;
+      return Object.keys(o).every(function (k) { return frozenDeep(o[k]); });
+    }`
+  /** User code: `leaves(v)` lists the point indices of the leaves below `v`, left to right. */
+  const LEAVES = `
+    function leaves(v) { return 'point' in v ? [v.point] : leaves(v.left).concat(leaves(v.right)); }`
+
+  test('four points in every input form give a deeply frozen tree with associated trees on y', () => {
+    const { exec, lines } = setup()
+    const res = exec(`${FROZEN_DEEP}${LEAVES}
+      var t = rangeTree([new TextPoint(10, 10), new Point(40, 30), [20, 50], { x: 60, y: 20 }]);
+      var r = t.root;
+      console.log(Object.keys(t).sort().join(','), t.size, t.depth, t.storage, frozenDeep(t));
+      console.log(Object.keys(r).sort().join(','), r.value, r.left.value, r.right.value, leaves(r).join(','));
+      console.log(r.assoc.value, r.assoc.left.value, r.assoc.right.value, leaves(r.assoc).join(','),
+        leaves(r.left.assoc).join(','), leaves(r.right.assoc).join(','));
+      console.log(Object.keys(r.left.left).sort().join(','), r.left.left.point, JSON.stringify(r.left.left.assoc), 'assoc' in r.assoc);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines.map((l) => l.text)).toEqual([
+      // x order p1, p3, p2, p4: the root splits at x = 20; n·(depth + 1) = 12 associated leaves
+      'depth,root,size,storage 4 2 12 true',
+      'assoc,left,right,value 20 10 40 0,2,1,3',
+      // y order p1 (10), p4 (20), p2 (30), p3 (50); the left child holds p1, p3 and the right p2, p4
+      '20 10 30 0,3,1,2 0,2 3,1',
+      'assoc,point 0 {"point":0} false',
+    ])
+  })
+
+  test('n = 0, 1 and 2', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var all = { x0: -1000, y0: -1000, x1: 1000, y1: 1000 };
+      var e = rangeTree([]);
+      var m = drawables.length;
+      drawRangeTree([], e);
+      console.log(JSON.stringify(e), rangeTreeQuery([], e, all).length, drawables.length - m);
+      var one = rangeTree([[5, 7]]);
+      drawRangeTree([[5, 7]], one);
+      console.log(JSON.stringify(one), rangeTreeQuery([[5, 7]], one, all).join(','),
+        rangeTreeQuery([[5, 7]], one, [[0, 0], [4, 4]]).length, drawables.length - m);
+      var two = rangeTree([[30, 0], [10, 5]]);
+      drawRangeTree([[30, 0], [10, 5]], two);
+      console.log(two.depth, two.storage, two.root.value, two.root.left.point, two.root.right.point, two.root.assoc.value,
+        rangeTreeQuery([[30, 0], [10, 5]], two, all).join(','), rangeTreeQuery([[30, 0], [10, 5]], two, [[10, 5], [20, 10]]).join(','),
+        drawables.length - m);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines.map((l) => l.text)).toEqual([
+      '{"root":null,"depth":0,"size":0,"storage":0} 0 0',
+      '{"root":{"point":0,"assoc":{"point":0}},"depth":0,"size":1,"storage":1} 0 0 0',
+      // x order p2, p1; y order p1 (0), p2 (5); one split line
+      '1 4 10 1 0 0 0,1 1 1',
+    ])
+  })
+
+  test('rangeTreeQuery gives the brute-force answer on random sets, ties and duplicates included', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var bad = 0;
+      for (var trial = 0; trial < 40; trial++) {
+        var n = 1 + (trial % 20);
+        // the second half of the trials uses a 4×4 grid of coordinates, so x, y and whole points repeat
+        var points = Points.createRandom(n).map(function (p) { return p.pos; });
+        if (trial >= 20) for (var i = 0; i < n; i++) points[i] = [100 * getRandomInt(1, 5), 80 * getRandomInt(1, 5)];
+        var xy = points.map(function (p) { return Array.isArray(p) ? { x: p[0], y: p[1] } : { x: p.x, y: p.y }; });
+        var tree = rangeTree(points);
+        var a = { x: getRandomInt(0, 775), y: getRandomInt(0, 360) };
+        var b = { x: getRandomInt(0, 775), y: getRandomInt(0, 360) };
+        if (trial % 5 === 0) b.x = a.x; // a rectangle of zero width
+        // corners in any order: rangeTreeQuery normalizes the rectangle
+        var r = { x0: a.x, y0: a.y, x1: b.x, y1: b.y };
+        var x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
+        var expected = [];
+        xy.forEach(function (p, i) { if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1) expected.push(i); });
+        if (rangeTreeQuery(points, tree, r).join(',') !== expected.join(',')) bad++;
+        if (tree.storage > n * (tree.depth + 1)) bad++;
+      }
+      console.log(bad);
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '0' }])
+  })
+
+  test('the presets give their pinned results', () => {
+    for (const p of RT_PRESETS) {
+      const { exec, lines } = setup()
+      const points = JSON.stringify(p.input.points)
+      const res = exec(`
+        var points = ${points};
+        var t = rangeTree(points);
+        console.log(rangeTreeQuery(points, t, ${JSON.stringify(p.input.query)}).join(','), t.storage, t.depth);
+      `)
+      expect(res, p.name).toEqual({ ok: true })
+      expect(lines, p.name).toEqual([{ kind: 'log', text: `${p.expected.reported.join(',')} ${p.expected.storage} ${p.expected.depth}` }])
+    }
+  })
+
+  test('the rectangle can be given by two points, in any corner order', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var points = [[100, 100], [250, 150], [300, 250], [450, 120], [600, 300], [220, 330]];
+      var tree = rangeTree(points);
+      console.log([
+        { x0: 200, y0: 100, x1: 500, y1: 300 },
+        { x0: 500, y0: 300, x1: 200, y1: 100 },
+        [[500, 300], [200, 100]],
+        [[200, 300], [500, 100]],
+        [new Point(500, 100), { x: 200, y: 300 }],
+      ].map(function (r) { return rangeTreeQuery(points, tree, r).join(','); }).join(' '));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1,2,3 1,2,3 1,2,3 1,2,3 1,2,3' }])
+  })
+
+  test('bad input is rejected with a clear message', () => {
+    const p = '[[0, 0], [10, 0], [0, 10]]'
+    const R = '[[0, 0], [5, 5]]'
+    const tree = (fn: string) => `${fn}: expected the result of rangeTree(points) for the same points`
+    const rect = 'rangeTreeQuery: expected a rectangle {x0, y0, x1, y1} or two points'
+    for (const [code, msg] of [
+      ["rangeTree([[0, 0], 'x'])", 'rangeTree: expected an array of points (item 2 is not a point)'],
+      ['rangeTree(5)', 'rangeTree: expected an array of points (got number)'],
+      ['rangeTree(null)', 'rangeTree: expected an array of points (got null)'],
+      [`rangeTreeQuery(${p}, rangeTree(${p}), 5)`, rect],
+      [`rangeTreeQuery(${p}, rangeTree(${p}), { x0: 0, y0: 0, x1: 'a', y1: 1 })`, rect],
+      [`rangeTreeQuery(${p}, rangeTree(${p}), { x0: 0, y0: 0, x1: NaN, y1: 1 })`, rect],
+      [`rangeTreeQuery(${p}, rangeTree(${p}), { x0: 0, y0: -Infinity, x1: 1, y1: 1 })`, rect],
+      [`rangeTreeQuery(${p}, rangeTree(${p}), [[0, 0]])`, rect],
+      [`rangeTreeQuery(${p}, rangeTree(${p}), [[0, 0], [NaN, 1]])`, rect],
+      // a paper Point passes the point check, but its coordinate is not finite
+      [`rangeTreeQuery(${p}, rangeTree(${p}), [new Point(Infinity, 0), [1, 1]])`, rect],
+      [`rangeTreeQuery([[0, 0], 3], rangeTree(${p}), ${R})`, 'rangeTreeQuery: expected an array of points (item 2 is not a point)'],
+      // built for other points: another size, or the same size in another order
+      [`rangeTreeQuery(${p}, rangeTree([[0, 0], [10, 0]]), ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery(${p}, rangeTree([[10, 0], [0, 0], [0, 10]]), ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery(${p}, rangeTree([[5, 0], [10, 0], [0, 10]]), ${R})`, tree('rangeTreeQuery')],
+      // the same x order, but another split value
+      [`rangeTreeQuery(${p}, rangeTree([[0, 0], [10, 0], [1, 10]]), ${R})`, tree('rangeTreeQuery')],
+      // hand-made objects
+      [`rangeTreeQuery(${p}, {}, ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery(${p}, null, ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery(${p}, { root: null }, ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery(${p}, { root: null, depth: 0, size: 3, storage: 0 }, ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery(${p}, { root: { value: 0, left: null, right: null, assoc: null }, depth: 1, size: 3, storage: 3 }, ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery([[0, 0]], { root: { point: 0 }, depth: 0, size: 1, storage: 1 }, ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery([[0, 0]], { root: { point: 0, assoc: { value: 'a' } }, depth: 0, size: 1, storage: 1 }, ${R})`, tree('rangeTreeQuery')],
+      [`rangeTreeQuery([[0, 0]], { root: { point: '0', assoc: { point: 0 } }, depth: 0, size: 1, storage: 1 }, ${R})`, tree('rangeTreeQuery')],
+      [`var v = { value: 0, assoc: { point: 0 } }; v.left = v; v.right = v;
+        rangeTreeQuery(${p}, { root: v, depth: 1, size: 3, storage: 3 }, ${R})`, tree('rangeTreeQuery')],
+      // a copy of a valid tree with one associated leaf, the storage or the depth changed
+      [`var t = JSON.parse(JSON.stringify(rangeTree(${p}))); t.root.left.left.assoc.point = 2;
+        rangeTreeQuery(${p}, t, ${R})`, tree('rangeTreeQuery')],
+      [`var t = JSON.parse(JSON.stringify(rangeTree(${p}))); t.root.assoc.left.left.point = 1;
+        rangeTreeQuery(${p}, t, ${R})`, tree('rangeTreeQuery')],
+      [`var t = JSON.parse(JSON.stringify(rangeTree(${p}))); t.storage = 9; rangeTreeQuery(${p}, t, ${R})`, tree('rangeTreeQuery')],
+      [`var t = JSON.parse(JSON.stringify(rangeTree(${p}))); t.depth = 1; rangeTreeQuery(${p}, t, ${R})`, tree('rangeTreeQuery')],
+      [`var t = JSON.parse(JSON.stringify(rangeTree(${p}))); t.root.value = 5; rangeTreeQuery(${p}, t, ${R})`, tree('rangeTreeQuery')],
+      ['drawRangeTree(5, rangeTree([]))', 'drawRangeTree: expected an array of points (got number)'],
+      [`drawRangeTree(${p}, {})`, tree('drawRangeTree')],
+      [`drawRangeTree(${p}, rangeTree([[0, 0]]))`, tree('drawRangeTree')],
+    ]) {
+      const { exec, lines } = setup()
+      const res = exec(code)
+      expect(res.ok, code).toBe(false)
+      const errors = errorsOf(lines, res)
+      expect(errors.some((l) => l.text.includes(msg)), `${code}: ${errors.map((l) => l.text).join(' | ')}`).toBe(true)
+    }
+  })
+
+  test('a JSON copy of a valid tree is accepted', () => {
+    const { exec, lines } = setup()
+    const res = exec(`
+      var points = [[60, 280], [110, 90], [150, 200], [200, 320], [240, 60], [110, 90]];
+      var copy = JSON.parse(JSON.stringify(rangeTree(points)));
+      console.log(rangeTreeQuery(points, copy, [[100, 80], [210, 330]]).join(','));
+    `)
+    expect(res).toEqual({ ok: true })
+    expect(lines).toEqual([{ kind: 'log', text: '1,2,3,5' }])
+  })
+
+  test('drawRangeTree draws one vertical split line per internal node, over the padded y-extent of the points', () => {
+    const { exec, lines } = setup()
+    // the 10 points of the kd-tree page's Textbook example
+    const res = exec(`${LEAVES}
+      var points = [[60, 280], [110, 90], [150, 200], [200, 320], [240, 60],
+        [280, 170], [330, 260], [370, 110], [410, 300], [430, 40]];
+      var tree = rangeTree(points);
+      var values = [];
+      (function walk(v) { if (!('point' in v)) { values.push(v.value); walk(v.left); walk(v.right); } })(tree.root);
+      var n = drawables.length;
+      drawRangeTree(points, tree, 'red');
+      var added = drawables.slice(n);
+      var ok = added.every(function (d, i) {
+        var b = d.bounds;
+        return d.strokeColor.equals(new Color('red')) && d.strokeWidth === 1 && b.width < 1e-6 &&
+          Math.abs(b.left - values[i]) < 1e-6 && Math.abs(b.top - 30) < 1e-6 && Math.abs(b.bottom - 330) < 1e-6;
+      });
+      console.log(added.length, values.join(','), ok);
+    `)
+    expect(res).toEqual({ ok: true })
+    // 9 split nodes in pre-order, each line from y = 40 − 10 to y = 320 + 10
+    expect(lines).toEqual([{ kind: 'log', text: '9 240,150,110,60,200,370,330,280,410 true' }])
+  })
+
+  test('the demo runs', () => {
+    const { exec, lines } = setup()
+    expect(exec(rangeTreeDemo)).toEqual({ ok: true })
+    expect(lines).toHaveLength(1)
+    expect(lines[0].text).toMatch(/^\d+ point\(s\) in the range, storage \d+$/)
   })
 })
 
